@@ -63,7 +63,7 @@ public class ConfigTracker {
         this.configsByMod = new ConcurrentHashMap<>();
         this.configSets.put(ModConfig.Type.CLIENT, Collections.synchronizedSet(new LinkedHashSet<>()));
         this.configSets.put(ModConfig.Type.COMMON, Collections.synchronizedSet(new LinkedHashSet<>()));
-//        this.configSets.put(ModConfig.Type.PLAYER, new ConcurrentSkipListSet<>());
+//        this.configSets.put(ModConfig.Type.PLAYER, Collections.synchronizedSet(new LinkedHashSet<>()));
         this.configSets.put(ModConfig.Type.SERVER, Collections.synchronizedSet(new LinkedHashSet<>()));
     }
 
@@ -121,7 +121,11 @@ public class ConfigTracker {
     }
 
     public String getConfigFileName(String modId, ModConfig.Type type) {
-        return Optional.ofNullable(configsByMod.getOrDefault(modId, Collections.emptyMap()).getOrDefault(type, null)).
-                map(ModConfig::getFullPath).map(Object::toString).orElse(null);
+        return getConfig(modId, type).map(ModConfig::getFullPath).map(Object::toString).orElse(null);
     }
+
+    public Optional<ModConfig> getConfig(final String modId, final ModConfig.Type type) {
+        return Optional.ofNullable(configsByMod.getOrDefault(modId, Collections.emptyMap()).getOrDefault(type, null));
+    }
+
 }
