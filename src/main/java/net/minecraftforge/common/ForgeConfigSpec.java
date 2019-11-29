@@ -60,9 +60,9 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 
-/*
- * Like {@link com.electronwill.nightconfig.core.ConfigSpec} except in builder format, and extended to accept comments, language keys,
- * and other things Forge configs would find useful.
+/**
+ * Like {@link com.electronwill.nightconfig.core.ConfigSpec} except in builder format, and extended
+ * to accept comments, language keys, and other things Forge configs would find useful.
  */
 public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfig> //TODO: Remove extends and pipe everything through getSpec/getValues?
 {
@@ -289,7 +289,7 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
             context.setComment(ObjectArrays.concat(context.getComment(), "Range: " + range.toString()));
             if (min.compareTo(max) > 0)
                 throw new IllegalArgumentException("Range min most be less then max.");
-            return define(path, defaultSupplier, range);
+            return define(path, defaultSupplier, range, clazz);
         }
         public <T> ConfigValue<T> defineInList(String path, T defaultValue, Collection<? extends T> acceptableValues) {
             return defineInList(split(path), defaultValue, acceptableValues);
@@ -408,7 +408,7 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
             return new EnumValue<V>(this, define(path, new ValueSpec(defaultSupplier, validator, context), defaultSupplier).getPath(), defaultSupplier, converter, clazz);
         }
 
-        //boolean
+        //Boolean
         public BooleanValue define(String path, boolean defaultValue) {
             return define(split(path), defaultValue);
         }
@@ -439,7 +439,21 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
             return new DoubleValue(this, defineInRange(path, defaultSupplier, min, max, Double.class).getPath(), defaultSupplier);
         }
 
-        //Ints
+        //Float
+        public FloatValue defineInRange(String path, float defaultValue, float min, float max) {
+            return defineInRange(split(path), defaultValue, min, max);
+        }
+        public FloatValue defineInRange(List<String> path, float defaultValue, float min, float max) {
+            return defineInRange(path, (Supplier<Float>)() -> defaultValue, min, max);
+        }
+        public FloatValue defineInRange(String path, Supplier<Float> defaultSupplier, float min, float max) {
+            return defineInRange(split(path), defaultSupplier, min, max);
+        }
+        public FloatValue defineInRange(List<String> path, Supplier<Float> defaultSupplier, float min, float max) {
+            return new FloatValue(this, defineInRange(path, defaultSupplier, min, max, Float.class).getPath(), defaultSupplier);
+        }
+
+        //Int
         public IntValue defineInRange(String path, int defaultValue, int min, int max) {
             return defineInRange(split(path), defaultValue, min, max);
         }
@@ -453,7 +467,7 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
             return new IntValue(this, defineInRange(path, defaultSupplier, min, max, Integer.class).getPath(), defaultSupplier);
         }
 
-        //Longs
+        //Long
         public LongValue defineInRange(String path, long defaultValue, long min, long max) {
             return defineInRange(split(path), defaultValue, min, max);
         }
@@ -569,7 +583,7 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
             validate(hasComment(), "Non-empty comment when empty expected");
             validate(langKey, "Non-null translation key when null expected");
             validate(range, "Non-null range when null expected");
-            validate(worldRestart, "Dangeling world restart value set to true");
+            validate(worldRestart, "Dangling world restart value set to true");
         }
 
         private void validate(Object value, String message)
@@ -761,6 +775,21 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
         protected Integer getRaw(Config config, List<String> path, Supplier<Integer> defaultSupplier)
         {
             return config.getIntOrElse(path, () -> defaultSupplier.get());
+        }
+    }
+
+    public static class FloatValue extends ConfigValue<Float>
+    {
+        FloatValue(Builder parent, List<String> path, Supplier<Float> defaultSupplier)
+        {
+            super(parent, path, defaultSupplier);
+        }
+
+        @Override
+        protected Float getRaw(Config config, List<String> path, Supplier<Float> defaultSupplier)
+        {
+            Number n = config.<Number>get(path);
+            return n == null ? defaultSupplier.get() : n.floatValue();
         }
     }
 
