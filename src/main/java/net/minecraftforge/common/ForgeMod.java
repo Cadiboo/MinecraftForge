@@ -22,6 +22,7 @@ package net.minecraftforge.common;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.*;
+import net.minecraftforge.fml.client.config.TestConfig;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLModIdMappingEvent;
@@ -118,6 +119,10 @@ public class ForgeMod implements WorldPersistenceHooks.WorldPersistenceHook
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ForgeConfig.clientSpec);
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ForgeConfig.serverSpec);
         modEventBus.register(ForgeConfig.class);
+        {
+        	// TODO TESTING ONLY
+            ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, TestConfig.COMMON_SPEC);
+        }
         // Forge does not display problems when the remote is not matching.
         ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.DISPLAYTEST, ()-> Pair.of(()->"ANY", (remote, isServer)-> true));
         StartupMessageManager.addModMessage("Forge version "+ForgeVersion.getVersion());
