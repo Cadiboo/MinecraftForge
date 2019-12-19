@@ -17,13 +17,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-package net.minecraftforge.fml.client.config;
+package net.minecraftforge.fml.client.config.entry;
 
-public interface IArrayEntry
+public interface IArrayEntry<T>
 {
     void keyTyped(char eventChar, int eventKey);
 
-    void updateCursorCounter();
+    void tick();
 
     void mouseClicked(int x, int y, int mouseEvent);
 
@@ -31,5 +31,5 @@ public interface IArrayEntry
 
     boolean isValueSavable();
 
-    Object getValue();
+    T getValue();
 }
