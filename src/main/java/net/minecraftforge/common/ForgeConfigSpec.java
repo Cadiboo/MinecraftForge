@@ -289,7 +289,7 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
             context.setComment(ObjectArrays.concat(context.getComment(), "Range: " + range.toString()));
             if (min.compareTo(max) > 0)
                 throw new IllegalArgumentException("Range min most be less then max.");
-            return define(path, defaultSupplier, range);
+            return define(path, defaultSupplier, range, clazz);
         }
         public <T> ConfigValue<T> defineInList(String path, T defaultValue, Collection<? extends T> acceptableValues) {
             return defineInList(split(path), defaultValue, acceptableValues);
