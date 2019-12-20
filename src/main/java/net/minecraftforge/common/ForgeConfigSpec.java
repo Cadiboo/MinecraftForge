@@ -439,6 +439,20 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
             return new DoubleValue(this, defineInRange(path, defaultSupplier, min, max, Double.class).getPath(), defaultSupplier);
         }
 
+        //Float
+        public FloatValue defineInRange(String path, float defaultValue, float min, float max) {
+            return defineInRange(split(path), defaultValue, min, max);
+        }
+        public FloatValue defineInRange(List<String> path, float defaultValue, float min, float max) {
+            return defineInRange(path, (Supplier<Float>)() -> defaultValue, min, max);
+        }
+        public FloatValue defineInRange(String path, Supplier<Float> defaultSupplier, float min, float max) {
+            return defineInRange(split(path), defaultSupplier, min, max);
+        }
+        public FloatValue defineInRange(List<String> path, Supplier<Float> defaultSupplier, float min, float max) {
+            return new FloatValue(this, defineInRange(path, defaultSupplier, min, max, Float.class).getPath(), defaultSupplier);
+        }
+
         //Int
         public IntValue defineInRange(String path, int defaultValue, int min, int max) {
             return defineInRange(split(path), defaultValue, min, max);
@@ -790,6 +804,26 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
         {
             Number n = config.<Number>get(path);
             return n == null ? defaultSupplier.get() : n.doubleValue();
+        }
+    }
+
+    public static class FloatValue extends ConfigValue<Float>
+    {
+        FloatValue(Builder parent, List<String> path, Supplier<Float> defaultSupplier)
+        {
+            super(parent, path, defaultSupplier);
+        }
+
+        @Override
+        public Float get() {
+            return super.get();
+        }
+
+        @Override
+        protected Float getRaw(Config config, List<String> path, Supplier<Float> defaultSupplier)
+        {
+            Number n = config.<Number>get(path);
+            return n == null ? defaultSupplier.get() : n.floatValue();
         }
     }
 
