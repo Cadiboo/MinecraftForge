@@ -209,7 +209,7 @@ public class ForgeConfig
 
     @SubscribeEvent
     public static void onFileChange(final ModConfig.ConfigReloading configEvent) {
-        LogManager.getLogger().fatal(CORE, "Forge config just got changed on the file system!");
+        LogManager.getLogger().debug(FORGEMOD, "Forge config just got changed on the file system!");
     }
 
     //General
