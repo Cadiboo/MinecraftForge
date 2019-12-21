@@ -5,6 +5,7 @@ import joptsimple.internal.Strings;
 import net.minecraft.item.DyeColor;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
+import net.minecraftforge.common.ForgeConfigSpec.ByteValue;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.common.ForgeConfigSpec.DoubleValue;
 import net.minecraftforge.common.ForgeConfigSpec.EnumValue;
@@ -38,6 +39,7 @@ public class TestConfig {
 	public static final ForgeConfigSpec COMMON_SPEC;
 
 	private static boolean aBoolean;
+	private static byte aByte;
 	private static int anInt;
 	private static float aFloat;
 	private static long aLong;
@@ -69,6 +71,7 @@ public class TestConfig {
 
 	private static void bakeAndDebugConfig() {
 		bakeAndDebug(() -> aBoolean, COMMON.aBoolean, $ -> aBoolean = $);
+		bakeAndDebug(() -> aByte, COMMON.aByte, $ -> aByte = $);
 		bakeAndDebug(() -> anInt, COMMON.anInt, $ -> anInt = $);
 		bakeAndDebug(() -> aFloat, COMMON.aFloat, $ -> aFloat = $);
 		bakeAndDebug(() -> aLong, COMMON.aLong, $ -> aLong = $);
@@ -112,6 +115,7 @@ public class TestConfig {
 	public static class Common {
 
 		private final BooleanValue aBoolean;
+		private final ByteValue aByte;
 		private final IntValue anInt;
 		private final FloatValue aFloat;
 		private final LongValue aLong;
@@ -136,6 +140,12 @@ public class TestConfig {
 					.translation("aBoolean")
 					.worldRestart()
 					.define("aBoolean", false);
+
+			aByte = builder
+					.comment("aByte")
+					.translation("aByte")
+					.worldRestart()
+					.defineInRange("aByte", (byte) 10, Byte.MIN_VALUE, Byte.MAX_VALUE);
 
 			anInt = builder
 					.comment("anInt")

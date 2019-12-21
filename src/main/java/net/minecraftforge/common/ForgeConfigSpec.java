@@ -453,6 +453,20 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
             return new FloatValue(this, defineInRange(path, defaultSupplier, min, max, Float.class).getPath(), defaultSupplier);
         }
 
+        //Byte
+        public ByteValue defineInRange(String path, byte defaultValue, byte min, byte max) {
+            return defineInRange(split(path), defaultValue, min, max);
+        }
+        public ByteValue defineInRange(List<String> path, byte defaultValue, byte min, byte max) {
+            return defineInRange(path, (Supplier<Byte>)() -> defaultValue, min, max);
+        }
+        public ByteValue defineInRange(String path, Supplier<Byte> defaultSupplier, byte min, byte max) {
+            return defineInRange(split(path), defaultSupplier, min, max);
+        }
+        public ByteValue defineInRange(List<String> path, Supplier<Byte> defaultSupplier, byte min, byte max) {
+            return new ByteValue(this, defineInRange(path, defaultSupplier, min, max, Byte.class).getPath(), defaultSupplier);
+        }
+
         //Int
         public IntValue defineInRange(String path, int defaultValue, int min, int max) {
             return defineInRange(split(path), defaultValue, min, max);
@@ -761,6 +775,20 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
         BooleanValue(Builder parent, List<String> path, Supplier<Boolean> defaultSupplier)
         {
             super(parent, path, defaultSupplier);
+        }
+    }
+
+    public static class ByteValue extends ConfigValue<Byte>
+    {
+        ByteValue(Builder parent, List<String> path, Supplier<Byte> defaultSupplier)
+        {
+            super(parent, path, defaultSupplier);
+        }
+
+        @Override
+        protected Byte getRaw(Config config, List<String> path, Supplier<Byte> defaultSupplier)
+        {
+            return config.getByteOrElse(path, defaultSupplier.get());
         }
     }
 
