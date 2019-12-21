@@ -42,6 +42,7 @@ public class TestConfig {
 	private static float aFloat;
 	private static long aLong;
 	private static double aDouble;
+	private static String aString;
 	private static DyeColor anEnum;
 	private static List<String> aStringList;
 	private static List<? extends String> aStringListOld;
@@ -73,6 +74,7 @@ public class TestConfig {
 		bakeAndDebug(() -> aLong, COMMON.aLong, $ -> aLong = $);
 		bakeAndDebug(() -> aDouble, COMMON.aDouble, $ -> aDouble = $);
 		bakeAndDebug(() -> anEnum, COMMON.anEnum, $ -> anEnum = $);
+		bakeAndDebug(() -> aString, COMMON.aString, $ -> aString = $);
 		bakeAndDebug(() -> aStringList, COMMON.aStringList, $ -> aStringList = $);
 		bakeAndDebug(() -> aStringListOld, COMMON.aStringListOld, $ -> aStringListOld = $);
 		bakeAndDebug(() -> aStringListList, COMMON.aStringListList, $ -> aStringListList = $);
@@ -115,6 +117,7 @@ public class TestConfig {
 		private final LongValue aLong;
 		private final DoubleValue aDouble;
 		private final EnumValue<DyeColor> anEnum;
+		private final ConfigValue<String> aString;
 		private final ConfigValue<List<String>> aStringList;
 		private final ConfigValue<List<? extends String>> aStringListOld;
 		private final ConfigValue<List<List<String>>> aStringListList;
@@ -162,6 +165,11 @@ public class TestConfig {
 					.comment("anEnum")
 					.translation("anEnum")
 					.defineEnum("anEnum", DyeColor.WHITE);
+
+			aString = builder
+					.comment("aString")
+					.translation("aString")
+					.define("aString", "Hello, World!");
 
 			aStringList = builder
 					.comment("aStringList")
