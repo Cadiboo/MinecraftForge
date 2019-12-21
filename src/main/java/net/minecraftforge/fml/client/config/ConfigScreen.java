@@ -55,11 +55,6 @@ public class ConfigScreen extends Screen {
 	 * The empty space above & below the buttons at the bottom of the screen, as well as between each button.
 	 */
 	public static final int MARGIN = 5;
-	/**
-	 * The longest size a label of a config element can be before it is trimmed with an ellipsis.
-	 * If it is trimmed, the new text (including the ellipsis) will always be equal to this value.
-	 */
-	public static final int MAX_LABEL_WIDTH = 200;
 
 	private static final Logger LOGGER = LogManager.getLogger();
 
@@ -71,12 +66,6 @@ public class ConfigScreen extends Screen {
 	 * The mod that this config is for.
 	 */
 	public final ModContainer modContainer;
-	/**
-	 * The size of the largest label of all the config elements on this screen.
-	 * Always smaller than or equal to {@link #MAX_LABEL_WIDTH};
-	 * Used for
-	 */
-	private final int longestLabelWidth;
 	/**
 	 * If true then the entryList will be re-created next time {@link #init()} is called.
 	 */
@@ -107,7 +96,6 @@ public class ConfigScreen extends Screen {
 		super(titleIn);
 		this.parentScreen = parentScreen;
 		this.modContainer = modContainer;
-		this.longestLabelWidth = 100; //TODO
 	}
 
 	public ConfigScreen(final ITextComponent title, final Screen parentScreen, final ModContainer modContainer, final Minecraft minecraft) {
@@ -293,17 +281,17 @@ public class ConfigScreen extends Screen {
 //
 
 //			this.entryList.unfocus();
-//			boolean requiresMcRestart = this.entryList.anyRequireMcRestart();
-//			boolean requiresWorldRestart = this.entryList.anyRequireWorldRestart();
-//
-//			if (requiresMcRestart) {
-//				canClose = false;
-//				getMinecraft().displayGuiScreen(new GuiMessageDialog(parentScreen, "fml.configgui.gameRestartTitle", new StringTextComponent(I18n.format("fml.configgui.gameRestartRequired")), "fml.configgui.confirmMessage"));
-//			}
-//			if (requiresWorldRestart && Minecraft.getInstance().world != null) {
-//				canClose = false;
-//				getMinecraft().displayGuiScreen(new GuiMessageDialog(parentScreen, "fml.configgui.worldRestartTitle", new StringTextComponent(I18n.format("fml.configgui.worldRestartRequired")), "fml.configgui.confirmMessage"));
-//			}
+			boolean requiresMcRestart = this.entryList.anyRequireMcRestart();
+			boolean requiresWorldRestart = this.entryList.anyRequireWorldRestart();
+
+			if (requiresMcRestart) {
+				canClose = false;
+				getMinecraft().displayGuiScreen(new GuiMessageDialog(parentScreen, "fml.configgui.gameRestartTitle", new StringTextComponent(I18n.format("fml.configgui.gameRestartRequired")), "fml.configgui.confirmMessage"));
+			}
+			if (requiresWorldRestart && Minecraft.getInstance().world != null) {
+				canClose = false;
+				getMinecraft().displayGuiScreen(new GuiMessageDialog(parentScreen, "fml.configgui.worldRestartTitle", new StringTextComponent(I18n.format("fml.configgui.worldRestartRequired")), "fml.configgui.confirmMessage"));
+			}
 		} catch (Throwable e) {
 			LOGGER.error("Error performing GuiConfig action:", e);
 		}
@@ -330,22 +318,9 @@ public class ConfigScreen extends Screen {
 	@Override
 	public void render(int mouseX, int mouseY, float partialTicks) {
 		this.renderBackground();
-
-		// GLScissors to hide overflow from entryList
-		{
-			GL11.glEnable(GL11.GL_SCISSOR_TEST);
-			double scale = getMinecraft().mainWindow.getGuiScaleFactor();
-			int fbHeight = getMinecraft().mainWindow.getFramebufferHeight();
-			// Scissors coords are relative to the bottom left of the screen
-			int scissorsX = (int) (entryList.getLeft() * scale);
-			int scissorsY = (int) (fbHeight - (entryList.getBottom() * scale));
-			int scissorsWidth = (int) (entryList.getWidth() * scale);
-			int scissorsHeight = (int) (entryList.getHeight() * scale);
-			GL11.glScissor(scissorsX, scissorsY, scissorsWidth, scissorsHeight);
-		}
 		this.entryList.render(mouseX, mouseY, partialTicks);
 //		this.minecraft.getTextureManager().bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
-//		innerBlit(0, 10000, 0, 10000, this.blitOffset, 0, 100, 0, 100);
+//		innerBlit(0, 10000, 0, 10000, this.getBlitOffset(), 0, 100, 0, 100);
 		GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
 		final int halfWidth = this.width / 2;

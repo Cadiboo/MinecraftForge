@@ -1,8 +1,10 @@
 package net.minecraftforge.fml.client.config.entry;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.client.gui.widget.list.AbstractList;
+import net.minecraft.client.gui.widget.list.AbstractOptionList;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
@@ -11,6 +13,7 @@ import net.minecraftforge.fml.client.config.GuiButtonExt;
 import net.minecraftforge.fml.client.config.HoverChecker;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,7 +25,7 @@ import static net.minecraftforge.fml.client.config.GuiUtils.UNDO_CHAR;
  * Provides a base entry for others to extend.
  * Handles drawing the prop label (if drawLabel == true) and the Undo/Default buttons.
  */
-public abstract class ConfigListEntry extends AbstractList.AbstractListEntry<ConfigListEntry> implements IConfigScreenListEntry {
+public abstract class ConfigListEntry extends AbstractOptionList.Entry<ConfigListEntry> implements IConfigScreenListEntry {
 
 	/**
 	 * The size of the undoChangesButton and the resetToDefaultButton.
@@ -42,7 +45,6 @@ public abstract class ConfigListEntry extends AbstractList.AbstractListEntry<Con
 	protected final GuiButtonExt undoChangesButton, resetToDefaultButton;
 	protected final List<String> toolTip, undoToolTip, defaultToolTip;
 	protected HoverChecker tooltipHoverChecker, undoChangesButtonChecker, resetToDefaultButtonHoverChecker;
-	protected boolean isValidValue = true;
 	protected boolean drawLabel;
 
 	public ConfigListEntry(ConfigScreen owningScreen, ConfigEntryListWidget owningEntryList, IConfigValueElement configElement) {
@@ -56,8 +58,10 @@ public abstract class ConfigListEntry extends AbstractList.AbstractListEntry<Con
 //		else
 		this.name = configElement.getName();
 		this.children().add(this.undoChangesButton = new GuiButtonExt(0, 0, 18, 18, UNDO_CHAR, b -> {
+			this.undoChanges();
 		}));
 		this.children().add(this.resetToDefaultButton = new GuiButtonExt(0, 0, 18, 18, RESET_CHAR, b -> {
+			this.resetToDefault();
 		}));
 
 		this.undoChangesButtonChecker = new HoverChecker(this.undoChangesButton, 500);
@@ -69,16 +73,16 @@ public abstract class ConfigListEntry extends AbstractList.AbstractListEntry<Con
 
 		this.drawLabel = true;
 
-//		String comment;
-//
-//		comment = I18n.format(configElement.getLanguageKey() + ".tooltip").replace("\\n", "\n");
-//
-//		if (!comment.equals(configElement.getLanguageKey() + ".tooltip"))
-//			Collections.addAll(toolTip, (TextFormatting.GREEN + name + "\n" + TextFormatting.YELLOW + removeTag(comment, "[default:", "]")).split("\n"));
-//		else if (configElement.getComment() != null && !configElement.getComment().trim().isEmpty())
-//			Collections.addAll(toolTip, (TextFormatting.GREEN + name + "\n" + TextFormatting.YELLOW + removeTag(configElement.getComment(), "[default:", "]")).split("\n"));
-//		else
-//			Collections.addAll(toolTip, (TextFormatting.GREEN + name + "\n" + TextFormatting.RED + "No tooltip defined.").split("\n"));
+		String comment;
+
+		comment = I18n.format(configElement.getTranslationKey() + ".tooltip").replace("\\n", "\n");
+
+		if (!comment.equals(configElement.getTranslationKey() + ".tooltip"))
+			Collections.addAll(toolTip, (TextFormatting.GREEN + name + "\n" + TextFormatting.YELLOW + removeTag(comment, "[default:", "]")).split("\n"));
+		else if (configElement.getComment() != null && !configElement.getComment().trim().isEmpty())
+			Collections.addAll(toolTip, (TextFormatting.GREEN + name + "\n" + TextFormatting.YELLOW + removeTag(configElement.getComment(), "[default:", "]")).split("\n"));
+		else
+			Collections.addAll(toolTip, (TextFormatting.GREEN + name + "\n" + TextFormatting.RED + "No tooltip defined.").split("\n"));
 
 //		if ((configElement.getType() == ConfigGuiType.INTEGER
 //				&& (Integer.valueOf(configElement.getMinValue().toString()) != Integer.MIN_VALUE || Integer.valueOf(configElement.getMaxValue().toString()) != Integer.MAX_VALUE))
@@ -94,15 +98,15 @@ public abstract class ConfigListEntry extends AbstractList.AbstractListEntry<Con
 
 	@Override
 	public void render(final int index, final int startY, final int startX, final int width, final int height, final int mouseX, final int mouseY, final boolean isHovered, final float partialTicks) {
-		ConfigEntryListWidget.drawCuboid(startX, startY, startX + width, startY + height, 0, 1, 1, 1);
+		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 
 		final boolean isChanged = isChanged();
 
 		if (drawLabel) {
 			String formatting = "" + TextFormatting.GRAY;
 			if (isChanged)
-				formatting += "" + TextFormatting.ITALIC + TextFormatting.WHITE;
-			if (!isValidValue)
+				formatting += "" + TextFormatting.WHITE + TextFormatting.ITALIC;
+			if (!isValidValue())
 				formatting += TextFormatting.RED;
 			this.minecraft.fontRenderer.drawString(
 					formatting + this.name,
@@ -111,25 +115,55 @@ public abstract class ConfigListEntry extends AbstractList.AbstractListEntry<Con
 					0xFFFFFF);
 		}
 
+		final int buttonSize = height;
+
+		// Changing x coordinate.
+		// After use it is the largest x coordinate before the buttons.
+		// After use it is comparable to "startX + width - buttonsWidth"
 		int posX = startX + width;
 
-		posX -= BUTTON_SPACER + BUTTON_SIZE;
-		undoChangesButton.x = posX;
-		undoChangesButton.y = startY;
-		undoChangesButton.active = enabled() && isChanged;
-		undoChangesButton.renderButton(mouseX, mouseY, partialTicks);
+		posX -= BUTTON_SPACER + buttonSize;
+		preRenderWidget(undoChangesButton, posX, startY, buttonSize, buttonSize);
+		undoChangesButton.active &= isChanged;
 
-		posX -= BUTTON_SIZE + BUTTON_SPACER;
-		resetToDefaultButton.x = posX;
-		resetToDefaultButton.y = startY;
-		resetToDefaultButton.active = enabled() && !isDefault();
-		resetToDefaultButton.renderButton(mouseX, mouseY, partialTicks);
+		posX -= buttonSize + BUTTON_SPACER;
+		preRenderWidget(resetToDefaultButton, posX, startY, buttonSize, buttonSize);
+		resetToDefaultButton.active &= !isDefault();
 
 		posX -= BUTTON_SPACER; // Add a tiny bit of space between the entry and the undo/reset buttons
 		if (tooltipHoverChecker == null)
 			tooltipHoverChecker = new HoverChecker(startY, startY + height, startX, posX, 500);
 		else
 			tooltipHoverChecker.updateBounds(startY, startY + height, startX, posX);
+
+		final Widget widget = this.getWidget();
+		if (widget != null) {
+			final int widgetX = startX + this.owningEntryList.getLongestLabelWidth();
+			preRenderWidget(widget, widgetX, startY, posX - widgetX, height);
+		}
+
+		this.children().forEach(c -> c.render(mouseX, mouseY, partialTicks));
+	}
+
+	public abstract boolean isValidValue();
+
+	@Nullable
+	public abstract Widget getWidget();
+
+	protected void preRenderWidget(final Widget widget, final int x, final int y, final int width, final int height) {
+		// TextFieldWidget render larger than they should be
+		if (widget instanceof TextFieldWidget) {
+			widget.x = x + 2;
+			widget.y = y + 2;
+			widget.setWidth(width - 4);
+			widget.setHeight(height - 4);
+		} else {
+			widget.x = x;
+			widget.y = y;
+			widget.setWidth(width);
+			widget.setHeight(height);
+		}
+		widget.active = enabled();
 	}
 
 	@Override
@@ -160,7 +194,7 @@ public abstract class ConfigListEntry extends AbstractList.AbstractListEntry<Con
 	public abstract boolean isDefault();
 
 	@Override
-	public abstract void setToDefault();
+	public abstract void resetToDefault();
 
 	@Override
 	public abstract void undoChanges();
@@ -187,6 +221,8 @@ public abstract class ConfigListEntry extends AbstractList.AbstractListEntry<Con
 
 	@Override
 	public int getLabelWidth() {
+		if (!drawLabel)
+			return 0;
 		return this.minecraft.fontRenderer.getStringWidth(this.name);
 	}
 

@@ -19,17 +19,16 @@
 
 package net.minecraftforge.fml.client.config.entry;
 
-public interface IArrayEntry<T>
-{
-    void keyTyped(char eventChar, int eventKey);
+import net.minecraft.client.gui.INestedGuiEventHandler;
 
-    void tick();
+public interface IArrayEntry<T> extends INestedGuiEventHandler {
 
-    void mouseClicked(int x, int y, int mouseEvent);
+	void tick();
 
-    void drawToolTip(int mouseX, int mouseY);
+	void drawToolTip(int mouseX, int mouseY);
 
-    boolean isValueSavable();
+	boolean isValueSavable();
 
-    T getValue();
+	T getValue();
+
 }

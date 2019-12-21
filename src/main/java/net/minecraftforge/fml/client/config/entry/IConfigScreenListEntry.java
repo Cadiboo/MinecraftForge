@@ -71,7 +71,7 @@ public interface IConfigScreenListEntry extends INestedGuiEventHandler {
 	/**
 	 * Sets this entry's value to the default value.
 	 */
-	void setToDefault();
+	void resetToDefault();
 
 	/**
 	 * Handles reverting any changes that have occurred to this entry.
@@ -94,12 +94,12 @@ public interface IConfigScreenListEntry extends INestedGuiEventHandler {
 	boolean save();
 
 	/**
- 	 * Handles drawing any tooltips that apply to this entry.
- 	 * This method is called after all other GUI elements have been drawn to the screen,
- 	 * so it could also be used to draw any GUI element that needs to be drawn after
- 	 * all entries have had drawEntry() called.
- 	 */
- 	void renderToolTip(int mouseX, int mouseY, float partialTicks);
+	 * Handles drawing any tooltips that apply to this entry.
+	 * This method is called after all other GUI elements have been drawn to the screen,
+	 * so it could also be used to draw any GUI element that needs to be drawn after
+	 * all entries have had drawEntry() called.
+	 */
+	void renderToolTip(int mouseX, int mouseY, float partialTicks);
 
 	/**
 	 * Gets this entry's label width.
@@ -115,5 +115,19 @@ public interface IConfigScreenListEntry extends INestedGuiEventHandler {
 	 * This method is called when the parent GUI is closed. Most handlers won't need this; it is provided for special cases.
 	 */
 	void onGuiClosed();
+
+	/**
+	 * FIXME
+	 * Whether or not this element is safe to modify while a world is running.
+	 * For Categories return false if ANY properties in the category are modifiable
+	 * while a world is running, true if all are not.
+	 */
+	boolean requiresWorldRestart();
+
+	/**
+	 * FIXME
+	 * Whether or not this element requires Minecraft to be restarted when changed.
+	 */
+	boolean requiresMcRestart();
 
 }

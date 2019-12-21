@@ -19,28 +19,42 @@
 
 package net.minecraftforge.fml.client.config;
 
-import com.google.common.collect.Lists;
+import com.electronwill.nightconfig.core.Config;
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.list.ExtendedList;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.util.math.MathHelper;
+import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
+import net.minecraftforge.common.ForgeConfigSpec.ValueSpec;
+import net.minecraftforge.fml.client.config.entry.BooleanConfigValueElement;
+import net.minecraftforge.fml.client.config.entry.ByteConfigValueElement;
 import net.minecraftforge.fml.client.config.entry.CategoryEntry;
 import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.ConfigEntryValue;
+import net.minecraftforge.fml.client.config.entry.DoubleConfigValueElement;
+import net.minecraftforge.fml.client.config.entry.DummyConfigValueElement;
+import net.minecraftforge.fml.client.config.entry.FloatConfigValueElement;
 import net.minecraftforge.fml.client.config.entry.IConfigScreenListEntry;
-import net.minecraftforge.fml.client.config.entry.IConfigValueElement;
+import net.minecraftforge.fml.client.config.entry.IntegerConfigValueElement;
+import net.minecraftforge.fml.client.config.entry.LongConfigValueElement;
+import net.minecraftforge.fml.client.config.entry.ModConfigEntry;
+import net.minecraftforge.fml.client.config.entry.StringConfigValueElement;
+import net.minecraftforge.fml.client.config.entry.TemporalConfigValueElement;
 import net.minecraftforge.fml.config.ConfigTracker;
 import net.minecraftforge.fml.config.ModConfig;
 import org.lwjgl.opengl.GL11;
 
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Pattern;
+import java.time.temporal.Temporal;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * This class implements the scrolling list functionality of the config GUI screens.
@@ -55,25 +69,32 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 	 * The empty space between the entries and both sides of the screen.
 	 */
 	public static final int PADDING_X = 10;
+	/**
+	 * The longest size a label of a config element can be before it is trimmed with an ellipsis.
+	 * If it is trimmed, the new text (including the ellipsis) will always be equal to this value.
+	 */
+	public static final int MAX_LABEL_WIDTH = 200;
+
 	public final ConfigScreen owningScreen;
+	/**
+	 * The size of the largest label of all the config elements on this screen.
+	 * Always smaller than or equal to {@link #MAX_LABEL_WIDTH};
+	 * Used for rendering all widgets at the same x position
+	 */
+	private int longestLabelWidth;
 
 	public ConfigEntryListWidget(final Minecraft mcIn, final ConfigScreen owningScreen) {
 		super(mcIn, owningScreen.width, owningScreen.height, owningScreen.getHeaderSize(), owningScreen.height - owningScreen.getFooterSize(), 20);
 		this.owningScreen = owningScreen;
 	}
 
-	// For testing. Modified from WorldRenderer#drawAABB. TODO: Remove
-	public static void drawCuboid(double minX, double minY, double maxX, double maxY, float red, float green, float blue, float alpha) {
-		Tessellator tessellator = Tessellator.getInstance();
-		BufferBuilder bufferbuilder = tessellator.getBuffer();
-		bufferbuilder.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
-	    final double z = 0.0;
-		bufferbuilder.func_225582_a_(minX, minY, z).func_227885_a_(red, green, blue, alpha).endVertex();
-		bufferbuilder.func_225582_a_(maxX, minY, z).func_227885_a_(red, green, blue, alpha).endVertex();
-		bufferbuilder.func_225582_a_(maxX, maxY, z).func_227885_a_(red, green, blue, alpha).endVertex();
-		bufferbuilder.func_225582_a_(minX, maxY, z).func_227885_a_(red, green, blue, alpha).endVertex();
-		bufferbuilder.func_225582_a_(minX, minY, z).func_227885_a_(red, green, blue, alpha).endVertex();
-		tessellator.draw();
+	public int getLongestLabelWidth0() {
+		return longestLabelWidth;
+	}
+
+	// +2 for nice spacing
+	public int getLongestLabelWidth() {
+		return getLongestLabelWidth0() + 2;
 	}
 
 	/**
@@ -98,206 +119,247 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 		this.setFocused(null);
 
 		// Screen#init()
+		compute(ModConfig.Type.COMMON);
 
-		final AtomicReference<IConfigValueElement<Boolean>>configValueElementReference = new AtomicReference<>();
+		this.children().forEach(configListEntry -> {
+			final int labelWidth = configListEntry.getLabelWidth();
+			if (longestLabelWidth < labelWidth)
+				longestLabelWidth = labelWidth;
+		});
+	}
 
-		final IConfigValueElement<Boolean> configValueElement = new IConfigValueElement<Boolean>() {
+	// TODO: move to ConfigScreen? Anyway, shouldn't be here
+	private Optional<ModConfigEntry> compute(final ModConfig.Type type) {
 
-			final ConfigEntryValue<Boolean> configValue = ConfigEntryValue.of(Boolean.class, ConfigTracker.INSTANCE.getConfig(owningScreen.modContainer.getModId(), ModConfig.Type.COMMON).get(), "aBoolean", TestConfig.COMMON_SPEC.getSpec().get("aBoolean"));
+		if (type == ModConfig.Type.SERVER && !canPlayerEditServerConfig())
+			return Optional.empty();
 
-			@Override
-			public boolean isProperty() {
-				return true;
-			}
+		final ModConfig modConfig = ConfigTracker.INSTANCE.getConfig(owningScreen.modContainer.getModId(), type).orElse(null);
+		if (modConfig == null)
+			return Optional.empty();
 
-			@Override
-			public IConfigScreenListEntry makeConfigEntry(final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListScreen) {
-				return new ConfigListEntry(configScreen, configEntryListScreen, configValueElementReference.get()) {
-					@Override
-					public boolean isDragging() {
-						return false;
+		// name -> ConfigValue|SimpleConfig
+		final Map<String, Object> specConfigValues = modConfig.getSpec().getValues().valueMap();
+		// name -> ValueSpec|SimpleConfig
+		final Map<String, Object> specValueSpecs = modConfig.getSpec().valueMap();
+		// name -> Object
+		final Map<String, Object> configValues = modConfig.getConfigData().valueMap();
+
+		specConfigValues.forEach((name, obj) -> {
+			if (obj instanceof ConfigValue) {
+				final ConfigValue<?> configValue = (ConfigValue<?>) obj;
+				// Because the obj is a ConfigValue the corresponding object in the ValueSpec map must be a ValueSpec
+				final ValueSpec valueSpec = (ValueSpec) specValueSpecs.get(name);
+
+				Class<?> clazz = valueSpec.getClazz();
+				if (clazz == Object.class) {
+					final Object actualValue = configValue.get();
+					final Class<?> valueClass = actualValue.getClass();
+					if (valueClass != null)
+						clazz = valueClass;
+					else {
+						final Object defaultValue = valueSpec.getDefault();
+						if (defaultValue != null)
+							clazz = defaultValue.getClass();
 					}
+				}
+				if (Boolean.class.isAssignableFrom(clazz)) {
+					this.children().add(new BooleanConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<Boolean>) configValue)
+							.makeConfigEntry(owningScreen, this));
+				} else if (Byte.class.isAssignableFrom(clazz)) {
+					this.children().add(new ByteConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<Byte>) configValue)
+							.makeConfigEntry(owningScreen, this));
+				} else if (Integer.class.isAssignableFrom(clazz)) {
+					this.children().add(new IntegerConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<Integer>) configValue)
+							.makeConfigEntry(owningScreen, this));
+				} else if (Float.class.isAssignableFrom(clazz)) {
+					this.children().add(new FloatConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<Float>) configValue)
+							.makeConfigEntry(owningScreen, this));
+				} else if (Long.class.isAssignableFrom(clazz)) {
+					this.children().add(new LongConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<Long>) configValue)
+							.makeConfigEntry(owningScreen, this));
+				} else if (Double.class.isAssignableFrom(clazz)) {
+					this.children().add(new DoubleConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<Double>) configValue)
+							.makeConfigEntry(owningScreen, this));
+				} else if (String.class.isAssignableFrom(clazz)) {
+					this.children().add(new StringConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<String>) configValue)
+							.makeConfigEntry(owningScreen, this));
+//				} else if (Enum.class.isAssignableFrom(clazz)) {
+//					this.children().add(new EnumConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<Enum>) configValue)
+//							.makeConfigEntry(owningScreen, this));
+//				} else if (List.class.isAssignableFrom(clazz)) {
+//					this.children().add(new ListConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<List>) configValue)
+//							.makeConfigEntry(owningScreen, this));
+				} else if (Temporal.class.isAssignableFrom(clazz)) {
+					this.children().add(new TemporalConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<Temporal>) configValue)
+							.makeConfigEntry(owningScreen, this));
+				} else {
+					this.children().add(new DummyConfigValueElement(name)
+							.makeConfigEntry(owningScreen, this));
+				}
+			} else if (obj instanceof Config) {
+				final Config config = (Config) obj;
+				// Because the obj is a Config the corresponding object in the ValueSpec map must be a Config
+				final Config valueSpec = (Config) specValueSpecs.get(name);
 
-					@Override
-					public void setDragging(final boolean p_setDragging_1_) {
+				this.children().add(new DummyConfigValueElement("Category: " + name)
+						.makeConfigEntry(owningScreen, this));
 
-					}
-
-					@Nullable
-					@Override
-					public IGuiEventListener getFocused() {
-						return null;
-					}
-
-					@Override
-					public void setFocused(@Nullable final IGuiEventListener p_setFocused_1_) {
-
-					}
-
-					@Override
-					public Object getCurrentValue() {
-						return configValue.getCurrentValue();
-					}
-
-					@Override
-					public Object[] getCurrentValues() {
-						return new Object[0];
-					}
-
-					@Override
-					public void tick() {
-
-					}
-
-					@Override
-					public boolean isDefault() {
-						return configValue.isDefault();
-					}
-
-					@Override
-					public void setToDefault() {
-						configValue.resetToDefault();
-					}
-
-					@Override
-					public void undoChanges() {
-						configValue.undoChanges();
-					}
-
-					@Override
-					public boolean isChanged() {
-						return configValue.isChanged();
-					}
-
-					@Override
-					public boolean save() {
-						configValue.saveAndLoad();
-						return configValue.requiresWorldRestart();
-					}
-				};
+				valueSpec.valueMap().forEach((name2, obj2) -> {
+					// TODO: repeat with these
+					final String path = ForgeConfigSpec.DOT_JOINER.join(name, name2);
+					final DummyConfigValueElement configValueElement2 = new DummyConfigValueElement(path);
+					this.children().add(configValueElement2.makeConfigEntry(owningScreen, this));
+				});
+			} else {
+				throw new IllegalStateException("How? " + name + ", " + obj);
 			}
+		});
+		return Optional.empty();
+	}
 
-			@Override
-			public String getName() {
-				return configValue.getLabel();
-			}
-
-			@Override
-			public String getQualifiedName() {
-				return null;
-			}
-
-			@Override
-			public String getTranslationKey() {
-				return configValue.getLabel();
-			}
-
-			@Override
-			public String getComment() {
-				return configValue.getComment();
-			}
-
-			@Override
-			public List<IConfigValueElement> getChildElements() {
-				return Lists.newArrayList();
-			}
-
-			@Override
-			public boolean isList() {
-				return false;
-			}
-
-			@Override
-			public boolean isListLengthFixed() {
-				return false;
-			}
-
-			@Override
-			public int getMaxListLength() {
-				return 0;
-			}
-
-			@Override
-			public boolean isDefault() {
-				return configValue.isDefault();
-			}
-
-			@Override
-			public Boolean getDefault() {
-				return configValue.getDefaultValue();
-			}
-
-			@Override
-			public Boolean[] getDefaults() {
-				return new Boolean[0];
-			}
-
-			@Override
-			public void setToDefault() {
-				configValue.resetToDefault();
-			}
-
-			@Override
-			public boolean requiresWorldRestart() {
-				return configValue.requiresWorldRestart();
-			}
-
-			@Override
-			public boolean showInGui() {
-				return true;
-			}
-
-			@Override
-			public boolean requiresMcRestart() {
-				return configValue.requiresMcRestart();
-			}
-
-			@Override
-			public Boolean get() {
-				return configValue.getCurrentValue();
-			}
-
-			@Override
-			public Boolean[] getList() {
-				return new Boolean[0];
-			}
-
-			@Override
-			public void set(final Boolean value) {
-				configValue.setCurrentValue(value);
-			}
-
-			@Override
-			public void set(final Boolean[] aVal) {
-
-			}
-
-			@Override
-			public String[] getValidValues() {
-				return new String[0];
-			}
-
-			@Override
-			public Boolean getMinValue() {
-				return false;
-			}
-
-			@Override
-			public Boolean getMaxValue() {
-				return true;
-			}
-
-			@Override
-			public Pattern getValidationPattern() {
-				return null;
-			}
-		};
-		configValueElementReference.set(configValueElement);
-		this.children().add((ConfigListEntry) configValueElement.makeConfigEntry(owningScreen, this));
+	/**
+	 * @return True if in singleplayer and not open to LAN
+	 */
+	private boolean canPlayerEditServerConfig() {
+		if (minecraft.getIntegratedServer() == null)
+			return false;
+		if (!minecraft.isSingleplayer())
+			return false;
+		if (minecraft.getIntegratedServer().getPublic())
+			return false;
+		return true;
 	}
 
 	public int getRowWidth() {
 		return getWidth() - PADDING_X * 2;
+	}
+
+	@Override
+	protected void renderBackground() {
+		this.fillGradient(this.getLeft(), this.getTop(), this.getRight(), this.getBottom(), 0xC0101010, 0xD0101010);
+	}
+
+	@Override
+	public void render(final int p_render_1_, final int p_render_2_, final float p_render_3_) {
+		// GLScissors to hide overflow from entryList
+		GL11.glEnable(GL11.GL_SCISSOR_TEST);
+
+		final MainWindow mainWindow = minecraft.func_228018_at_();
+		double scale = mainWindow.getGuiScaleFactor();
+		// Scissors coords are relative to the bottom left of the screen
+		int scissorsX = (int) (this.getLeft() * scale);
+		int scissorsY = (int) (mainWindow.getFramebufferHeight() - (this.getBottom() * scale));
+		int scissorsWidth = (int) (this.getWidth() * scale);
+		int scissorsHeight = (int) (this.getHeight() * scale);
+
+		GL11.glScissor(scissorsX, scissorsY, scissorsWidth, scissorsHeight);
+
+//		super.render(p_render_1_, p_render_2_, p_render_3_);
+		// super.render but with the background rendering we don't want commented out
+		{
+			this.renderBackground();
+			int i = this.getScrollbarPosition();
+			int j = i + 6;
+			Tessellator tessellator = Tessellator.getInstance();
+			BufferBuilder bufferbuilder = tessellator.getBuffer();
+//			this.minecraft.getTextureManager().bindTexture(AbstractGui.BACKGROUND_LOCATION);
+//			RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+//			float f = 32.0F;
+//			bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
+//			bufferbuilder.func_225582_a_((double)this.x0, (double)this.y1, 0.0D).func_225583_a_((float)this.x0 / 32.0F, (float)(this.y1 + (int)this.getScrollAmount()) / 32.0F).func_225586_a_(32, 32, 32, 255).endVertex();
+//			bufferbuilder.func_225582_a_((double)this.x1, (double)this.y1, 0.0D).func_225583_a_((float)this.x1 / 32.0F, (float)(this.y1 + (int)this.getScrollAmount()) / 32.0F).func_225586_a_(32, 32, 32, 255).endVertex();
+//			bufferbuilder.func_225582_a_((double)this.x1, (double)this.y0, 0.0D).func_225583_a_((float)this.x1 / 32.0F, (float)(this.y0 + (int)this.getScrollAmount()) / 32.0F).func_225586_a_(32, 32, 32, 255).endVertex();
+//			bufferbuilder.func_225582_a_((double)this.x0, (double)this.y0, 0.0D).func_225583_a_((float)this.x0 / 32.0F, (float)(this.y0 + (int)this.getScrollAmount()) / 32.0F).func_225586_a_(32, 32, 32, 255).endVertex();
+//			tessellator.draw();
+			int k = this.getRowLeft();
+			int l = this.y0 + 4 - (int) this.getScrollAmount();
+			if (this.renderHeader) {
+				this.renderHeader(k, l, tessellator);
+			}
+
+			this.renderList(k, l, p_render_1_, p_render_2_, p_render_3_);
+			RenderSystem.disableDepthTest();
+//			this.renderHoleBackground(0, this.y0, 255, 255);
+//			this.renderHoleBackground(this.y1, this.height, 255, 255);
+			RenderSystem.enableBlend();
+			RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.ONE);
+			RenderSystem.disableAlphaTest();
+			RenderSystem.shadeModel(7425);
+			RenderSystem.disableTexture();
+			int i1 = 4;
+			// Top shadow
+			bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
+			bufferbuilder.func_225582_a_((double) this.x0, (double) (this.y0 + 4), 0.0D).func_225583_a_(0.0F, 1.0F).func_225586_a_(0, 0, 0, 0).endVertex();
+			bufferbuilder.func_225582_a_((double) this.x1, (double) (this.y0 + 4), 0.0D).func_225583_a_(1.0F, 1.0F).func_225586_a_(0, 0, 0, 0).endVertex();
+			bufferbuilder.func_225582_a_((double) this.x1, (double) this.y0, 0.0D).func_225583_a_(1.0F, 0.0F).func_225586_a_(0, 0, 0, 255).endVertex();
+			bufferbuilder.func_225582_a_((double) this.x0, (double) this.y0, 0.0D).func_225583_a_(0.0F, 0.0F).func_225586_a_(0, 0, 0, 255).endVertex();
+			tessellator.draw();
+			// Bottom shadow
+			bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
+			bufferbuilder.func_225582_a_((double) this.x0, (double) this.y1, 0.0D).func_225583_a_(0.0F, 1.0F).func_225586_a_(0, 0, 0, 255).endVertex();
+			bufferbuilder.func_225582_a_((double) this.x1, (double) this.y1, 0.0D).func_225583_a_(1.0F, 1.0F).func_225586_a_(0, 0, 0, 255).endVertex();
+			bufferbuilder.func_225582_a_((double) this.x1, (double) (this.y1 - 4), 0.0D).func_225583_a_(1.0F, 0.0F).func_225586_a_(0, 0, 0, 0).endVertex();
+			bufferbuilder.func_225582_a_((double) this.x0, (double) (this.y1 - 4), 0.0D).func_225583_a_(0.0F, 0.0F).func_225586_a_(0, 0, 0, 0).endVertex();
+			tessellator.draw();
+//			int j1 = this.getMaxScroll(); // private, logic copied
+			int j1 = Math.max(0, this.getMaxPosition() - (this.y1 - this.y0 - 4));
+			if (j1 > 0) {
+				int k1 = (int) ((float) ((this.y1 - this.y0) * (this.y1 - this.y0)) / (float) this.getMaxPosition());
+				k1 = MathHelper.clamp(k1, 32, this.y1 - this.y0 - 8);
+				int l1 = (int) this.getScrollAmount() * (this.y1 - this.y0 - k1) / j1 + this.y0;
+				if (l1 < this.y0) {
+					l1 = this.y0;
+				}
+
+				bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
+				bufferbuilder.func_225582_a_((double) i, (double) this.y1, 0.0D).func_225583_a_(0.0F, 1.0F).func_225586_a_(0, 0, 0, 255).endVertex();
+				bufferbuilder.func_225582_a_((double) j, (double) this.y1, 0.0D).func_225583_a_(1.0F, 1.0F).func_225586_a_(0, 0, 0, 255).endVertex();
+				bufferbuilder.func_225582_a_((double) j, (double) this.y0, 0.0D).func_225583_a_(1.0F, 0.0F).func_225586_a_(0, 0, 0, 255).endVertex();
+				bufferbuilder.func_225582_a_((double) i, (double) this.y0, 0.0D).func_225583_a_(0.0F, 0.0F).func_225586_a_(0, 0, 0, 255).endVertex();
+				tessellator.draw();
+				bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
+				bufferbuilder.func_225582_a_((double) i, (double) (l1 + k1), 0.0D).func_225583_a_(0.0F, 1.0F).func_225586_a_(128, 128, 128, 255).endVertex();
+				bufferbuilder.func_225582_a_((double) j, (double) (l1 + k1), 0.0D).func_225583_a_(1.0F, 1.0F).func_225586_a_(128, 128, 128, 255).endVertex();
+				bufferbuilder.func_225582_a_((double) j, (double) l1, 0.0D).func_225583_a_(1.0F, 0.0F).func_225586_a_(128, 128, 128, 255).endVertex();
+				bufferbuilder.func_225582_a_((double) i, (double) l1, 0.0D).func_225583_a_(0.0F, 0.0F).func_225586_a_(128, 128, 128, 255).endVertex();
+				tessellator.draw();
+				bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
+				bufferbuilder.func_225582_a_((double) i, (double) (l1 + k1 - 1), 0.0D).func_225583_a_(0.0F, 1.0F).func_225586_a_(192, 192, 192, 255).endVertex();
+				bufferbuilder.func_225582_a_((double) (j - 1), (double) (l1 + k1 - 1), 0.0D).func_225583_a_(1.0F, 1.0F).func_225586_a_(192, 192, 192, 255).endVertex();
+				bufferbuilder.func_225582_a_((double) (j - 1), (double) l1, 0.0D).func_225583_a_(1.0F, 0.0F).func_225586_a_(192, 192, 192, 255).endVertex();
+				bufferbuilder.func_225582_a_((double) i, (double) l1, 0.0D).func_225583_a_(0.0F, 0.0F).func_225586_a_(192, 192, 192, 255).endVertex();
+				tessellator.draw();
+			}
+
+			this.renderDecorations(p_render_1_, p_render_2_);
+			RenderSystem.enableTexture();
+			RenderSystem.shadeModel(7424);
+			RenderSystem.enableAlphaTest();
+			RenderSystem.disableBlend();
+		}
+
+		GL11.glDisable(GL11.GL_SCISSOR_TEST);
+	}
+
+	@Override
+	protected int getScrollbarPosition() {
+		return getRight() - 6; // 6 = scrollbar width
+	}
+
+	@Override
+	public boolean mouseClicked(final double p_mouseClicked_1_, final double p_mouseClicked_3_, final int p_mouseClicked_5_) {
+		this.children().forEach(configListEntry -> {
+			final Widget widget = configListEntry.getWidget();
+			if (widget instanceof TextFieldWidget)
+				((TextFieldWidget) widget).setFocused2(false);
+		});
+		return super.mouseClicked(p_mouseClicked_1_, p_mouseClicked_3_, p_mouseClicked_5_);
+	}
+
+	@Override
+	protected void renderHoleBackground(final int p_renderHoleBackground_1_, final int p_renderHoleBackground_2_, final int p_renderHoleBackground_3_, final int p_renderHoleBackground_4_) {
+		// No-op We use GLScissors instead of hiding overflow afterwards by rendering over the top
 	}
 
 	/**
@@ -354,14 +416,14 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 	public void resetAllToDefault(boolean applyToSubcategories) {
 		for (IConfigScreenListEntry entry : this.getListEntries())
 			if (applyToSubcategories || !(entry instanceof CategoryEntry))
-				entry.setToDefault();
+				entry.resetToDefault();
 	}
 
 	/**
 	 * Checks if any IConfigEntry objects on this screen are changed.
 	 *
 	 * @param applyToSubcategories If sub-category objects should be checked as well.
-	 * @return f any IConfigEntry objects on this screen are changed.
+	 * @return If any IConfigEntry objects on this screen are changed.
 	 */
 	public boolean areAnyEntriesChanged(boolean applyToSubcategories) {
 		for (IConfigScreenListEntry entry : this.getListEntries())
@@ -396,21 +458,25 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 		return false;
 	}
 
-//	/**
-//	 * Calls the renderToolTip() method for all IConfigEntry objects on this screen.
-//	 * This is called from the parent GuiConfig screen after drawing all other elements.
-//	 */
-//	public void renderScreenPost(int mouseX, int mouseY, float partialTicks) {
-//		for (IConfigEntry entry : this.getListEntries())
-//			entry.renderToolTip(mouseX, mouseY);
-//	}
+	public boolean anyRequireMcRestart() {
+		for (IConfigScreenListEntry entry : this.getListEntries())
+			if (entry.requiresMcRestart())
+				return true;
+		return false;
+	}
 
-	 /**
-	  *
-	  * @param mouseX The x coordinate of the mouse pointer on the screen
-	  * @param mouseY The y coordinate of the mouse pointer on the screen
-	  * @param partialTicks The partial render ticks elapsed
-	  */
+	public boolean anyRequireWorldRestart() {
+		for (IConfigScreenListEntry entry : this.getListEntries())
+			if (entry.requiresWorldRestart())
+				return true;
+		return false;
+	}
+
+	/**
+	 * @param mouseX       The x coordinate of the mouse pointer on the screen
+	 * @param mouseY       The y coordinate of the mouse pointer on the screen
+	 * @param partialTicks The partial render ticks elapsed
+	 */
 	public void postRender(final int mouseX, final int mouseY, final float partialTicks) {
 		for (int item = 0; item < this.getItemCount(); item++) {
 			int itemTop = this.getRowTop(item);
@@ -418,7 +484,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 			int itemBottom = this.getRowTop(item) + this.itemHeight;
 			if (itemTop <= this.y1 && itemBottom >= this.y0) {
 				ConfigListEntry configListEntry = this.getEntry(item);
-					configListEntry.renderToolTip(mouseX, mouseY, partialTicks);
+				configListEntry.renderToolTip(mouseX, mouseY, partialTicks);
 			}
 		}
 	}

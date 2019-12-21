@@ -41,19 +41,13 @@ public interface IConfigValueElement<T> {
 	/**
 	 * [Property, Category]
 	 */
-	IConfigScreenListEntry makeConfigEntry(ConfigScreen configScreen, ConfigEntryListWidget configEntryListScreen);
+	ConfigListEntry makeConfigEntry(ConfigScreen configScreen, ConfigEntryListWidget configEntryListScreen);
 
 	/**
 	 * [Property, Category]
 	 * Gets the name of this object.
 	 */
 	String getName();
-
-	/**
-	 * [Category]
-	 * Gets the qualified name of this object. This is typically only used for category objects.
-	 */
-	String getQualifiedName();
 
 	/**
 	 * TODO
@@ -126,7 +120,7 @@ public interface IConfigValueElement<T> {
 	 * [Property]
 	 * Sets this property's value to the default value.
 	 */
-	void setToDefault();
+	void resetToDefault();
 
 	/**
 	 * [Property, Category]
