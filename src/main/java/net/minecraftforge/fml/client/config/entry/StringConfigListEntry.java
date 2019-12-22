@@ -11,22 +11,23 @@ import net.minecraftforge.fml.client.config.ConfigScreen;
  */
 public class StringConfigListEntry extends ConfigListEntry {
 
-	private final StringConfigValueElement stringConfigValueElement;
+	private final StringConfigValueElement configValueElement;
 	private final TextFieldWidget textFieldWidget;
 
 	public StringConfigListEntry(final StringConfigValueElement configValueElement, final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListScreen) {
 		super(configScreen, configEntryListScreen, configValueElement);
-		this.stringConfigValueElement = configValueElement;
+		this.configValueElement = configValueElement;
 		this.children().add(this.textFieldWidget = new TextFieldWidget(Minecraft.getInstance().fontRenderer, 0, 0, 18, 18, configValueElement.getName()));
 		this.textFieldWidget.setMaxStringLength(Integer.MAX_VALUE);
 		this.textFieldWidget.setText(configValueElement.get());
 		this.textFieldWidget.setCursorPositionZero(); // Remove weird scroll bug
-		this.textFieldWidget.func_212954_a(this.stringConfigValueElement::set);
+		this.textFieldWidget.func_212954_a(this.configValueElement::set);
 	}
 
 	@Override
 	public boolean isValidValue() {
-		return this.stringConfigValueElement.getValidationPattern().asPredicate().test(this.textFieldWidget.getText());
+		final String text = this.textFieldWidget.getText();
+		return this.configValueElement.getValidationPattern().asPredicate().test(text) && configValueElement.entryConfigValue.getValueSpec().test(text);
 	}
 
 	@Override
@@ -36,7 +37,7 @@ public class StringConfigListEntry extends ConfigListEntry {
 
 	@Override
 	public Object getCurrentValue() {
-		return stringConfigValueElement.get();
+		return configValueElement.get();
 	}
 
 	@Override
@@ -51,40 +52,40 @@ public class StringConfigListEntry extends ConfigListEntry {
 
 	@Override
 	public boolean isDefault() {
-		return stringConfigValueElement.isDefault();
+		return configValueElement.isDefault();
 	}
 
 	@Override
 	public void resetToDefault() {
-		stringConfigValueElement.entryConfigValue.resetToDefault();
-		this.textFieldWidget.setText(stringConfigValueElement.get());
+		configValueElement.entryConfigValue.resetToDefault();
+		this.textFieldWidget.setText(configValueElement.get());
 	}
 
 	@Override
 	public void undoChanges() {
-		stringConfigValueElement.entryConfigValue.undoChanges();
-		this.textFieldWidget.setText(stringConfigValueElement.get());
+		configValueElement.entryConfigValue.undoChanges();
+		this.textFieldWidget.setText(configValueElement.get());
 	}
 
 	@Override
 	public boolean isChanged() {
-		return stringConfigValueElement.entryConfigValue.isChanged();
+		return configValueElement.entryConfigValue.isChanged();
 	}
 
 	@Override
 	public boolean save() {
-		stringConfigValueElement.entryConfigValue.saveAndLoad();
-		return stringConfigValueElement.entryConfigValue.requiresWorldRestart();
+		configValueElement.entryConfigValue.saveAndLoad();
+		return configValueElement.entryConfigValue.requiresWorldRestart();
 	}
 
 	@Override
 	public boolean requiresWorldRestart() {
-		return stringConfigValueElement.entryConfigValue.requiresWorldRestart();
+		return configValueElement.entryConfigValue.requiresWorldRestart();
 	}
 
 	@Override
 	public boolean requiresMcRestart() {
-		return stringConfigValueElement.entryConfigValue.requiresMcRestart();
+		return configValueElement.entryConfigValue.requiresMcRestart();
 	}
 
 }

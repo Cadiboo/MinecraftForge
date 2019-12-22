@@ -43,7 +43,7 @@ public class LongConfigValueElement implements IConfigValueElement<Long> {
 	}
 
 	@Override
-	public List<IConfigValueElement> getChildElements() {
+	public List<IConfigValueElement<?>> getChildElements() {
 		return Collections.emptyList();
 	}
 

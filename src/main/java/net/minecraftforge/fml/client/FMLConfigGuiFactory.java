@@ -17,7 +17,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/* TODO is this ded?
+/* TODO is this ded? (nope)
 package net.minecraftforge.fml.client;
 
 import java.util.ArrayList;

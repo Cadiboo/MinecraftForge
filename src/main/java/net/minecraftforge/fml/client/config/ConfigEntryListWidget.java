@@ -19,7 +19,6 @@
 
 package net.minecraftforge.fml.client.config;
 
-import com.electronwill.nightconfig.core.Config;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MainWindow;
@@ -32,29 +31,10 @@ import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
-import net.minecraftforge.common.ForgeConfigSpec.ValueSpec;
-import net.minecraftforge.fml.client.config.entry.BooleanConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.ByteConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.CategoryEntry;
+import net.minecraftforge.fml.client.config.entry.CategoryConfigListEntry;
 import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.DoubleConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.DummyConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.FloatConfigValueElement;
 import net.minecraftforge.fml.client.config.entry.IConfigScreenListEntry;
-import net.minecraftforge.fml.client.config.entry.IntegerConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.LongConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.ModConfigEntry;
-import net.minecraftforge.fml.client.config.entry.StringConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.TemporalConfigValueElement;
-import net.minecraftforge.fml.config.ConfigTracker;
-import net.minecraftforge.fml.config.ModConfig;
 import org.lwjgl.opengl.GL11;
-
-import java.time.temporal.Temporal;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * This class implements the scrolling list functionality of the config GUI screens.
@@ -115,120 +95,18 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 		this.width = this.x1 - this.x0;
 		this.height = this.y1 - this.y0;
 
-		this.children().clear();
+//		this.children().clear();
 		this.setFocused(null);
 
 		// Screen#init()
-		compute(ModConfig.Type.COMMON);
+		if (this.children().isEmpty())
+			this.owningScreen.getConfigValueElements().forEach(e -> this.children().add(e.makeConfigEntry(owningScreen, this)));
 
 		this.children().forEach(configListEntry -> {
 			final int labelWidth = configListEntry.getLabelWidth();
 			if (longestLabelWidth < labelWidth)
 				longestLabelWidth = labelWidth;
 		});
-	}
-
-	// TODO: move to ConfigScreen? Anyway, shouldn't be here
-	private Optional<ModConfigEntry> compute(final ModConfig.Type type) {
-
-		if (type == ModConfig.Type.SERVER && !canPlayerEditServerConfig())
-			return Optional.empty();
-
-		final ModConfig modConfig = ConfigTracker.INSTANCE.getConfig(owningScreen.modContainer.getModId(), type).orElse(null);
-		if (modConfig == null)
-			return Optional.empty();
-
-		// name -> ConfigValue|SimpleConfig
-		final Map<String, Object> specConfigValues = modConfig.getSpec().getValues().valueMap();
-		// name -> ValueSpec|SimpleConfig
-		final Map<String, Object> specValueSpecs = modConfig.getSpec().valueMap();
-		// name -> Object
-		final Map<String, Object> configValues = modConfig.getConfigData().valueMap();
-
-		specConfigValues.forEach((name, obj) -> {
-			if (obj instanceof ConfigValue) {
-				final ConfigValue<?> configValue = (ConfigValue<?>) obj;
-				// Because the obj is a ConfigValue the corresponding object in the ValueSpec map must be a ValueSpec
-				final ValueSpec valueSpec = (ValueSpec) specValueSpecs.get(name);
-
-				Class<?> clazz = valueSpec.getClazz();
-				if (clazz == Object.class) {
-					final Object actualValue = configValue.get();
-					final Class<?> valueClass = actualValue.getClass();
-					if (valueClass != null)
-						clazz = valueClass;
-					else {
-						final Object defaultValue = valueSpec.getDefault();
-						if (defaultValue != null)
-							clazz = defaultValue.getClass();
-					}
-				}
-				if (Boolean.class.isAssignableFrom(clazz)) {
-					this.children().add(new BooleanConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<Boolean>) configValue)
-							.makeConfigEntry(owningScreen, this));
-				} else if (Byte.class.isAssignableFrom(clazz)) {
-					this.children().add(new ByteConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<Byte>) configValue)
-							.makeConfigEntry(owningScreen, this));
-				} else if (Integer.class.isAssignableFrom(clazz)) {
-					this.children().add(new IntegerConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<Integer>) configValue)
-							.makeConfigEntry(owningScreen, this));
-				} else if (Float.class.isAssignableFrom(clazz)) {
-					this.children().add(new FloatConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<Float>) configValue)
-							.makeConfigEntry(owningScreen, this));
-				} else if (Long.class.isAssignableFrom(clazz)) {
-					this.children().add(new LongConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<Long>) configValue)
-							.makeConfigEntry(owningScreen, this));
-				} else if (Double.class.isAssignableFrom(clazz)) {
-					this.children().add(new DoubleConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<Double>) configValue)
-							.makeConfigEntry(owningScreen, this));
-				} else if (String.class.isAssignableFrom(clazz)) {
-					this.children().add(new StringConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<String>) configValue)
-							.makeConfigEntry(owningScreen, this));
-//				} else if (Enum.class.isAssignableFrom(clazz)) {
-//					this.children().add(new EnumConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<Enum>) configValue)
-//							.makeConfigEntry(owningScreen, this));
-//				} else if (List.class.isAssignableFrom(clazz)) {
-//					this.children().add(new ListConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<List>) configValue)
-//							.makeConfigEntry(owningScreen, this));
-				} else if (Temporal.class.isAssignableFrom(clazz)) {
-					this.children().add(new TemporalConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<Temporal>) configValue)
-							.makeConfigEntry(owningScreen, this));
-				} else {
-					this.children().add(new DummyConfigValueElement(name)
-							.makeConfigEntry(owningScreen, this));
-				}
-			} else if (obj instanceof Config) {
-				final Config config = (Config) obj;
-				// Because the obj is a Config the corresponding object in the ValueSpec map must be a Config
-				final Config valueSpec = (Config) specValueSpecs.get(name);
-
-				this.children().add(new DummyConfigValueElement("Category: " + name)
-						.makeConfigEntry(owningScreen, this));
-
-				valueSpec.valueMap().forEach((name2, obj2) -> {
-					// TODO: repeat with these
-					final String path = ForgeConfigSpec.DOT_JOINER.join(name, name2);
-					final DummyConfigValueElement configValueElement2 = new DummyConfigValueElement(path);
-					this.children().add(configValueElement2.makeConfigEntry(owningScreen, this));
-				});
-			} else {
-				throw new IllegalStateException("How? " + name + ", " + obj);
-			}
-		});
-		return Optional.empty();
-	}
-
-	/**
-	 * @return True if in singleplayer and not open to LAN
-	 */
-	private boolean canPlayerEditServerConfig() {
-		if (minecraft.getIntegratedServer() == null)
-			return false;
-		if (!minecraft.isSingleplayer())
-			return false;
-		if (minecraft.getIntegratedServer().getPublic())
-			return false;
-		return true;
 	}
 
 	public int getRowWidth() {
@@ -402,7 +280,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 	 */
 	public boolean areAllEntriesDefault(boolean applyToSubcategories) {
 		for (IConfigScreenListEntry entry : this.getListEntries())
-			if (applyToSubcategories || !(entry instanceof CategoryEntry))
+			if (applyToSubcategories || !(entry instanceof CategoryConfigListEntry))
 				if (!entry.isDefault())
 					return false;
 		return true;
@@ -415,7 +293,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 	 */
 	public void resetAllToDefault(boolean applyToSubcategories) {
 		for (IConfigScreenListEntry entry : this.getListEntries())
-			if (applyToSubcategories || !(entry instanceof CategoryEntry))
+			if (applyToSubcategories || !(entry instanceof CategoryConfigListEntry))
 				entry.resetToDefault();
 	}
 
@@ -427,7 +305,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 	 */
 	public boolean areAnyEntriesChanged(boolean applyToSubcategories) {
 		for (IConfigScreenListEntry entry : this.getListEntries())
-			if (applyToSubcategories || !(entry instanceof CategoryEntry))
+			if (applyToSubcategories || !(entry instanceof CategoryConfigListEntry))
 				if (entry.isChanged())
 					return true;
 		return false;
@@ -440,7 +318,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 	 */
 	public void undoAllChanges(boolean applyToSubcategories) {
 		for (IConfigScreenListEntry entry : this.getListEntries())
-			if (applyToSubcategories || !(entry instanceof CategoryEntry))
+			if (applyToSubcategories || !(entry instanceof CategoryConfigListEntry))
 				entry.undoChanges();
 	}
 
@@ -452,7 +330,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 	 */
 	public boolean areAnyEntriesEnabled(boolean applyToSubcategories) {
 		for (IConfigScreenListEntry entry : this.getListEntries())
-			if (applyToSubcategories || !(entry instanceof CategoryEntry))
+			if (applyToSubcategories || !(entry instanceof CategoryConfigListEntry))
 				if (entry.enabled())
 					return true;
 		return false;

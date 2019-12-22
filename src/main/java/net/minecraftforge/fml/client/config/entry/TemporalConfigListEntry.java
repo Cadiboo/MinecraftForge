@@ -14,12 +14,12 @@ import java.time.LocalDate;
  */
 public class TemporalConfigListEntry extends ConfigListEntry {
 
-	private final TemporalConfigValueElement temporalConfigValueElement;
+	private final TemporalConfigValueElement configValueElement;
 	private final TextFieldWidget textFieldWidget;
 
 	public TemporalConfigListEntry(final TemporalConfigValueElement configValueElement, final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListScreen) {
 		super(configScreen, configEntryListScreen, configValueElement);
-		this.temporalConfigValueElement = configValueElement;
+		this.configValueElement = configValueElement;
 		this.children().add(this.textFieldWidget = new TextFieldWidget(Minecraft.getInstance().fontRenderer, 0, 0, 18, 18, configValueElement.getName()));
 		this.textFieldWidget.setMaxStringLength("YYYY-MM-DD".length());
 		this.textFieldWidget.setText(configValueElement.get().toString());
@@ -33,7 +33,7 @@ public class TemporalConfigListEntry extends ConfigListEntry {
 			final int year = Integer.parseInt(split[0]);
 			final int month = Integer.parseInt(split[1]);
 			final int day = Integer.parseInt(split[2]);
-			temporalConfigValueElement.set(LocalDate.of(year, month, day));
+			this.configValueElement.set(LocalDate.of(year, month, day));
 		});
 	}
 
@@ -41,7 +41,7 @@ public class TemporalConfigListEntry extends ConfigListEntry {
 	public boolean isValidValue() {
 		final String text = this.textFieldWidget.getText();
 
-		if (!temporalConfigValueElement.getValidationPattern().asPredicate().test(text))
+		if (!configValueElement.getValidationPattern().asPredicate().test(text))
 			return false;
 
 		final String[] split = text.split("-");
@@ -52,14 +52,14 @@ public class TemporalConfigListEntry extends ConfigListEntry {
 			final int month = Integer.parseInt(split[1]);
 			final int day = Integer.parseInt(split[2]);
 			try {
-				LocalDate.of(year, month, day);
+				LocalDate o = LocalDate.of(year, month, day);
+				return configValueElement.entryConfigValue.getValueSpec().test(o);
 			} catch (DateTimeException e) {
 				return false;
 			}
 		} catch (NumberFormatException e) {
 			return false;
 		}
-		return true;
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public class TemporalConfigListEntry extends ConfigListEntry {
 
 	@Override
 	public Object getCurrentValue() {
-		return temporalConfigValueElement.get();
+		return configValueElement.get();
 	}
 
 	@Override
@@ -84,40 +84,40 @@ public class TemporalConfigListEntry extends ConfigListEntry {
 
 	@Override
 	public boolean isDefault() {
-		return temporalConfigValueElement.isDefault();
+		return configValueElement.isDefault();
 	}
 
 	@Override
 	public void resetToDefault() {
-		temporalConfigValueElement.entryConfigValue.resetToDefault();
-		this.textFieldWidget.setText(temporalConfigValueElement.get().toString());
+		configValueElement.entryConfigValue.resetToDefault();
+		this.textFieldWidget.setText(configValueElement.get().toString());
 	}
 
 	@Override
 	public void undoChanges() {
-		temporalConfigValueElement.entryConfigValue.undoChanges();
-		this.textFieldWidget.setText(temporalConfigValueElement.get().toString());
+		configValueElement.entryConfigValue.undoChanges();
+		this.textFieldWidget.setText(configValueElement.get().toString());
 	}
 
 	@Override
 	public boolean isChanged() {
-		return temporalConfigValueElement.entryConfigValue.isChanged();
+		return configValueElement.entryConfigValue.isChanged();
 	}
 
 	@Override
 	public boolean save() {
-		temporalConfigValueElement.entryConfigValue.saveAndLoad();
-		return temporalConfigValueElement.requiresWorldRestart();
+		configValueElement.entryConfigValue.saveAndLoad();
+		return configValueElement.requiresWorldRestart();
 	}
 
 	@Override
 	public boolean requiresWorldRestart() {
-		return temporalConfigValueElement.requiresWorldRestart();
+		return configValueElement.requiresWorldRestart();
 	}
 
 	@Override
 	public boolean requiresMcRestart() {
-		return temporalConfigValueElement.requiresMcRestart();
+		return configValueElement.requiresMcRestart();
 	}
 
 }

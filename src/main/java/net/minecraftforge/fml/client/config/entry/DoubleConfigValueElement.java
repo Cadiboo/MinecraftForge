@@ -43,7 +43,7 @@ public class DoubleConfigValueElement implements IConfigValueElement<Double> {
 	}
 
 	@Override
-	public List<IConfigValueElement> getChildElements() {
+	public List<IConfigValueElement<?>> getChildElements() {
 		return Collections.emptyList();
 	}
 

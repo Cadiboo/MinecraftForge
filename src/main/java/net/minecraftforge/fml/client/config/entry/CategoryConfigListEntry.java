@@ -19,6 +19,7 @@
 
 package net.minecraftforge.fml.client.config.entry;
 
+import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.Widget;
@@ -32,15 +33,18 @@ import net.minecraftforge.fml.client.config.HoverChecker;
 /**
  * Provides an entry that consists of a GuiButton for navigating to the child category ConfigScreen screen.
  */
-public class CategoryEntry extends ConfigListEntry {
+public class CategoryConfigListEntry extends ConfigListEntry {
 
 	protected final GuiButtonExt selectCategoryButton;
 	protected Screen childScreen;
 
-	public CategoryEntry(ConfigScreen owningScreen, ConfigEntryListWidget owningEntryList, IConfigValueElement<?> configElement) {
+	public CategoryConfigListEntry(ConfigScreen owningScreen, ConfigEntryListWidget owningEntryList, IConfigValueElement<?> configElement) {
 		super(owningScreen, owningEntryList, configElement);
 
 		this.childScreen = this.buildChildScreen();
+		final Minecraft minecraft = Minecraft.getInstance();
+		final MainWindow mainWindow = minecraft.func_228018_at_();
+		childScreen.init(minecraft, mainWindow.getScaledWidth(), mainWindow.getScaledHeight());
 
 		this.children().add(this.selectCategoryButton = new GuiButtonExt(0, 0, 300, 18, I18n.format(name), b -> Minecraft.getInstance().displayGuiScreen(childScreen)));
 		this.tooltipHoverChecker = new HoverChecker(this.selectCategoryButton, 500);
@@ -52,7 +56,7 @@ public class CategoryEntry extends ConfigListEntry {
 	 * This method is called in the constructor and is used to set the childScreen field.
 	 */
 	protected Screen buildChildScreen() {
-		return new ConfigScreen(new StringTextComponent("FUCK UH IDK WHAT TO DO"), this.owningScreen, this.owningScreen.modContainer);
+		return new ConfigScreen(this.owningScreen.getTitle().deepCopy().appendSibling(new StringTextComponent(" > " + I18n.format(name))), this.owningScreen, this.owningScreen.modContainer, this.owningScreen.getMinecraft(), this.configElement.getChildElements());
 //		return new ConfigScreen(this.owningScreen, this.configElement.getChildElements(), this.owningScreen.modID,
 //				owningScreen.doAllRequireWorldRestart() || this.configElement.requiresWorldRestart(),
 //				owningScreen.doAllRequireMcRestart() || this.configElement.requiresMcRestart(), this.owningScreen.title,

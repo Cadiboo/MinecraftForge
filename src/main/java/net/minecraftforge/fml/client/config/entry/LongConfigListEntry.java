@@ -6,19 +6,17 @@ import net.minecraft.client.gui.widget.Widget;
 import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 
-import java.time.LocalDate;
-
 /**
  * @author Cadiboo
  */
 public class LongConfigListEntry extends ConfigListEntry {
 
-	private final LongConfigValueElement longConfigValueElement;
+	private final LongConfigValueElement configValueElement;
 	private final TextFieldWidget textFieldWidget;
 
 	public LongConfigListEntry(final LongConfigValueElement configValueElement, final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListScreen) {
 		super(configScreen, configEntryListScreen, configValueElement);
-		this.longConfigValueElement = configValueElement;
+		this.configValueElement = configValueElement;
 		this.children().add(this.textFieldWidget = new TextFieldWidget(Minecraft.getInstance().fontRenderer, 0, 0, 18, 18, configValueElement.getName()));
 		this.textFieldWidget.setMaxStringLength(Integer.MAX_VALUE);
 		this.textFieldWidget.setText(configValueElement.get().toString());
@@ -26,15 +24,15 @@ public class LongConfigListEntry extends ConfigListEntry {
 		this.textFieldWidget.func_212954_a(s -> {
 			if (!this.isValidValue())
 				return;
-			longConfigValueElement.set(Long.valueOf(s));
+			this.configValueElement.set(Long.valueOf(s));
 		});
 	}
 
 	@Override
 	public boolean isValidValue() {
 		try {
-			Long.parseLong(this.textFieldWidget.getText());
-			return true;
+			long o = Long.parseLong(this.textFieldWidget.getText());
+			return configValueElement.entryConfigValue.getValueSpec().test(o);
 		} catch (NumberFormatException e) {
 			return false;
 		}
@@ -47,7 +45,7 @@ public class LongConfigListEntry extends ConfigListEntry {
 
 	@Override
 	public Object getCurrentValue() {
-		return longConfigValueElement.get();
+		return configValueElement.get();
 	}
 
 	@Override
@@ -62,40 +60,40 @@ public class LongConfigListEntry extends ConfigListEntry {
 
 	@Override
 	public boolean isDefault() {
-		return longConfigValueElement.isDefault();
+		return configValueElement.isDefault();
 	}
 
 	@Override
 	public void resetToDefault() {
-		longConfigValueElement.entryConfigValue.resetToDefault();
-		this.textFieldWidget.setText(longConfigValueElement.get().toString());
+		configValueElement.entryConfigValue.resetToDefault();
+		this.textFieldWidget.setText(configValueElement.get().toString());
 	}
 
 	@Override
 	public void undoChanges() {
-		longConfigValueElement.entryConfigValue.undoChanges();
-		this.textFieldWidget.setText(longConfigValueElement.get().toString());
+		configValueElement.entryConfigValue.undoChanges();
+		this.textFieldWidget.setText(configValueElement.get().toString());
 	}
 
 	@Override
 	public boolean isChanged() {
-		return longConfigValueElement.entryConfigValue.isChanged();
+		return configValueElement.entryConfigValue.isChanged();
 	}
 
 	@Override
 	public boolean save() {
-		longConfigValueElement.entryConfigValue.saveAndLoad();
-		return longConfigValueElement.entryConfigValue.requiresWorldRestart();
+		configValueElement.entryConfigValue.saveAndLoad();
+		return configValueElement.entryConfigValue.requiresWorldRestart();
 	}
 
 	@Override
 	public boolean requiresWorldRestart() {
-		return longConfigValueElement.entryConfigValue.requiresWorldRestart();
+		return configValueElement.entryConfigValue.requiresWorldRestart();
 	}
 
 	@Override
 	public boolean requiresMcRestart() {
-		return longConfigValueElement.entryConfigValue.requiresMcRestart();
+		return configValueElement.entryConfigValue.requiresMcRestart();
 	}
 
 }

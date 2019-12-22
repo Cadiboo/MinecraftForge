@@ -70,7 +70,7 @@ public interface IConfigValueElement<T> {
 	 * [Category]
 	 * Gets this category's child categories/properties.
 	 */
-	List<IConfigValueElement> getChildElements();
+	List<IConfigValueElement<?>> getChildElements();
 
 //    /**TODO
 //     * [Property, Category] Gets the ConfigGuiType value corresponding to the type of this property object, or CONFIG_CATEGORY if this is a

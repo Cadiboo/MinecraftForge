@@ -7,9 +7,9 @@ import net.minecraftforge.fml.config.ModConfig;
 /**
  * @author Cadiboo
  */
-public class ModConfigEntry extends CategoryEntry {
+public class ModConfigConfigListEntry extends CategoryConfigListEntry {
 
-	public ModConfigEntry(final ConfigScreen owningScreen, final ConfigEntryListWidget owningEntryList, final IConfigValueElement<ModConfig> configValueElement) {
+	public ModConfigConfigListEntry(final ConfigScreen owningScreen, final ConfigEntryListWidget owningEntryList, final IConfigValueElement<ModConfig> configValueElement) {
 		super(owningScreen, owningEntryList, configValueElement);
 	}
 

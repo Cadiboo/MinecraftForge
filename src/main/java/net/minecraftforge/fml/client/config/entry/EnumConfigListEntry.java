@@ -1,6 +1,7 @@
 package net.minecraftforge.fml.client.config.entry;
 
 import net.minecraft.client.gui.widget.Widget;
+import net.minecraft.item.DyeColor;
 import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
@@ -8,24 +9,37 @@ import net.minecraftforge.fml.client.config.GuiButtonExt;
 /**
  * @author Cadiboo
  */
-public class BooleanConfigListEntry extends ConfigListEntry {
+public class EnumConfigListEntry extends ConfigListEntry {
 
-	private final BooleanConfigValueElement configValueElement;
+	private final EnumConfigValueElement configValueElement;
 	private final GuiButtonExt button;
 
-	public BooleanConfigListEntry(final BooleanConfigValueElement configValueElement, final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListScreen) {
+	public EnumConfigListEntry(final EnumConfigValueElement configValueElement, final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListScreen) {
 		super(configScreen, configEntryListScreen, configValueElement);
 		this.configValueElement = configValueElement;
-		this.children().add(this.button = new GuiButtonExt(0, 0, 18, 18, configValueElement.get().toString(), b -> {
-			configValueElement.set(!configValueElement.get());
-			b.setMessage(configValueElement.get().toString());
-			b.setFGColor(getColor(configValueElement.get()));
+		final Enum<?>[] enumConstants = configValueElement.get().getClass().getEnumConstants();
+		this.children().add(this.button = new GuiButtonExt(0, 0, 18, 18, "You shouldn't see this", b -> {
+			final Enum<?> newValue = enumConstants[(configValueElement.get().ordinal() + 1) % enumConstants.length];
+			configValueElement.set(newValue);
+			updateButtonText();
 		}));
-		this.button.setFGColor(getColor(configValueElement.get()));
+		updateButtonText();
 	}
 
-	private int getColor(final boolean b) {
-		return b ? 0x55FF55 : 0xFF5555; // green or red
+	public void updateButtonText() {
+		final Enum<?> anEnum = this.configValueElement.get();
+		this.button.setMessage(getDisplayString(anEnum));
+		this.button.setFGColor(getColor(anEnum));
+	}
+
+	public int getColor(final Enum<?> anEnum) {
+		if (anEnum instanceof DyeColor)
+			return ((DyeColor) anEnum).getColorValue();
+		return 0xFF_FF_FF; // white
+	}
+
+	private String getDisplayString(final Enum<?> anEnum) {
+		return anEnum.toString();
 	}
 
 	@Override
@@ -60,11 +74,13 @@ public class BooleanConfigListEntry extends ConfigListEntry {
 	@Override
 	public void resetToDefault() {
 		configValueElement.resetToDefault();
+		updateButtonText();
 	}
 
 	@Override
 	public void undoChanges() {
 		configValueElement.entryConfigValue.undoChanges();
+		updateButtonText();
 	}
 
 	@Override
@@ -75,6 +91,7 @@ public class BooleanConfigListEntry extends ConfigListEntry {
 	@Override
 	public boolean save() {
 		configValueElement.entryConfigValue.saveAndLoad();
+		updateButtonText();
 		return configValueElement.requiresWorldRestart();
 	}
 

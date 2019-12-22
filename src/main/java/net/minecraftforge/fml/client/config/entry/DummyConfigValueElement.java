@@ -46,7 +46,7 @@ public class DummyConfigValueElement implements IConfigValueElement<String> {
 	}
 
 	@Override
-	public List<IConfigValueElement> getChildElements() {
+	public List<IConfigValueElement<?>> getChildElements() {
 		return Collections.emptyList();
 	}
 

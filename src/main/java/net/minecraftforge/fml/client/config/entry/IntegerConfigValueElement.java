@@ -43,7 +43,7 @@ public class IntegerConfigValueElement implements IConfigValueElement<Integer> {
 	}
 
 	@Override
-	public List<IConfigValueElement> getChildElements() {
+	public List<IConfigValueElement<?>> getChildElements() {
 		return Collections.emptyList();
 	}
 

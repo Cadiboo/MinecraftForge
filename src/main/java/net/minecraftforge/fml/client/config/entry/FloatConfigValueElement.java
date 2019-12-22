@@ -43,7 +43,7 @@ public class FloatConfigValueElement implements IConfigValueElement<Float> {
 	}
 
 	@Override
-	public List<IConfigValueElement> getChildElements() {
+	public List<IConfigValueElement<?>> getChildElements() {
 		return Collections.emptyList();
 	}
 

@@ -9,11 +9,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class BooleanConfigValueElement implements IConfigValueElement<Boolean> {
+public class EnumConfigValueElement implements IConfigValueElement<Enum<?>> {
 
-	final EntryConfigValue<Boolean> entryConfigValue;
+	final EntryConfigValue<Enum<?>> entryConfigValue;
 
-	public BooleanConfigValueElement(final List<String> path, final ModConfig modConfig, final ForgeConfigSpec.ConfigValue<Boolean> configValue) {
+	public EnumConfigValueElement(final List<String> path, final ModConfig modConfig, final ForgeConfigSpec.ConfigValue<Enum<?>> configValue) {
 		entryConfigValue = new EntryConfigValue<>(path, modConfig, modConfig.getSpec().get(path), configValue);
 	}
 
@@ -24,7 +24,7 @@ public class BooleanConfigValueElement implements IConfigValueElement<Boolean> {
 
 	@Override
 	public ConfigListEntry makeConfigEntry(final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListScreen) {
-		return new BooleanConfigListEntry(this, configScreen, configEntryListScreen);
+		return new EnumConfigListEntry(this, configScreen, configEntryListScreen);
 	}
 
 	@Override
@@ -68,13 +68,13 @@ public class BooleanConfigValueElement implements IConfigValueElement<Boolean> {
 	}
 
 	@Override
-	public Boolean getDefault() {
+	public Enum<?> getDefault() {
 		return entryConfigValue.getDefaultValue();
 	}
 
 	@Override
-	public Boolean[] getDefaults() {
-		return new Boolean[0];
+	public Enum<?>[] getDefaults() {
+		return new Enum[0];
 	}
 
 	@Override
@@ -98,23 +98,22 @@ public class BooleanConfigValueElement implements IConfigValueElement<Boolean> {
 	}
 
 	@Override
-	public Boolean get() {
+	public Enum<?> get() {
 		return entryConfigValue.getCurrentValue();
 	}
 
 	@Override
-	public Boolean[] getList() {
-		return new Boolean[0];
+	public Enum<?>[] getList() {
+		return new Enum[0];
 	}
 
 	@Override
-	public void set(final Boolean value) {
+	public void set(final Enum value) {
 		entryConfigValue.setCurrentValue(value);
 	}
 
 	@Override
-	public void set(final Boolean[] aVal) {
-
+	public void set(final Enum[] aVal) {
 	}
 
 	@Override
@@ -123,13 +122,13 @@ public class BooleanConfigValueElement implements IConfigValueElement<Boolean> {
 	}
 
 	@Override
-	public Boolean getMinValue() {
-		return false;
+	public Enum<?> getMinValue() {
+		return null;
 	}
 
 	@Override
-	public Boolean getMaxValue() {
-		return true;
+	public Enum<?> getMaxValue() {
+		return null;
 	}
 
 	@Override

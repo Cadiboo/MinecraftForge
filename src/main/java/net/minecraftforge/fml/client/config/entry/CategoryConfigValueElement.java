@@ -1,45 +1,51 @@
 package net.minecraftforge.fml.client.config.entry;
 
+import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/**
- * @author Cadiboo
- */
-public class CategoryConfigValueElement implements IConfigValueElement {
+public class CategoryConfigValueElement implements IConfigValueElement<String> {
+
+	final String title;
+	private final List<IConfigValueElement<?>> list;
+
+	public CategoryConfigValueElement(final String title, final List<IConfigValueElement<?>> list) {
+		this.title = title;
+		this.list = list;
+	}
 
 	@Override
 	public boolean isProperty() {
-		return false;
+		return true;
 	}
 
 	@Override
 	public ConfigListEntry makeConfigEntry(final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListScreen) {
-		return new CategoryEntry(configScreen, configEntryListScreen, this);
+		return new CategoryConfigListEntry(configScreen, configEntryListScreen, this);
 	}
 
 	@Override
 	public String getName() {
-//		return this.name;
-		return null;
+		return title;
 	}
 
 	@Override
 	public String getTranslationKey() {
-		return null;
+		return title;
 	}
 
 	@Override
 	public String getComment() {
-		return null;
+		return "Uhhhhhhh help Idk what code to write here";
 	}
 
 	@Override
-	public List<IConfigValueElement> getChildElements() {
-		return null;
+	public List<IConfigValueElement<?>> getChildElements() {
+		return list;
 	}
 
 	@Override
@@ -59,22 +65,21 @@ public class CategoryConfigValueElement implements IConfigValueElement {
 
 	@Override
 	public boolean isDefault() {
-		return false;
+		return true;
 	}
 
 	@Override
-	public Object getDefault() {
-		return null;
+	public String getDefault() {
+		return title;
 	}
 
 	@Override
-	public Object[] getDefaults() {
-		return new Object[0];
+	public String[] getDefaults() {
+		return new String[]{getDefault()};
 	}
 
 	@Override
 	public void resetToDefault() {
-
 	}
 
 	@Override
@@ -84,7 +89,7 @@ public class CategoryConfigValueElement implements IConfigValueElement {
 
 	@Override
 	public boolean showInGui() {
-		return false;
+		return true;
 	}
 
 	@Override
@@ -93,22 +98,22 @@ public class CategoryConfigValueElement implements IConfigValueElement {
 	}
 
 	@Override
-	public Object get() {
-		return null;
+	public String get() {
+		return title;
 	}
 
 	@Override
-	public Object[] getList() {
-		return new Object[0];
+	public String[] getList() {
+		return new String[]{get()};
 	}
 
 	@Override
-	public void set(final Object value) {
+	public void set(final String value) {
 
 	}
 
 	@Override
-	public void set(final Object[] aVal) {
+	public void set(final String[] aVal) {
 
 	}
 
@@ -118,18 +123,18 @@ public class CategoryConfigValueElement implements IConfigValueElement {
 	}
 
 	@Override
-	public Object getMinValue() {
-		return null;
+	public String getMinValue() {
+		return title;
 	}
 
 	@Override
-	public Object getMaxValue() {
-		return null;
+	public String getMaxValue() {
+		return title;
 	}
 
 	@Override
 	public Pattern getValidationPattern() {
-		return null;
+		return Pattern.compile(".+");
 	}
 
 }

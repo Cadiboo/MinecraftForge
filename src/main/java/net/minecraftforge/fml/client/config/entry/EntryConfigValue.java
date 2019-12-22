@@ -168,6 +168,7 @@ public class EntryConfigValue<T> {
 		final ModConfig modConfig = getModConfig();
 		final CommentedConfig configData = modConfig.getConfigData();
 
+		// TODO: Don't fire this for every element when it saves
 		configValue.set(this.getCurrentValue());
 		configValue.save();
 		if (configData instanceof FileConfig) // load the data if its from a file

@@ -44,7 +44,7 @@ public class TemporalConfigValueElement implements IConfigValueElement<Temporal>
 	}
 
 	@Override
-	public List<IConfigValueElement> getChildElements() {
+	public List<IConfigValueElement<?>> getChildElements() {
 		return Collections.emptyList();
 	}
 

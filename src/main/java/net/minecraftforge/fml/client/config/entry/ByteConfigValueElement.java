@@ -43,7 +43,7 @@ public class ByteConfigValueElement implements IConfigValueElement<Byte> {
 	}
 
 	@Override
-	public List<IConfigValueElement> getChildElements() {
+	public List<IConfigValueElement<?>> getChildElements() {
 		return Collections.emptyList();
 	}
 
