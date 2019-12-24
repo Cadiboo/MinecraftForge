@@ -3,26 +3,29 @@ package net.minecraftforge.fml.client.config.entry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.Widget;
-import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
+import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.fml.client.config.ConfigScreen;
+import net.minecraftforge.fml.config.ModConfig;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
+import java.time.temporal.Temporal;
+import java.util.List;
 
 /**
  * @author Cadiboo
  */
-public class TemporalConfigListEntry extends ConfigListEntry {
+public class TemporalConfigListEntry extends ConfigListEntry<Temporal> {
 
-	private final TemporalConfigValueElement configValueElement;
 	private final TextFieldWidget textFieldWidget;
+	private final EntryConfigValue<Temporal> entryConfigValue;
 
-	public TemporalConfigListEntry(final TemporalConfigValueElement configValueElement, final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListScreen) {
-		super(configScreen, configEntryListScreen, configValueElement);
-		this.configValueElement = configValueElement;
-		this.children().add(this.textFieldWidget = new TextFieldWidget(Minecraft.getInstance().fontRenderer, 0, 0, 18, 18, configValueElement.getName()));
+	public TemporalConfigListEntry(final ConfigScreen configScreen, final ModConfig modConfig, final List<String> path, final ConfigValue<Temporal> configValue) {
+		super(configScreen);
+		this.entryConfigValue = new EntryConfigValue<>(path, modConfig, configValue);
+		this.children().add(this.textFieldWidget = new TextFieldWidget(Minecraft.getInstance().fontRenderer, 0, 0, 18, 18, getLabel()));
 		this.textFieldWidget.setMaxStringLength("YYYY-MM-DD".length());
-		this.textFieldWidget.setText(configValueElement.get().toString());
+		this.textFieldWidget.setText(getEntryConfigValue().getCurrentValue().toString());
 		this.textFieldWidget.setCursorPositionZero(); // Remove weird scroll bug
 		this.textFieldWidget.func_212954_a(s -> {
 			if (!this.isValidValue())
@@ -33,16 +36,13 @@ public class TemporalConfigListEntry extends ConfigListEntry {
 			final int year = Integer.parseInt(split[0]);
 			final int month = Integer.parseInt(split[1]);
 			final int day = Integer.parseInt(split[2]);
-			this.configValueElement.set(LocalDate.of(year, month, day));
+			this.getEntryConfigValue().setCurrentValue(LocalDate.of(year, month, day));
 		});
 	}
 
 	@Override
 	public boolean isValidValue() {
 		final String text = this.textFieldWidget.getText();
-
-		if (!configValueElement.getValidationPattern().asPredicate().test(text))
-			return false;
 
 		final String[] split = text.split("-");
 		if (split.length != 3)
@@ -53,7 +53,7 @@ public class TemporalConfigListEntry extends ConfigListEntry {
 			final int day = Integer.parseInt(split[2]);
 			try {
 				LocalDate o = LocalDate.of(year, month, day);
-				return configValueElement.entryConfigValue.getValueSpec().test(o);
+				return getEntryConfigValue().getValueSpec().test(o);
 			} catch (DateTimeException e) {
 				return false;
 			}
@@ -68,56 +68,8 @@ public class TemporalConfigListEntry extends ConfigListEntry {
 	}
 
 	@Override
-	public Object getCurrentValue() {
-		return configValueElement.get();
-	}
-
-	@Override
-	public Object[] getCurrentValues() {
-		return new Object[0];
-	}
-
-	@Override
-	public void tick() {
-		textFieldWidget.tick();
-	}
-
-	@Override
-	public boolean isDefault() {
-		return configValueElement.isDefault();
-	}
-
-	@Override
-	public void resetToDefault() {
-		configValueElement.entryConfigValue.resetToDefault();
-		this.textFieldWidget.setText(configValueElement.get().toString());
-	}
-
-	@Override
-	public void undoChanges() {
-		configValueElement.entryConfigValue.undoChanges();
-		this.textFieldWidget.setText(configValueElement.get().toString());
-	}
-
-	@Override
-	public boolean isChanged() {
-		return configValueElement.entryConfigValue.isChanged();
-	}
-
-	@Override
-	public boolean save() {
-		configValueElement.entryConfigValue.saveAndLoad();
-		return configValueElement.requiresWorldRestart();
-	}
-
-	@Override
-	public boolean requiresWorldRestart() {
-		return configValueElement.requiresWorldRestart();
-	}
-
-	@Override
-	public boolean requiresMcRestart() {
-		return configValueElement.requiresMcRestart();
+	protected EntryConfigValue<Temporal> getEntryConfigValue() {
+		return entryConfigValue;
 	}
 
 }

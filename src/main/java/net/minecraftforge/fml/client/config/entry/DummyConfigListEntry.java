@@ -1,16 +1,18 @@
 package net.minecraftforge.fml.client.config.entry;
 
 import net.minecraft.client.gui.widget.Widget;
-import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 
 /**
  * @author Cadiboo
  */
-public class DummyConfigListEntry extends ConfigListEntry {
+public class DummyConfigListEntry extends ConfigListEntry<String> {
 
-	public DummyConfigListEntry(final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListScreen, final DummyConfigValueElement configElement) {
-		super(configScreen, configEntryListScreen, configElement);
+	private final String name;
+
+	public DummyConfigListEntry(final ConfigScreen configScreen, final String name) {
+		super(configScreen);
+		this.name = name;
 	}
 
 	@Override
@@ -24,50 +26,13 @@ public class DummyConfigListEntry extends ConfigListEntry {
 	}
 
 	@Override
-	public Object getCurrentValue() {
-		return "NULL";
+	public String getLabel() {
+		return name;
 	}
 
 	@Override
-	public Object[] getCurrentValues() {
-		return new Object[0];
-	}
-
-	@Override
-	public void tick() {
-	}
-
-	@Override
-	public boolean isDefault() {
-		return true;
-	}
-
-	@Override
-	public void resetToDefault() {
-	}
-
-	@Override
-	public void undoChanges() {
-	}
-
-	@Override
-	public boolean isChanged() {
-		return false;
-	}
-
-	@Override
-	public boolean save() {
-		return false;
-	}
-
-	@Override
-	public boolean requiresWorldRestart() {
-		return false;
-	}
-
-	@Override
-	public boolean requiresMcRestart() {
-		return false;
+	protected EntryConfigValue<String> getEntryConfigValue() {
+		return null;
 	}
 
 }

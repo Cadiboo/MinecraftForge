@@ -19,7 +19,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -44,14 +43,25 @@ public class TestConfig {
 	private static float aFloat;
 	private static long aLong;
 	private static double aDouble;
-	private static String aString;
 	private static DyeColor anEnum;
+	private static String aString;
+	private static LocalDate aLocalDate;
+
+	private static List<Boolean> aBooleanList;
+	private static List<Byte> aByteList;
+	private static List<Integer> anIntegerList;
+	private static List<Float> aFloatList;
+	private static List<Long> aLongList;
+	private static List<Double> aDoubleList;
+	private static List<Enum<DyeColor>> anEnumList;
 	private static List<String> aStringList;
+	private static List<LocalDate> aLocalDateList;
 	private static List<? extends String> aStringListOld;
 	private static List<List<String>> aStringListList;
-	private static LocalDate aLocalDate;
+
 	private static boolean category0_aBoolean;
 	private static int category0_anInt;
+
 	private static boolean category0_category1_aBoolean;
 	private static int category0_category1_anInt;
 
@@ -72,16 +82,25 @@ public class TestConfig {
 	private static void bakeAndDebugConfig() {
 		bakeAndDebug(() -> aBoolean, COMMON.aBoolean, $ -> aBoolean = $);
 		bakeAndDebug(() -> aByte, COMMON.aByte, $ -> aByte = $);
-		bakeAndDebug(() -> anInt, COMMON.anInt, $ -> anInt = $);
+		bakeAndDebug(() -> anInt, COMMON.anInteger, $ -> anInt = $);
 		bakeAndDebug(() -> aFloat, COMMON.aFloat, $ -> aFloat = $);
 		bakeAndDebug(() -> aLong, COMMON.aLong, $ -> aLong = $);
 		bakeAndDebug(() -> aDouble, COMMON.aDouble, $ -> aDouble = $);
 		bakeAndDebug(() -> anEnum, COMMON.anEnum, $ -> anEnum = $);
 		bakeAndDebug(() -> aString, COMMON.aString, $ -> aString = $);
+		bakeAndDebug(() -> aLocalDate, COMMON.aLocalDate, $ -> aLocalDate = $);
+
+		bakeAndDebug(() -> aBooleanList, COMMON.aBooleanList, $ -> aBooleanList = $);
+		bakeAndDebug(() -> aByteList, COMMON.aByteList, $ -> aByteList = $);
+		bakeAndDebug(() -> anIntegerList, COMMON.anIntegerList, $ -> anIntegerList = $);
+		bakeAndDebug(() -> aFloatList, COMMON.aFloatList, $ -> aFloatList = $);
+		bakeAndDebug(() -> aLongList, COMMON.aLongList, $ -> aLongList = $);
+		bakeAndDebug(() -> aDoubleList, COMMON.aDoubleList, $ -> aDoubleList = $);
+		bakeAndDebug(() -> anEnumList, COMMON.anEnumList, $ -> anEnumList = $);
 		bakeAndDebug(() -> aStringList, COMMON.aStringList, $ -> aStringList = $);
+		bakeAndDebug(() -> aLocalDateList, COMMON.aLocalDateList, $ -> aLocalDateList = $);
 		bakeAndDebug(() -> aStringListOld, COMMON.aStringListOld, $ -> aStringListOld = $);
 		bakeAndDebug(() -> aStringListList, COMMON.aStringListList, $ -> aStringListList = $);
-		bakeAndDebug(() -> aLocalDate, COMMON.aLocalDate, $ -> aLocalDate = $);
 
 		bakeAndDebug(() -> category0_aBoolean, COMMON.category0_aBoolean, $ -> category0_aBoolean = $);
 		bakeAndDebug(() -> category0_anInt, COMMON.category0_anInt, $ -> category0_anInt = $);
@@ -94,7 +113,8 @@ public class TestConfig {
 		T oldValue = getter.get();
 		T newValue = configValue.get();
 		String path = Strings.join(configValue.getPath(), "_");
-		LogManager.getLogger().warn(FORGEMOD, path + ": " + oldValue + ", " + newValue + ", " + Objects.equals(oldValue, newValue));
+//		LogManager.getLogger().warn(FORGEMOD, path + ": " + oldValue + ", " + newValue + ", " + Objects.equals(oldValue, newValue));
+		LogManager.getLogger().warn(FORGEMOD, path + ": " + Objects.equals(oldValue, newValue));
 		setter.accept(newValue);
 	}
 
@@ -116,16 +136,25 @@ public class TestConfig {
 
 		private final BooleanValue aBoolean;
 		private final ByteValue aByte;
-		private final IntValue anInt;
+		private final IntValue anInteger;
 		private final FloatValue aFloat;
 		private final LongValue aLong;
 		private final DoubleValue aDouble;
 		private final EnumValue<DyeColor> anEnum;
 		private final ConfigValue<String> aString;
+		private final ConfigValue<LocalDate> aLocalDate;
+
+		private final ConfigValue<List<Boolean>> aBooleanList;
+		private final ConfigValue<List<Byte>> aByteList;
+		private final ConfigValue<List<Integer>> anIntegerList;
+		private final ConfigValue<List<Float>> aFloatList;
+		private final ConfigValue<List<Long>> aLongList;
+		private final ConfigValue<List<Double>> aDoubleList;
+		private final ConfigValue<List<Enum<DyeColor>>> anEnumList;
 		private final ConfigValue<List<String>> aStringList;
+		private final ConfigValue<List<LocalDate>> aLocalDateList;
 		private final ConfigValue<List<? extends String>> aStringListOld;
 		private final ConfigValue<List<List<String>>> aStringListList;
-		private final ConfigValue<LocalDate> aLocalDate;
 
 		private final BooleanValue category0_aBoolean;
 		private final IntValue category0_anInt;
@@ -147,7 +176,7 @@ public class TestConfig {
 					.worldRestart()
 					.defineInRange("aByte", (byte) 10, Byte.MIN_VALUE, Byte.MAX_VALUE);
 
-			anInt = builder
+			anInteger = builder
 					.comment("anInt")
 					.translation("anInt")
 					.worldRestart()
@@ -181,25 +210,72 @@ public class TestConfig {
 					.translation("aString")
 					.define("aString", "Hello, World!");
 
-			aStringList = builder
-					.comment("aStringList")
-					.translation("aStringList")
-					.define("aStringList", new ArrayList<>());
-
-			aStringListOld = builder
-					.comment("aStringListOld")
-					.translation("aStringListOld")
-					.defineList("aStringListOld", new ArrayList<>(), o -> o instanceof String);
-
-			aStringListList = builder
-					.comment("aStringListList")
-					.translation("aStringListList")
-					.define("aStringListList", Lists.newArrayList(Lists.newArrayList("Hello"), Lists.newArrayList("World")));
-
 			aLocalDate = builder
 					.comment("aLocalDate")
 					.translation("aLocalDate")
 					.define("aLocalDate", LocalDate.of(2000, 1, 1));
+
+			builder.push("lists");
+			builder.comment("list tests");
+			{
+				aBooleanList = builder
+						.comment("aBooleanList")
+						.translation("aBooleanList")
+						.define("aBooleanList", Lists.newArrayList(true, false));
+
+				aByteList = builder
+						.comment("aByteList")
+						.translation("aByteList")
+						.define("aByteList", Lists.newArrayList((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 256));
+
+				anIntegerList = builder
+						.comment("anIntegerList")
+						.translation("anIntegerList")
+						.define("anIntegerList", Lists.newArrayList(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 256));
+
+				aFloatList = builder
+						.comment("aFloatList")
+						.translation("aFloatList")
+						.define("aFloatList", Lists.newArrayList(0F, Float.MIN_VALUE, Float.MAX_VALUE, 256F));
+
+				aLongList = builder
+						.comment("aLongList")
+						.translation("aLongList")
+						.define("aLongList", Lists.newArrayList(0L, Long.MIN_VALUE, Long.MAX_VALUE, 256L));
+
+				aDoubleList = builder
+						.comment("aDoubleList")
+						.translation("aDoubleList")
+						.define("aDoubleList", Lists.newArrayList(0d, Double.MIN_VALUE, Double.MAX_VALUE, 256d));
+
+				anEnumList = builder
+						.comment("anEnumList")
+						.translation("anEnumList")
+						.define("anEnumList", Lists.newArrayList(DyeColor.BLACK, DyeColor.GREEN, DyeColor.CYAN, DyeColor.RED));
+
+				aStringList = builder
+						.comment("aStringList")
+						.translation("aStringList")
+						.define("aStringList", Lists.newArrayList("aStringList_value0", "aStringList_value1"));
+
+				aLocalDateList = builder
+						.comment("aLocalDateList")
+						.translation("aLocalDateList")
+						// Negative years or years that have less/more than 4 digits break toml's parser
+//						.define("aLocalDateList", Lists.newArrayList(LocalDate.of(-1, 1, 1), LocalDate.of(2000, 1, 1)));
+						.define("aLocalDateList", Lists.newArrayList(LocalDate.of(1999, 1, 1), LocalDate.of(2000, 1, 1)));
+
+				aStringListOld = builder
+						.comment("aStringListOld")
+						.translation("aStringListOld")
+						.defineList("aStringListOld", Lists.newArrayList("aStringListOld_value0", "aStringListOld_value1"), o -> o instanceof String);
+
+				aStringListList = builder
+						.comment("aStringListList")
+						.translation("aStringListList")
+						.define("aStringListList", Lists.newArrayList(Lists.newArrayList("Hello"), Lists.newArrayList("World")));
+			}
+			builder.pop();
 
 			builder.push("category0");
 			builder.comment("category0 configuration settings");

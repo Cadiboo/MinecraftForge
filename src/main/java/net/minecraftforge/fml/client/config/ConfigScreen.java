@@ -28,22 +28,19 @@ import net.minecraft.client.gui.widget.button.CheckboxButton;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.ModContainer;
-import net.minecraftforge.fml.client.config.entry.BooleanConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.ByteConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.CategoryConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.DoubleConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.DummyConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.EnumConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.FloatConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.IConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.IntegerConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.LongConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.ModConfigConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.StringConfigValueElement;
-import net.minecraftforge.fml.client.config.entry.TemporalConfigValueElement;
+import net.minecraftforge.fml.client.config.entry.BooleanConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.ConfigCategoryConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.DummyConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.EnumConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.ListCategoryConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.ModConfigCategoryConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.NumberConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.StringConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.TemporalConfigListEntry;
 import net.minecraftforge.fml.config.ConfigTracker;
 import net.minecraftforge.fml.config.ModConfig;
 import org.apache.logging.log4j.LogManager;
@@ -57,7 +54,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
+import static net.minecraftforge.common.ForgeConfigSpec.ValueSpec;
 import static net.minecraftforge.fml.client.config.GuiUtils.RESET_CHAR;
 import static net.minecraftforge.fml.client.config.GuiUtils.UNDO_CHAR;
 
@@ -89,6 +88,15 @@ public class ConfigScreen extends Screen {
 	 */
 	public final ModContainer modContainer;
 	/**
+	 * A list of elements on this screen.
+	 * Re-created when {@link #init()} is called if {@link #needsRefresh} is true.
+	 */
+	private final List<ConfigListEntry<?>> configElements;
+	/**
+	 * The initial list of elements on this screen. Same as the first value of {@link #configElements}
+	 */
+	private final List<ConfigListEntry<?>> initialConfigElements;
+	/**
 	 * If true then the entryList & configValueElements will be re-created next time {@link #init()} is called.
 	 */
 	public boolean needsRefresh = true;
@@ -111,32 +119,24 @@ public class ConfigScreen extends Screen {
 	 * Used to determine if specific tooltips should be rendered.
 	 */
 	protected HoverChecker undoChangesButtonHoverChecker, resetToDefaultButtonHoverChecker, applyToSubcategoriesCheckBoxHoverChecker;
-	/**
-	 * A list of elements on this screen.
-	 * Re-created when {@link #init()} is called if {@link #needsRefresh} is true.
-	 */
-	private List<IConfigValueElement<?>> configValueElements;
 	private ITextComponent subtitle;
 	/**
-	 * Displays all our {@link #configValueElements} in a scrollable list
+	 * Displays all our {@link #configElements} in a scrollable list
 	 */
 	private ConfigEntryListWidget entryList;
 
-	public ConfigScreen(final ITextComponent titleIn, final Screen parentScreen, final ModContainer modContainer) {
+	public ConfigScreen(final ITextComponent titleIn, final Screen parentScreen, final ModContainer modContainer, @Nullable Function<ConfigScreen, List<ConfigListEntry<?>>> makeConfigElements) {
 		super(titleIn);
 		this.parentScreen = parentScreen;
 		this.modContainer = modContainer;
+		if (makeConfigElements == null)
+			this.configElements = this.initialConfigElements = makeElementsForMod();
+		else
+			this.configElements = this.initialConfigElements = makeConfigElements.apply(this);
 	}
 
-	public ConfigScreen(final ITextComponent title, final Screen parentScreen, final ModContainer modContainer, final Minecraft minecraft) {
-		this(title, parentScreen, modContainer);
-		this.minecraft = minecraft;
-	}
-
-	public ConfigScreen(final ITextComponent title, final Screen parentScreen, final ModContainer modContainer, final Minecraft minecraft, final List<IConfigValueElement<?>> configValueElements) {
-		this(title, parentScreen, modContainer);
-		this.minecraft = minecraft;
-		this.configValueElements = configValueElements;
+	public ConfigScreen(final ITextComponent titleIn, final Screen parentScreen, final ModContainer modContainer) {
+		this(titleIn, parentScreen, modContainer, null);
 	}
 
 	/**
@@ -152,7 +152,85 @@ public class ConfigScreen extends Screen {
 			return Runnables.doNothing();
 		return () -> modContainer.registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY,
 				() -> (minecraft, screen) ->
-						new ConfigScreen(new StringTextComponent(modContainer.getModInfo().getDisplayName()), screen, modContainer, minecraft));
+						new ConfigScreen(new StringTextComponent(modContainer.getModInfo().getDisplayName()), screen, modContainer));
+	}
+
+	/**
+	 * @param obj Either a ConfigValue or a Config
+	 * @see #getSpecConfigValues(ModConfig)
+	 */
+	public static ConfigListEntry<?> makeConfigListEntry(final ConfigScreen configScreen, final ModConfig modConfig, final String name, final Object obj) {
+		if (obj instanceof ConfigValue) {
+			final ConfigValue<?> configValue = (ConfigValue<?>) obj;
+			// Because the obj is a ConfigValue the corresponding object in the ValueSpec map must be a ValueSpec
+			final ValueSpec valueSpec = (ValueSpec) getValueSpec(modConfig, configValue.getPath());
+
+			Class<?> clazz = valueSpec.getClazz();
+			if (clazz == Object.class) {
+				final Object actualValue = configValue.get();
+				final Class<?> valueClass = actualValue.getClass();
+				if (valueClass != null)
+					clazz = valueClass;
+				else {
+					final Object defaultValue = valueSpec.getDefault();
+					if (defaultValue != null)
+						clazz = defaultValue.getClass();
+				}
+			}
+			if (Boolean.class.isAssignableFrom(clazz)) {
+				return new BooleanConfigListEntry(configScreen, modConfig, configValue.getPath(), (ConfigValue<Boolean>) configValue);
+			} else if (Byte.class.isAssignableFrom(clazz)) {
+				return new NumberConfigListEntry<Byte>(configScreen, modConfig, configValue.getPath(), (ConfigValue<Byte>) configValue) {
+					@Override
+					protected Byte parse(final String text) {
+						return Byte.parseByte(text);
+					}
+				};
+			} else if (Integer.class.isAssignableFrom(clazz)) {
+				return new NumberConfigListEntry<Integer>(configScreen, modConfig, configValue.getPath(), (ConfigValue<Integer>) configValue) {
+					@Override
+					protected Integer parse(final String text) {
+						return Integer.parseInt(text);
+					}
+				};
+			} else if (Float.class.isAssignableFrom(clazz)) {
+				return new NumberConfigListEntry<Float>(configScreen, modConfig, configValue.getPath(), (ConfigValue<Float>) configValue) {
+					@Override
+					protected Float parse(final String text) {
+						return Float.parseFloat(text);
+					}
+				};
+			} else if (Long.class.isAssignableFrom(clazz)) {
+				return new NumberConfigListEntry<Long>(configScreen, modConfig, configValue.getPath(), (ConfigValue<Long>) configValue) {
+					@Override
+					protected Long parse(final String text) {
+						return Long.parseLong(text);
+					}
+				};
+			} else if (Double.class.isAssignableFrom(clazz)) {
+				return new NumberConfigListEntry<Double>(configScreen, modConfig, configValue.getPath(), (ConfigValue<Double>) configValue) {
+					@Override
+					protected Double parse(final String text) {
+						return Double.parseDouble(text);
+					}
+				};
+			} else if (String.class.isAssignableFrom(clazz)) {
+				return new StringConfigListEntry(configScreen, modConfig, configValue.getPath(), (ConfigValue<String>) configValue);
+			} else if (Enum.class.isAssignableFrom(clazz)) {
+				return new EnumConfigListEntry(configScreen, modConfig, configValue.getPath(), (ConfigValue<Enum<?>>) configValue);
+			} else if (List.class.isAssignableFrom(clazz)) {
+				return new ListCategoryConfigListEntry(configScreen, modConfig, configValue.getPath(), (ConfigValue<List<?>>) configValue);
+			} else if (Temporal.class.isAssignableFrom(clazz)) {
+				return new TemporalConfigListEntry(configScreen, modConfig, configValue.getPath(), (ConfigValue<Temporal>) configValue);
+			} else {
+				return new DummyConfigListEntry(configScreen, name);
+			}
+		} else if (obj instanceof Config) {
+			final Config config = (Config) obj;
+			return new ConfigCategoryConfigListEntry(configScreen, name, modConfig, config);
+		} else {
+			throw new IllegalStateException("How? " + name + ", " + obj);
+		}
 	}
 
 //	/**
@@ -285,6 +363,88 @@ public class ConfigScreen extends Screen {
 //		return toReturn;
 //	}
 
+	public static Map<String, Object> getSpecValueSpecs(final ModConfig modConfig) {
+		// name -> ValueSpec|SimpleConfig
+		return modConfig.getSpec().valueMap();
+	}
+
+	public static Map<String, Object> getSpecConfigValues(final ModConfig modConfig) {
+		// name -> ConfigValue|SimpleConfig
+		return modConfig.getSpec().getValues().valueMap();
+	}
+
+	public static Map<String, Object> getConfigValues(final ModConfig modConfig) {
+		// name -> Object
+		return modConfig.getConfigData().valueMap();
+	}
+
+	public static Object getValueSpec(final ModConfig modConfig, final List<String> path) {
+		// name -> ValueSpec|SimpleConfig
+		final Map<String, Object> specValueSpecs = getSpecValueSpecs(modConfig);
+
+		// Either a ValueSpec or a SimpleConfig
+		Object ret = specValueSpecs;
+
+		for (final String s : path) {
+			if (ret instanceof Map) // First iteration
+				ret = ((Map<String, Object>) ret).get(s);
+			else if (ret instanceof ValueSpec)
+				return ret; // Uh, shouldn't happen? TODO: Throw error?
+			else if (ret instanceof Config)
+				ret = ((Config) ret).get(s);
+		}
+		return ret;
+	}
+
+	public static Object getConfigValue(final ModConfig modConfig, final List<String> path) {
+		// name -> ConfigValue|SimpleConfig
+		final Map<String, Object> specConfigVales = getSpecConfigValues(modConfig);
+
+		// Either a ConfigValue or a SimpleConfig
+		Object ret = specConfigVales;
+
+		for (final String s : path) {
+			if (ret instanceof Map) // First iteration
+				ret = ((Map<String, Object>) ret).get(s);
+			else if (ret instanceof ConfigValue)
+				return ret; // Uh, shouldn't happen? TODO: Throw error?
+			else if (ret instanceof Config)
+				ret = ((Config) ret).get(s);
+		}
+		return ret;
+	}
+
+	/**
+	 * @return True if in singleplayer and not open to LAN
+	 */
+	protected boolean canPlayerEditServerConfig() {
+		final Minecraft minecraft = Minecraft.getInstance();
+		if (minecraft.getIntegratedServer() == null)
+			return false;
+		if (!minecraft.isSingleplayer())
+			return false;
+		return !minecraft.getIntegratedServer().getPublic();
+	}
+
+	protected List<ConfigListEntry<?>> makeElementsForMod() {
+		final List<ConfigListEntry<?>> list = new ArrayList<>();
+		for (final ModConfig.Type type : ModConfig.Type.values())
+			makeConfigElementForModConfigType(type).ifPresent(list::add);
+		return list;
+	}
+
+	protected Optional<ModConfigCategoryConfigListEntry> makeConfigElementForModConfigType(final ModConfig.Type type) {
+
+		if (type == ModConfig.Type.SERVER && !canPlayerEditServerConfig())
+			return Optional.empty();
+
+		final ModConfig modConfig = ConfigTracker.INSTANCE.getConfig(modContainer.getModId(), type).orElse(null);
+		if (modConfig == null)
+			return Optional.empty();
+
+		return Optional.of(new ModConfigCategoryConfigListEntry(this, modConfig));
+	}
+
 	@Nullable
 	public ConfigEntryListWidget getEntryList() {
 		return entryList;
@@ -297,7 +457,7 @@ public class ConfigScreen extends Screen {
 				if (parentScreen != null && parentScreen instanceof ConfigScreen) {
 					// Mark as needing to re-init the entry list.
 					// Why? Maybe to allow adding of stuff to the config? IDK
-					((ConfigScreen) this.parentScreen).needsRefresh = true;
+//					((ConfigScreen) this.parentScreen).needsRefresh = true;
 				} else {
 					boolean requiresMcRestart = this.entryList.save();
 					boolean requiresWorldRestart = this.entryList.anyRequireWorldRestart();
@@ -343,7 +503,7 @@ public class ConfigScreen extends Screen {
 
 		final int halfWidth = this.width / 2;
 
-		this.drawCenteredString(font, this.title.getFormattedText(), halfWidth, 8, 0xFFFFFF);
+		this.drawCenteredString(font, this.title.getFormattedText(), halfWidth, 5, 0xFFFFFF);
 
 		if (subtitle != null) {
 			String title2 = subtitle.getFormattedText();
@@ -351,11 +511,12 @@ public class ConfigScreen extends Screen {
 			int ellipsisWidth = font.getStringWidth("...");
 			if (strWidth > width - 6 && strWidth > ellipsisWidth)
 				title2 = font.trimStringToWidth(title2, width - 6 - ellipsisWidth).trim() + "...";
-			this.drawCenteredString(font, title2, halfWidth, 25, 0xFFFFFF);
+			this.drawCenteredString(font, title2, halfWidth, 20, 0x9D9D97);
 		}
 
 		super.render(mouseX, mouseY, partialTicks);
 		this.entryList.postRender(mouseX, mouseY, partialTicks);
+
 		if (this.undoChangesButtonHoverChecker.checkHover(mouseX, mouseY))
 			this.drawToolTip(Arrays.asList(I18n.format("fml.configgui.tooltip.undoChanges").split("\n")), mouseX, mouseY);
 		if (this.resetToDefaultButtonHoverChecker.checkHover(mouseX, mouseY))
@@ -371,9 +532,9 @@ public class ConfigScreen extends Screen {
 	public void onClose() {
 		this.entryList.onClose();
 //		if (this.configID != null && this.parentScreen instanceof ConfigScreen) {
-//			ConfigScreen parentGuiConfig = (ConfigScreen) this.parentScreen;
-//			parentGuiConfig.needsRefresh = true;
-//			parentGuiConfig.init();
+//			ConfigScreen parentConfigScreen = (ConfigScreen) this.parentScreen;
+//			parentConfigScreen.needsRefresh = true;
+//			parentConfigScreen.init();
 //		}
 		getMinecraft().displayGuiScreen(parentScreen);
 	}
@@ -411,17 +572,18 @@ public class ConfigScreen extends Screen {
 		this.addButton(resetToDefaultButton = new GuiUnicodeGlyphButton(xPos, yPos, resetWidth, BUTTON_HEIGHT, resetText, RESET_CHAR, 2.0F, this::onResetToDefaultButtonClicked));
 
 		xPos += resetWidth + MARGIN;
-		this.addButton(applyToSubcategoriesCheckBox = new CheckboxButton(xPos, yPos, applyToSubcategoriesWidth, BUTTON_HEIGHT, applyToSubcategoriesText, false));
+		// Widgets are re-created each time so make the value persist if it exists.
+		boolean shouldApplyToSubcategories = applyToSubcategoriesCheckBox != null && shouldApplyToSubcategories();
+		this.addButton(applyToSubcategoriesCheckBox = new CheckboxButton(xPos, yPos, applyToSubcategoriesWidth, BUTTON_HEIGHT, applyToSubcategoriesText, shouldApplyToSubcategories));
 
 		this.undoChangesButtonHoverChecker = new HoverChecker(undoChangesButton, 500);
 		this.resetToDefaultButtonHoverChecker = new HoverChecker(resetToDefaultButton, 500);
 		this.applyToSubcategoriesCheckBoxHoverChecker = new HoverChecker(applyToSubcategoriesCheckBox, 500);
 
-		if (this.configValueElements == null)
-			this.configValueElements = makeConfigValueElements();
-
-		if (this.entryList == null || this.needsRefresh)
-			this.entryList = new ConfigEntryListWidget(getMinecraft(), this);
+		if (this.entryList == null || this.needsRefresh) {
+			this.entryList = new ConfigEntryListWidget(this);
+			this.needsRefresh = false;
+		}
 		this.children.add(entryList);
 
 		entryList.init();
@@ -438,120 +600,6 @@ public class ConfigScreen extends Screen {
 		if (entryList != null) // hmmm
 			this.entryList.tick();
 		setButtonsActive();
-	}
-
-	private List<IConfigValueElement<?>> makeConfigValueElements() {
-		final List<IConfigValueElement<?>> list = new ArrayList<>();
-		for (final ModConfig.Type type : ModConfig.Type.values())
-			compute(type).ifPresent(list::add);
-		return list;
-	}
-
-	// TODO: move to ConfigScreen? Anyway, shouldn't be here
-	private Optional<ModConfigConfigValueElement> compute(final ModConfig.Type type) {
-
-		if (type == ModConfig.Type.SERVER && !canPlayerEditServerConfig())
-			return Optional.empty();
-
-		final ModConfig modConfig = ConfigTracker.INSTANCE.getConfig(this.modContainer.getModId(), type).orElse(null);
-		if (modConfig == null)
-			return Optional.empty();
-
-		// name -> ConfigValue|SimpleConfig
-		final Map<String, Object> specConfigValues = modConfig.getSpec().getValues().valueMap();
-//		// name -> ValueSpec|SimpleConfig
-//		final Map<String, Object> specValueSpecs = modConfig.getSpec().valueMap();
-//		// name -> Object
-//		final Map<String, Object> configValues = modConfig.getConfigData().valueMap();
-
-		final List<IConfigValueElement<?>> list = new ArrayList<>();
-		specConfigValues.forEach((name, obj) -> {
-			final IConfigValueElement<?> iConfigValueElement = makeConfigValueElement(modConfig, name, obj);
-			list.add(iConfigValueElement);
-		});
-		return Optional.of(new ModConfigConfigValueElement(modConfig.getFileName(), list));
-	}
-
-	private IConfigValueElement<?> makeConfigValueElement(final ModConfig modConfig, final String name, final Object obj) {
-		if (obj instanceof ForgeConfigSpec.ConfigValue) {
-			final ForgeConfigSpec.ConfigValue<?> configValue = (ForgeConfigSpec.ConfigValue<?>) obj;
-			// Because the obj is a ConfigValue the corresponding object in the ValueSpec map must be a ValueSpec
-			final ForgeConfigSpec.ValueSpec valueSpec = (ForgeConfigSpec.ValueSpec) getSpec(modConfig, configValue.getPath());
-
-			Class<?> clazz = valueSpec.getClazz();
-			if (clazz == Object.class) {
-				final Object actualValue = configValue.get();
-				final Class<?> valueClass = actualValue.getClass();
-				if (valueClass != null)
-					clazz = valueClass;
-				else {
-					final Object defaultValue = valueSpec.getDefault();
-					if (defaultValue != null)
-						clazz = defaultValue.getClass();
-				}
-			}
-			if (Boolean.class.isAssignableFrom(clazz)) {
-				return new BooleanConfigValueElement(configValue.getPath(), modConfig, (ForgeConfigSpec.ConfigValue<Boolean>) configValue);
-			} else if (Byte.class.isAssignableFrom(clazz)) {
-				return new ByteConfigValueElement(configValue.getPath(), modConfig, (ForgeConfigSpec.ConfigValue<Byte>) configValue);
-			} else if (Integer.class.isAssignableFrom(clazz)) {
-				return new IntegerConfigValueElement(configValue.getPath(), modConfig, (ForgeConfigSpec.ConfigValue<Integer>) configValue);
-			} else if (Float.class.isAssignableFrom(clazz)) {
-				return new FloatConfigValueElement(configValue.getPath(), modConfig, (ForgeConfigSpec.ConfigValue<Float>) configValue);
-			} else if (Long.class.isAssignableFrom(clazz)) {
-				return new LongConfigValueElement(configValue.getPath(), modConfig, (ForgeConfigSpec.ConfigValue<Long>) configValue);
-			} else if (Double.class.isAssignableFrom(clazz)) {
-				return new DoubleConfigValueElement(configValue.getPath(), modConfig, (ForgeConfigSpec.ConfigValue<Double>) configValue);
-			} else if (String.class.isAssignableFrom(clazz)) {
-				return new StringConfigValueElement(configValue.getPath(), modConfig, (ForgeConfigSpec.ConfigValue<String>) configValue);
-			} else if (Enum.class.isAssignableFrom(clazz)) {
-				return new EnumConfigValueElement(configValue.getPath(), modConfig, (ForgeConfigSpec.ConfigValue<Enum<?>>) configValue);
-//			} else if (List.class.isAssignableFrom(clazz)) {
-//				return new ListConfigValueElement(configValue.getPath(), modConfig, (ConfigValue<List>) configValue);
-			} else if (Temporal.class.isAssignableFrom(clazz)) {
-				return new TemporalConfigValueElement(configValue.getPath(), modConfig, (ForgeConfigSpec.ConfigValue<Temporal>) configValue);
-			} else {
-				return new DummyConfigValueElement(name);
-			}
-		} else if (obj instanceof Config) {
-			final Config config = (Config) obj;
-			final List<IConfigValueElement<?>> list = new ArrayList<>();
-			config.valueMap().forEach((name2, obj2) -> list.add(makeConfigValueElement(modConfig, name2, obj2)));
-			return new CategoryConfigValueElement(name, list);
-		} else {
-			throw new IllegalStateException("How? " + name + ", " + obj);
-		}
-	}
-
-	public <T> T getSpec(final ModConfig modConfig, final List<String> path) {
-		// name -> ValueSpec|SimpleConfig
-		final Map<String, Object> specValueSpecs = modConfig.getSpec().valueMap();
-
-		// Either a ValueSpec or a SimpleConfig
-		Object ret = specValueSpecs;
-
-		for (final String s : path) {
-			if (ret instanceof Map) // first iteration
-				ret = ((Map<String, Object>) ret).get(s);
-			else if (ret instanceof ForgeConfigSpec.ValueSpec)
-				return (T) ret; // uh, shouldn't happen?
-			else if (ret instanceof Config)
-				ret = ((Config) ret).get(s);
-		}
-		return (T) ret;
-	}
-
-	/**
-	 * @return True if in singleplayer and not open to LAN
-	 */
-	private boolean canPlayerEditServerConfig() {
-		if (minecraft.getIntegratedServer() == null)
-			return false;
-		if (!minecraft.isSingleplayer())
-			return false;
-		if (minecraft.getIntegratedServer().getPublic())
-			return false;
-		return true;
 	}
 
 	public void setButtonsActive() {
@@ -595,8 +643,8 @@ public class ConfigScreen extends Screen {
 		return MARGIN + BUTTON_HEIGHT + MARGIN;
 	}
 
-	public List<IConfigValueElement<?>> getConfigValueElements() {
-		return configValueElements;
+	public List<ConfigListEntry<?>> getConfigElements() {
+		return configElements;
 	}
 
 }

@@ -2,32 +2,35 @@ package net.minecraftforge.fml.client.config.entry;
 
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.item.DyeColor;
-import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
+import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
+import net.minecraftforge.fml.config.ModConfig;
+
+import java.util.List;
 
 /**
  * @author Cadiboo
  */
-public class EnumConfigListEntry extends ConfigListEntry {
+public class EnumConfigListEntry extends ConfigListEntry<Enum<?>> {
 
-	private final EnumConfigValueElement configValueElement;
+	private final EntryConfigValue<Enum<?>> entryConfigValue;
 	private final GuiButtonExt button;
 
-	public EnumConfigListEntry(final EnumConfigValueElement configValueElement, final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListScreen) {
-		super(configScreen, configEntryListScreen, configValueElement);
-		this.configValueElement = configValueElement;
-		final Enum<?>[] enumConstants = configValueElement.get().getClass().getEnumConstants();
-		this.children().add(this.button = new GuiButtonExt(0, 0, 18, 18, "You shouldn't see this", b -> {
-			final Enum<?> newValue = enumConstants[(configValueElement.get().ordinal() + 1) % enumConstants.length];
-			configValueElement.set(newValue);
+	public EnumConfigListEntry(final ConfigScreen configScreen, final ModConfig modConfig, final List<String> path, final ConfigValue<Enum<?>> configValue) {
+		super(configScreen);
+		this.entryConfigValue = new EntryConfigValue<>(path, modConfig, configValue);
+		final Enum<?>[] enumConstants = entryConfigValue.getCurrentValue().getClass().getEnumConstants();
+		this.children().add(this.button = new GuiButtonExt(0, 0, 18, 18, getLabel(), b -> {
+			final Enum<?> newValue = enumConstants[(entryConfigValue.getCurrentValue().ordinal() + 1) % enumConstants.length];
+			entryConfigValue.setCurrentValue(newValue);
 			updateButtonText();
 		}));
 		updateButtonText();
 	}
 
 	public void updateButtonText() {
-		final Enum<?> anEnum = this.configValueElement.get();
+		final Enum<?> anEnum = this.entryConfigValue.getCurrentValue();
 		this.button.setMessage(getDisplayString(anEnum));
 		this.button.setFGColor(getColor(anEnum));
 	}
@@ -53,56 +56,8 @@ public class EnumConfigListEntry extends ConfigListEntry {
 	}
 
 	@Override
-	public Object getCurrentValue() {
-		return configValueElement.get();
-	}
-
-	@Override
-	public Object[] getCurrentValues() {
-		return new Object[0];
-	}
-
-	@Override
-	public void tick() {
-	}
-
-	@Override
-	public boolean isDefault() {
-		return configValueElement.isDefault();
-	}
-
-	@Override
-	public void resetToDefault() {
-		configValueElement.resetToDefault();
-		updateButtonText();
-	}
-
-	@Override
-	public void undoChanges() {
-		configValueElement.entryConfigValue.undoChanges();
-		updateButtonText();
-	}
-
-	@Override
-	public boolean isChanged() {
-		return configValueElement.entryConfigValue.isChanged();
-	}
-
-	@Override
-	public boolean save() {
-		configValueElement.entryConfigValue.saveAndLoad();
-		updateButtonText();
-		return configValueElement.requiresWorldRestart();
-	}
-
-	@Override
-	public boolean requiresWorldRestart() {
-		return configValueElement.requiresWorldRestart();
-	}
-
-	@Override
-	public boolean requiresMcRestart() {
-		return configValueElement.requiresMcRestart();
+	protected EntryConfigValue<Enum<?>> getEntryConfigValue() {
+		return entryConfigValue;
 	}
 
 }

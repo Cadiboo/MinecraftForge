@@ -33,7 +33,6 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.client.config.entry.CategoryConfigListEntry;
 import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.IConfigScreenListEntry;
 import org.lwjgl.opengl.GL11;
 
 /**
@@ -43,7 +42,7 @@ import org.lwjgl.opengl.GL11;
  * @author bspkrs
  * @author Cadiboo
  */
-public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
+public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 
 	/**
 	 * The empty space between the entries and both sides of the screen.
@@ -63,8 +62,8 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 	 */
 	private int longestLabelWidth;
 
-	public ConfigEntryListWidget(final Minecraft mcIn, final ConfigScreen owningScreen) {
-		super(mcIn, owningScreen.width, owningScreen.height, owningScreen.getHeaderSize(), owningScreen.height - owningScreen.getFooterSize(), 20);
+	public ConfigEntryListWidget(final ConfigScreen owningScreen) {
+		super(Minecraft.getInstance(), owningScreen.width, owningScreen.height, owningScreen.getHeaderSize(), owningScreen.height - owningScreen.getFooterSize(), 20);
 		this.owningScreen = owningScreen;
 	}
 
@@ -72,6 +71,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 		return longestLabelWidth;
 	}
 
+	// TODO: move to ConfigScreen
 	// +2 for nice spacing
 	public int getLongestLabelWidth() {
 		return getLongestLabelWidth0() + 2;
@@ -100,7 +100,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 
 		// Screen#init()
 		if (this.children().isEmpty())
-			this.owningScreen.getConfigValueElements().forEach(e -> this.children().add(e.makeConfigEntry(owningScreen, this)));
+			this.owningScreen.getConfigElements().forEach(e -> this.children().add(e));
 
 		this.children().forEach(configListEntry -> {
 			final int labelWidth = configListEntry.getLabelWidth();
@@ -227,6 +227,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 
 	@Override
 	public boolean mouseClicked(final double p_mouseClicked_1_, final double p_mouseClicked_3_, final int p_mouseClicked_5_) {
+		// Unfocus all TextFieldWidgets otherwise their cursor still appears. Vanilla bug that they don't do it themselves?
 		this.children().forEach(configListEntry -> {
 			final Widget widget = configListEntry.getWidget();
 			if (widget instanceof TextFieldWidget)
@@ -245,7 +246,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 	 * Called from the parent ConfigScreen.
 	 */
 	public void tick() {
-		for (IConfigScreenListEntry entry : this.getListEntries())
+		for (ConfigListEntry<?> entry : this.getListEntries())
 			entry.tick();
 	}
 
@@ -255,7 +256,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 	 * Called from the parent ConfigScreen.
 	 */
 	public void onClose() {
-		for (IConfigScreenListEntry entry : this.getListEntries())
+		for (ConfigListEntry<?> entry : this.getListEntries())
 			entry.onGuiClosed();
 	}
 
@@ -267,7 +268,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 	 */
 	public boolean save() {
 		boolean requiresRestart = false;
-		for (IConfigScreenListEntry entry : this.getListEntries())
+		for (ConfigListEntry<?> entry : this.getListEntries())
 			requiresRestart |= entry.save();
 		return requiresRestart;
 	}
@@ -279,7 +280,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 	 * @return If all IConfigEntry objects on this screen are set to default.
 	 */
 	public boolean areAllEntriesDefault(boolean applyToSubcategories) {
-		for (IConfigScreenListEntry entry : this.getListEntries())
+		for (ConfigListEntry<?> entry : this.getListEntries())
 			if (applyToSubcategories || !(entry instanceof CategoryConfigListEntry))
 				if (!entry.isDefault())
 					return false;
@@ -292,7 +293,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 	 * @param applyToSubcategories If sub-category objects should be reset as well.
 	 */
 	public void resetAllToDefault(boolean applyToSubcategories) {
-		for (IConfigScreenListEntry entry : this.getListEntries())
+		for (ConfigListEntry<?> entry : this.getListEntries())
 			if (applyToSubcategories || !(entry instanceof CategoryConfigListEntry))
 				entry.resetToDefault();
 	}
@@ -304,7 +305,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 	 * @return If any IConfigEntry objects on this screen are changed.
 	 */
 	public boolean areAnyEntriesChanged(boolean applyToSubcategories) {
-		for (IConfigScreenListEntry entry : this.getListEntries())
+		for (ConfigListEntry<?> entry : this.getListEntries())
 			if (applyToSubcategories || !(entry instanceof CategoryConfigListEntry))
 				if (entry.isChanged())
 					return true;
@@ -317,7 +318,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 	 * @param applyToSubcategories If sub-category objects should be reverted as well.
 	 */
 	public void undoAllChanges(boolean applyToSubcategories) {
-		for (IConfigScreenListEntry entry : this.getListEntries())
+		for (ConfigListEntry<?> entry : this.getListEntries())
 			if (applyToSubcategories || !(entry instanceof CategoryConfigListEntry))
 				entry.undoChanges();
 	}
@@ -329,7 +330,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 	 * @return If any IConfigEntry objects on this screen are enabled.
 	 */
 	public boolean areAnyEntriesEnabled(boolean applyToSubcategories) {
-		for (IConfigScreenListEntry entry : this.getListEntries())
+		for (ConfigListEntry<?> entry : this.getListEntries())
 			if (applyToSubcategories || !(entry instanceof CategoryConfigListEntry))
 				if (entry.enabled())
 					return true;
@@ -337,14 +338,14 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 	}
 
 	public boolean anyRequireMcRestart() {
-		for (IConfigScreenListEntry entry : this.getListEntries())
+		for (ConfigListEntry<?> entry : this.getListEntries())
 			if (entry.requiresMcRestart())
 				return true;
 		return false;
 	}
 
 	public boolean anyRequireWorldRestart() {
-		for (IConfigScreenListEntry entry : this.getListEntries())
+		for (ConfigListEntry<?> entry : this.getListEntries())
 			if (entry.requiresWorldRestart())
 				return true;
 		return false;
@@ -361,13 +362,13 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry> {
 //			int itemBottom = this.getRowBottom(item); // Private, logic copied below
 			int itemBottom = this.getRowTop(item) + this.itemHeight;
 			if (itemTop <= this.y1 && itemBottom >= this.y0) {
-				ConfigListEntry configListEntry = this.getEntry(item);
+				ConfigListEntry<?> configListEntry = this.getEntry(item);
 				configListEntry.renderToolTip(mouseX, mouseY, partialTicks);
 			}
 		}
 	}
 
-	public Iterable<? extends IConfigScreenListEntry> getListEntries() {
+	public Iterable<? extends ConfigListEntry<?>> getListEntries() {
 		return children();
 	}
 

@@ -23,55 +23,38 @@ import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
-import net.minecraftforge.fml.client.config.HoverChecker;
 
 /**
  * Provides an entry that consists of a GuiButton for navigating to the child category ConfigScreen screen.
  */
-public class CategoryConfigListEntry extends ConfigListEntry {
+public abstract class CategoryConfigListEntry<T> extends ConfigListEntry<T> {
 
 	protected final GuiButtonExt selectCategoryButton;
-	protected Screen childScreen;
+	protected final String label;
+	private Screen childScreen;
 
-	public CategoryConfigListEntry(ConfigScreen owningScreen, ConfigEntryListWidget owningEntryList, IConfigValueElement<?> configElement) {
-		super(owningScreen, owningEntryList, configElement);
+	public CategoryConfigListEntry(final ConfigScreen owningScreen, final String label) {
+		super(owningScreen);
+		this.label = label;
 
-		this.childScreen = this.buildChildScreen();
-		final Minecraft minecraft = Minecraft.getInstance();
-		final MainWindow mainWindow = minecraft.func_228018_at_();
-		childScreen.init(minecraft, mainWindow.getScaledWidth(), mainWindow.getScaledHeight());
-
-		this.children().add(this.selectCategoryButton = new GuiButtonExt(0, 0, 300, 18, I18n.format(name), b -> Minecraft.getInstance().displayGuiScreen(childScreen)));
-		this.tooltipHoverChecker = new HoverChecker(this.selectCategoryButton, 500);
+		this.children().add(this.selectCategoryButton = new GuiButtonExt(0, 0, 300, 18, getLabel(), b -> Minecraft.getInstance().displayGuiScreen(getChildScreen())));
 
 		this.drawLabel = false;
 	}
 
-	/**
-	 * This method is called in the constructor and is used to set the childScreen field.
-	 */
-	protected Screen buildChildScreen() {
-		return new ConfigScreen(this.owningScreen.getTitle().deepCopy().appendSibling(new StringTextComponent(" > " + I18n.format(name))), this.owningScreen, this.owningScreen.modContainer, this.owningScreen.getMinecraft(), this.configElement.getChildElements());
-//		return new ConfigScreen(this.owningScreen, this.configElement.getChildElements(), this.owningScreen.modID,
-//				owningScreen.doAllRequireWorldRestart() || this.configElement.requiresWorldRestart(),
-//				owningScreen.doAllRequireMcRestart() || this.configElement.requiresMcRestart(), this.owningScreen.title,
-//				((this.owningScreen.getSubtitle() == null ? "" : this.owningScreen.getSubtitle()) + " > " + this.name));
+	public Screen getChildScreen() {
+		if (this.childScreen == null) {
+			this.childScreen = this.buildChildScreen();
+			final Minecraft minecraft = Minecraft.getInstance();
+			final MainWindow mainWindow = minecraft.func_228018_at_();
+			this.childScreen.init(minecraft, mainWindow.getScaledWidth(), mainWindow.getScaledHeight());
+		}
+		return this.childScreen;
 	}
 
-	@Override
-	public void render(int slotIndex, int y, int x, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partial) {
-		this.selectCategoryButton.x = listWidth / 2 - 150;
-		this.selectCategoryButton.y = y;
-		this.selectCategoryButton.active = enabled();
-		this.selectCategoryButton.render(mouseX, mouseY, partial);
-
-		super.render(slotIndex, y, x, listWidth, slotHeight, mouseX, mouseY, isSelected, partial);
-	}
+	protected abstract Screen buildChildScreen();
 
 	@Override
 	public boolean isValidValue() {
@@ -84,27 +67,24 @@ public class CategoryConfigListEntry extends ConfigListEntry {
 	}
 
 	@Override
-	public String getCurrentValue() {
-		return "";
-	}
-
-	@Override
-	public String[] getCurrentValues() {
-		return new String[]{getCurrentValue()};
-	}
-
-	@Override
 	public boolean enabled() {
 		return true;
 	}
 
 	@Override
 	public void tick() {
-		childScreen.tick();
+		super.tick();
+		getChildScreen().tick();
+	}
+
+	@Override
+	public String getLabel() {
+		return label;
 	}
 
 	@Override
 	public boolean isDefault() {
+		final Screen childScreen = getChildScreen();
 		if (childScreen instanceof ConfigScreen && ((ConfigScreen) childScreen).getEntryList() != null)
 			return ((ConfigScreen) childScreen).getEntryList().areAllEntriesDefault(true);
 
@@ -112,19 +92,20 @@ public class CategoryConfigListEntry extends ConfigListEntry {
 	}
 
 	@Override
+	protected EntryConfigValue<T> getEntryConfigValue() {
+		return null;
+	}
+
+	@Override
 	public void resetToDefault() {
+		final Screen childScreen = getChildScreen();
 		if (childScreen instanceof ConfigScreen && ((ConfigScreen) childScreen).getEntryList() != null)
 			((ConfigScreen) childScreen).getEntryList().resetAllToDefault(true);
 	}
 
 	@Override
-	public void undoChanges() {
-		if (childScreen instanceof ConfigScreen && ((ConfigScreen) childScreen).getEntryList() != null)
-			((ConfigScreen) childScreen).getEntryList().undoAllChanges(true);
-	}
-
-	@Override
 	public boolean isChanged() {
+		final Screen childScreen = getChildScreen();
 		if (childScreen instanceof ConfigScreen && ((ConfigScreen) childScreen).getEntryList() != null)
 			return ((ConfigScreen) childScreen).getEntryList().areAnyEntriesChanged(true);
 		else
@@ -132,11 +113,19 @@ public class CategoryConfigListEntry extends ConfigListEntry {
 	}
 
 	@Override
+	public void undoChanges() {
+		final Screen childScreen = getChildScreen();
+		if (childScreen instanceof ConfigScreen && ((ConfigScreen) childScreen).getEntryList() != null)
+			((ConfigScreen) childScreen).getEntryList().undoAllChanges(true);
+	}
+
+	@Override
 	public boolean save() {
 		boolean requiresRestart = false;
 
+		final Screen childScreen = getChildScreen();
 		if (childScreen instanceof ConfigScreen && ((ConfigScreen) childScreen).getEntryList() != null) {
-			requiresRestart = configElement.requiresMcRestart() &&
+			requiresRestart = this.requiresMcRestart() &&
 					((ConfigScreen) childScreen).getEntryList().areAnyEntriesChanged(true);
 
 			if (((ConfigScreen) childScreen).getEntryList().save())
@@ -147,17 +136,8 @@ public class CategoryConfigListEntry extends ConfigListEntry {
 	}
 
 	@Override
-	public void renderToolTip(int mouseX, int mouseY, float partialTicks) {
-		boolean canHover = mouseY < this.owningScreen.getEntryList().getBottom() && mouseY > this.owningScreen.getEntryList().getTop();
-
-		if (this.tooltipHoverChecker.checkHover(mouseX, mouseY, canHover))
-			this.owningScreen.drawToolTip(toolTip, mouseX, mouseY);
-
-		super.renderToolTip(mouseX, mouseY, partialTicks);
-	}
-
-	@Override
 	public boolean requiresWorldRestart() {
+		final Screen childScreen = getChildScreen();
 		if (childScreen instanceof ConfigScreen && ((ConfigScreen) childScreen).getEntryList() != null)
 			return ((ConfigScreen) childScreen).getEntryList().anyRequireWorldRestart();
 		else
@@ -166,6 +146,7 @@ public class CategoryConfigListEntry extends ConfigListEntry {
 
 	@Override
 	public boolean requiresMcRestart() {
+		final Screen childScreen = getChildScreen();
 		if (childScreen instanceof ConfigScreen && ((ConfigScreen) childScreen).getEntryList() != null)
 			return ((ConfigScreen) childScreen).getEntryList().anyRequireMcRestart();
 		else

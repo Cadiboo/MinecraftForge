@@ -1,30 +1,33 @@
 package net.minecraftforge.fml.client.config.entry;
 
 import net.minecraft.client.gui.widget.Widget;
-import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
+import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
+import net.minecraftforge.fml.config.ModConfig;
+
+import java.util.List;
 
 /**
  * @author Cadiboo
  */
-public class BooleanConfigListEntry extends ConfigListEntry {
+public class BooleanConfigListEntry extends ConfigListEntry<Boolean> {
 
-	private final BooleanConfigValueElement configValueElement;
+	private final EntryConfigValue<Boolean> entryConfigValue;
 	private final GuiButtonExt button;
 
-	public BooleanConfigListEntry(final BooleanConfigValueElement configValueElement, final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListScreen) {
-		super(configScreen, configEntryListScreen, configValueElement);
-		this.configValueElement = configValueElement;
-		this.children().add(this.button = new GuiButtonExt(0, 0, 18, 18, configValueElement.get().toString(), b -> {
-			configValueElement.set(!configValueElement.get());
-			b.setMessage(configValueElement.get().toString());
-			b.setFGColor(getColor(configValueElement.get()));
+	public BooleanConfigListEntry(final ConfigScreen configScreen, final ModConfig modConfig, final List<String> path, final ConfigValue<Boolean> configValue) {
+		super(configScreen);
+		this.entryConfigValue = new EntryConfigValue<>(path, modConfig, configValue);
+		this.children().add(this.button = new GuiButtonExt(0, 0, 18, 18, entryConfigValue.getCurrentValue().toString(), b -> {
+			entryConfigValue.setCurrentValue(!entryConfigValue.getCurrentValue());
+			b.setMessage(entryConfigValue.getCurrentValue().toString());
+			b.setFGColor(getColor(entryConfigValue.getCurrentValue()));
 		}));
-		this.button.setFGColor(getColor(configValueElement.get()));
+		this.button.setFGColor(getColor(entryConfigValue.getCurrentValue()));
 	}
 
-	private int getColor(final boolean b) {
+	public static int getColor(final boolean b) {
 		return b ? 0x55FF55 : 0xFF5555; // green or red
 	}
 
@@ -39,53 +42,8 @@ public class BooleanConfigListEntry extends ConfigListEntry {
 	}
 
 	@Override
-	public Object getCurrentValue() {
-		return configValueElement.get();
-	}
-
-	@Override
-	public Object[] getCurrentValues() {
-		return new Object[0];
-	}
-
-	@Override
-	public void tick() {
-	}
-
-	@Override
-	public boolean isDefault() {
-		return configValueElement.isDefault();
-	}
-
-	@Override
-	public void resetToDefault() {
-		configValueElement.resetToDefault();
-	}
-
-	@Override
-	public void undoChanges() {
-		configValueElement.entryConfigValue.undoChanges();
-	}
-
-	@Override
-	public boolean isChanged() {
-		return configValueElement.entryConfigValue.isChanged();
-	}
-
-	@Override
-	public boolean save() {
-		configValueElement.entryConfigValue.saveAndLoad();
-		return configValueElement.requiresWorldRestart();
-	}
-
-	@Override
-	public boolean requiresWorldRestart() {
-		return configValueElement.requiresWorldRestart();
-	}
-
-	@Override
-	public boolean requiresMcRestart() {
-		return configValueElement.requiresMcRestart();
+	protected EntryConfigValue<Boolean> getEntryConfigValue() {
+		return entryConfigValue;
 	}
 
 }

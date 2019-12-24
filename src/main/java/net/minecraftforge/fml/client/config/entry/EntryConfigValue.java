@@ -47,9 +47,9 @@ public class EntryConfigValue<T> {
 	private T currentValue;
 	private boolean isDirty;
 
-	public EntryConfigValue(final List<String> path, final ModConfig modConfig, final ValueSpec valueSpec, final ConfigValue<T> configValue) {
+	public EntryConfigValue(final List<String> path, final ModConfig modConfig, final ConfigValue<T> configValue) {
 		this.modConfig = modConfig;
-		this.valueSpec = valueSpec;
+		this.valueSpec = modConfig.getSpec().get(path);
 		this.configValue = configValue;
 		this.initialValue = this.configValue.get();
 		this.label = I18n.format(valueSpec.getTranslationKey());
@@ -58,8 +58,8 @@ public class EntryConfigValue<T> {
 		this.isDirty = false;
 	}
 
-	public EntryConfigValue(final String path, final ModConfig modConfig, final ValueSpec valueSpec, final ConfigValue<T> configValue) {
-		this(ForgeConfigSpec.split(path), modConfig, valueSpec, configValue);
+	public EntryConfigValue(final String path, final ModConfig modConfig, final ConfigValue<T> configValue) {
+		this(ForgeConfigSpec.split(path), modConfig, configValue);
 	}
 
 	/**
@@ -180,6 +180,21 @@ public class EntryConfigValue<T> {
 	}
 
 	/**
+	 * Saves the value if it has changed and has not yet been saved.
+	 */
+	public boolean save() {
+		if (!isDirty())
+			return false;
+
+		final ConfigValue<T> configValue = getConfigValue();
+
+		configValue.set(this.getCurrentValue());
+		configValue.save();
+		this.isDirty = false;
+		return this.requiresMcRestart();
+	}
+
+	/**
 	 * TODO: requiresMcRestart appears not to exist anymore?
 	 *
 	 * @return If this config value requires Minecraft to be restarted when it is changed.
@@ -203,6 +218,21 @@ public class EntryConfigValue<T> {
 	 */
 	public String getComment() {
 		return getValueSpec().getComment();
+	}
+
+	/**
+	 * @return The comment for this config value.
+	 */
+	public String getTranslationKey() {
+		return getValueSpec().getTranslationKey();
+	}
+
+	/**
+	 * @param o The object to test
+	 * @return If the object is a valid object that can be used
+	 */
+	public boolean isValid(final Object o) {
+		return getValueSpec().test(o);
 	}
 
 }
