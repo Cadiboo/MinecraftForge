@@ -14,12 +14,12 @@ import java.util.List;
  */
 public class EnumConfigListEntry extends ConfigListEntry<Enum<?>> {
 
-	private final EntryConfigValue<Enum<?>> entryConfigValue;
+	private final ConfigElementContainer<Enum<?>> entryConfigValue;
 	private final GuiButtonExt button;
 
 	public EnumConfigListEntry(final ConfigScreen configScreen, final ModConfig modConfig, final List<String> path, final ConfigValue<Enum<?>> configValue) {
 		super(configScreen);
-		this.entryConfigValue = new EntryConfigValue<>(path, modConfig, configValue);
+		this.entryConfigValue = new ConfigElementContainer<>(path, modConfig, configValue);
 		final Enum<?>[] enumConstants = entryConfigValue.getCurrentValue().getClass().getEnumConstants();
 		this.children().add(this.button = new GuiButtonExt(0, 0, 18, 18, getLabel(), b -> {
 			final Enum<?> newValue = enumConstants[(entryConfigValue.getCurrentValue().ordinal() + 1) % enumConstants.length];
@@ -56,7 +56,7 @@ public class EnumConfigListEntry extends ConfigListEntry<Enum<?>> {
 	}
 
 	@Override
-	protected EntryConfigValue<Enum<?>> getEntryConfigValue() {
+	protected ConfigElementContainer<Enum<?>> getBooleanConfigElement() {
 		return entryConfigValue;
 	}
 

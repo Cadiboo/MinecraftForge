@@ -453,4 +453,13 @@ public class GuiUtils
 
         AbstractGui.blit(x, y, boundsWidth, boundsHeight, 0.0f,0.0f, rectWidth, rectHeight, rectWidth, rectHeight);
     }
+
+    public static String trimStringToSize(final FontRenderer font, final String str, final int maxLength) {
+        int strWidth = font.getStringWidth(str);
+        int ellipsisWidth = font.getStringWidth("...");
+        if (strWidth > maxLength && strWidth > ellipsisWidth)
+            return font.trimStringToWidth(str, maxLength - ellipsisWidth).trim() + "...";
+        return str;
+    }
+
 }

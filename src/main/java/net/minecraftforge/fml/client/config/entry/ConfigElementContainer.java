@@ -36,7 +36,7 @@ import java.util.List;
  *
  * @author Cadiboo
  */
-public class EntryConfigValue<T> {
+public class ConfigElementContainer<T> {
 
 	private final T initialValue;
 	private final ModConfig modConfig;
@@ -47,7 +47,7 @@ public class EntryConfigValue<T> {
 	private T currentValue;
 	private boolean isDirty;
 
-	public EntryConfigValue(final List<String> path, final ModConfig modConfig, final ConfigValue<T> configValue) {
+	public ConfigElementContainer(final List<String> path, final ModConfig modConfig, final ConfigValue<T> configValue) {
 		this.modConfig = modConfig;
 		this.valueSpec = modConfig.getSpec().get(path);
 		this.configValue = configValue;
@@ -58,7 +58,7 @@ public class EntryConfigValue<T> {
 		this.isDirty = false;
 	}
 
-	public EntryConfigValue(final String path, final ModConfig modConfig, final ConfigValue<T> configValue) {
+	public ConfigElementContainer(final String path, final ModConfig modConfig, final ConfigValue<T> configValue) {
 		this(ForgeConfigSpec.split(path), modConfig, configValue);
 	}
 
@@ -191,7 +191,7 @@ public class EntryConfigValue<T> {
 		configValue.set(this.getCurrentValue());
 		configValue.save();
 		this.isDirty = false;
-		return this.requiresMcRestart();
+		return this.requiresGameRestart();
 	}
 
 	/**
@@ -199,7 +199,7 @@ public class EntryConfigValue<T> {
 	 *
 	 * @return If this config value requires Minecraft to be restarted when it is changed.
 	 */
-	public boolean requiresMcRestart() {
+	public boolean requiresGameRestart() {
 		return false;
 	}
 

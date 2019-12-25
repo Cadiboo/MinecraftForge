@@ -6,6 +6,8 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.fml.client.config.ConfigScreen;
+import net.minecraftforge.fml.client.config.element.ConfigElement;
+import net.minecraftforge.fml.client.config.element.IConfigElement;
 import net.minecraftforge.fml.config.ModConfig;
 import org.apache.commons.lang3.StringUtils;
 
@@ -29,7 +31,7 @@ public class ModConfigCategoryConfigListEntry extends CategoryConfigListEntry<Mo
 	 * This method is called in the constructor and is used to set the childScreen field.
 	 */
 	protected Screen buildChildScreen() {
-		final ConfigScreen configScreen = new ConfigScreen(this.owningScreen.getTitle(), this.owningScreen, this.owningScreen.modContainer, this::makeChildElementsList);
+		final ConfigScreen configScreen = new ConfigScreen(this.owningScreen.getTitle(), this.owningScreen, this.owningScreen.modContainer, this.makeChildElementsList());
 		final ITextComponent subtitle;
 		if (this.owningScreen.getSubtitle() == null)
 			subtitle = new StringTextComponent(getLabel());
@@ -52,13 +54,13 @@ public class ModConfigCategoryConfigListEntry extends CategoryConfigListEntry<Mo
 		return requiresRestart;
 	}
 
-	protected List<ConfigListEntry<?>> makeChildElementsList(final ConfigScreen configScreen) {
+	protected List<IConfigElement<?>> makeChildElementsList() {
 		// name -> ConfigValue|SimpleConfig
 		final Map<String, Object> specConfigValues = ConfigScreen.getSpecConfigValues(modConfig);
 
-		final List<ConfigListEntry<?>> list = new ArrayList<>();
+		final List<IConfigElement<?>> list = new ArrayList<>();
 		specConfigValues.forEach((name, obj) -> {
-			final ConfigListEntry<?> configListEntry = ConfigScreen.makeConfigListEntry(configScreen, modConfig, name, obj);
+			final ConfigElement<?> configListEntry = ConfigScreen.makeConfigElement(modConfig, name, obj);
 			list.add(configListEntry);
 		});
 		return list;

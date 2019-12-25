@@ -18,14 +18,14 @@ import java.util.List;
 public class TemporalConfigListEntry extends ConfigListEntry<Temporal> {
 
 	private final TextFieldWidget textFieldWidget;
-	private final EntryConfigValue<Temporal> entryConfigValue;
+	private final ConfigElementContainer<Temporal> entryConfigValue;
 
 	public TemporalConfigListEntry(final ConfigScreen configScreen, final ModConfig modConfig, final List<String> path, final ConfigValue<Temporal> configValue) {
 		super(configScreen);
-		this.entryConfigValue = new EntryConfigValue<>(path, modConfig, configValue);
-		this.children().add(this.textFieldWidget = new TextFieldWidget(Minecraft.getInstance().fontRenderer, 0, 0, 18, 18, getLabel()));
-		this.textFieldWidget.setMaxStringLength("YYYY-MM-DD".length());
-		this.textFieldWidget.setText(getEntryConfigValue().getCurrentValue().toString());
+		this.entryConfigValue = new ConfigElementContainer<>(path, modConfig, configValue);
+		this.children().add(this.textFieldWidget = new TextFieldWidget(Minecraft.getInstance().fontRenderer, 0, 0, 0, 18, getLabel()));
+		this.textFieldWidget.setMaxStringLength(LocalDate.MIN.toString().length());
+		this.textFieldWidget.setText(getBooleanConfigElement().getCurrentValue().toString());
 		this.textFieldWidget.setCursorPositionZero(); // Remove weird scroll bug
 		this.textFieldWidget.func_212954_a(s -> {
 			if (!this.isValidValue())
@@ -36,7 +36,7 @@ public class TemporalConfigListEntry extends ConfigListEntry<Temporal> {
 			final int year = Integer.parseInt(split[0]);
 			final int month = Integer.parseInt(split[1]);
 			final int day = Integer.parseInt(split[2]);
-			this.getEntryConfigValue().setCurrentValue(LocalDate.of(year, month, day));
+			this.getBooleanConfigElement().setCurrentValue(LocalDate.of(year, month, day));
 		});
 	}
 
@@ -53,7 +53,7 @@ public class TemporalConfigListEntry extends ConfigListEntry<Temporal> {
 			final int day = Integer.parseInt(split[2]);
 			try {
 				LocalDate o = LocalDate.of(year, month, day);
-				return getEntryConfigValue().getValueSpec().test(o);
+				return getBooleanConfigElement().getValueSpec().test(o);
 			} catch (DateTimeException e) {
 				return false;
 			}
@@ -68,7 +68,7 @@ public class TemporalConfigListEntry extends ConfigListEntry<Temporal> {
 	}
 
 	@Override
-	protected EntryConfigValue<Temporal> getEntryConfigValue() {
+	protected ConfigElementContainer<Temporal> getBooleanConfigElement() {
 		return entryConfigValue;
 	}
 

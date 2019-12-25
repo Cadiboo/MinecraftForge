@@ -19,21 +19,16 @@
 
 package net.minecraftforge.fml.client.config;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.list.ExtendedList;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.fml.client.config.entry.CategoryConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
+import net.minecraftforge.fml.client.config.entry2.ConfigListEntry;
 import org.lwjgl.opengl.GL11;
+
+import java.util.Objects;
 
 /**
  * This class implements the scrolling list functionality of the config GUI screens.
@@ -61,6 +56,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 	 * Used for rendering all widgets at the same x position
 	 */
 	private int longestLabelWidth;
+	private boolean doHackery = false;
 
 	public ConfigEntryListWidget(final ConfigScreen owningScreen) {
 		super(Minecraft.getInstance(), owningScreen.width, owningScreen.height, owningScreen.getHeaderSize(), owningScreen.height - owningScreen.getFooterSize(), 20);
@@ -68,7 +64,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 	}
 
 	public int getLongestLabelWidth0() {
-		return longestLabelWidth;
+		return Math.min(longestLabelWidth, MAX_LABEL_WIDTH);
 	}
 
 	// TODO: move to ConfigScreen
@@ -83,6 +79,22 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 	 */
 	public void init() {
 		// Screen#init(Minecraft, int, int)
+		setBounds();
+
+		this.children().clear();
+		this.setFocused(null);
+
+		// Screen#init()
+		this.owningScreen.getConfigElements().forEach(e -> this.children().add(Objects.requireNonNull(e.makeWidgetThing(owningScreen, this), "ConfigListEntry (Widget)")));
+
+		this.children().forEach(configListEntry -> {
+			final int labelWidth = configListEntry.getLabelWidth();
+			if (longestLabelWidth < labelWidth)
+				longestLabelWidth = labelWidth;
+		});
+	}
+
+	public void setBounds() {
 		// top
 		this.y0 = owningScreen.getHeaderSize();
 		// bottom
@@ -94,19 +106,6 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 
 		this.width = this.x1 - this.x0;
 		this.height = this.y1 - this.y0;
-
-//		this.children().clear();
-		this.setFocused(null);
-
-		// Screen#init()
-		if (this.children().isEmpty())
-			this.owningScreen.getConfigElements().forEach(e -> this.children().add(e));
-
-		this.children().forEach(configListEntry -> {
-			final int labelWidth = configListEntry.getLabelWidth();
-			if (longestLabelWidth < labelWidth)
-				longestLabelWidth = labelWidth;
-		});
 	}
 
 	public int getRowWidth() {
@@ -115,11 +114,11 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 
 	@Override
 	protected void renderBackground() {
-		this.fillGradient(this.getLeft(), this.getTop(), this.getRight(), this.getBottom(), 0xC0101010, 0xD0101010);
+		this.fillGradient(this.getLeft(), this.getTop(), this.getRight(), this.getBottom(), 0x70_00_00_00, 0x70_00_00_00);
 	}
 
 	@Override
-	public void render(final int p_render_1_, final int p_render_2_, final float p_render_3_) {
+	public void render(final int mouseX, final int mouseY, final float partialTicks) {
 		// GLScissors to hide overflow from entryList
 		GL11.glEnable(GL11.GL_SCISSOR_TEST);
 
@@ -133,96 +132,24 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 
 		GL11.glScissor(scissorsX, scissorsY, scissorsWidth, scissorsHeight);
 
-//		super.render(p_render_1_, p_render_2_, p_render_3_);
-		// super.render but with the background rendering we don't want commented out
-		{
-			this.renderBackground();
-			int i = this.getScrollbarPosition();
-			int j = i + 6;
-			Tessellator tessellator = Tessellator.getInstance();
-			BufferBuilder bufferbuilder = tessellator.getBuffer();
-//			this.minecraft.getTextureManager().bindTexture(AbstractGui.BACKGROUND_LOCATION);
-//			RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-//			float f = 32.0F;
-//			bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-//			bufferbuilder.func_225582_a_((double)this.x0, (double)this.y1, 0.0D).func_225583_a_((float)this.x0 / 32.0F, (float)(this.y1 + (int)this.getScrollAmount()) / 32.0F).func_225586_a_(32, 32, 32, 255).endVertex();
-//			bufferbuilder.func_225582_a_((double)this.x1, (double)this.y1, 0.0D).func_225583_a_((float)this.x1 / 32.0F, (float)(this.y1 + (int)this.getScrollAmount()) / 32.0F).func_225586_a_(32, 32, 32, 255).endVertex();
-//			bufferbuilder.func_225582_a_((double)this.x1, (double)this.y0, 0.0D).func_225583_a_((float)this.x1 / 32.0F, (float)(this.y0 + (int)this.getScrollAmount()) / 32.0F).func_225586_a_(32, 32, 32, 255).endVertex();
-//			bufferbuilder.func_225582_a_((double)this.x0, (double)this.y0, 0.0D).func_225583_a_((float)this.x0 / 32.0F, (float)(this.y0 + (int)this.getScrollAmount()) / 32.0F).func_225586_a_(32, 32, 32, 255).endVertex();
-//			tessellator.draw();
-			int k = this.getRowLeft();
-			int l = this.y0 + 4 - (int) this.getScrollAmount();
-			if (this.renderHeader) {
-				this.renderHeader(k, l, tessellator);
-			}
-
-			this.renderList(k, l, p_render_1_, p_render_2_, p_render_3_);
-			RenderSystem.disableDepthTest();
-//			this.renderHoleBackground(0, this.y0, 255, 255);
-//			this.renderHoleBackground(this.y1, this.height, 255, 255);
-			RenderSystem.enableBlend();
-			RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.ONE);
-			RenderSystem.disableAlphaTest();
-			RenderSystem.shadeModel(7425);
-			RenderSystem.disableTexture();
-			int i1 = 4;
-			// Top shadow
-			bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-			bufferbuilder.func_225582_a_((double) this.x0, (double) (this.y0 + 4), 0.0D).func_225583_a_(0.0F, 1.0F).func_225586_a_(0, 0, 0, 0).endVertex();
-			bufferbuilder.func_225582_a_((double) this.x1, (double) (this.y0 + 4), 0.0D).func_225583_a_(1.0F, 1.0F).func_225586_a_(0, 0, 0, 0).endVertex();
-			bufferbuilder.func_225582_a_((double) this.x1, (double) this.y0, 0.0D).func_225583_a_(1.0F, 0.0F).func_225586_a_(0, 0, 0, 255).endVertex();
-			bufferbuilder.func_225582_a_((double) this.x0, (double) this.y0, 0.0D).func_225583_a_(0.0F, 0.0F).func_225586_a_(0, 0, 0, 255).endVertex();
-			tessellator.draw();
-			// Bottom shadow
-			bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-			bufferbuilder.func_225582_a_((double) this.x0, (double) this.y1, 0.0D).func_225583_a_(0.0F, 1.0F).func_225586_a_(0, 0, 0, 255).endVertex();
-			bufferbuilder.func_225582_a_((double) this.x1, (double) this.y1, 0.0D).func_225583_a_(1.0F, 1.0F).func_225586_a_(0, 0, 0, 255).endVertex();
-			bufferbuilder.func_225582_a_((double) this.x1, (double) (this.y1 - 4), 0.0D).func_225583_a_(1.0F, 0.0F).func_225586_a_(0, 0, 0, 0).endVertex();
-			bufferbuilder.func_225582_a_((double) this.x0, (double) (this.y1 - 4), 0.0D).func_225583_a_(0.0F, 0.0F).func_225586_a_(0, 0, 0, 0).endVertex();
-			tessellator.draw();
-//			int j1 = this.getMaxScroll(); // private, logic copied
-			int j1 = Math.max(0, this.getMaxPosition() - (this.y1 - this.y0 - 4));
-			if (j1 > 0) {
-				int k1 = (int) ((float) ((this.y1 - this.y0) * (this.y1 - this.y0)) / (float) this.getMaxPosition());
-				k1 = MathHelper.clamp(k1, 32, this.y1 - this.y0 - 8);
-				int l1 = (int) this.getScrollAmount() * (this.y1 - this.y0 - k1) / j1 + this.y0;
-				if (l1 < this.y0) {
-					l1 = this.y0;
-				}
-
-				bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-				bufferbuilder.func_225582_a_((double) i, (double) this.y1, 0.0D).func_225583_a_(0.0F, 1.0F).func_225586_a_(0, 0, 0, 255).endVertex();
-				bufferbuilder.func_225582_a_((double) j, (double) this.y1, 0.0D).func_225583_a_(1.0F, 1.0F).func_225586_a_(0, 0, 0, 255).endVertex();
-				bufferbuilder.func_225582_a_((double) j, (double) this.y0, 0.0D).func_225583_a_(1.0F, 0.0F).func_225586_a_(0, 0, 0, 255).endVertex();
-				bufferbuilder.func_225582_a_((double) i, (double) this.y0, 0.0D).func_225583_a_(0.0F, 0.0F).func_225586_a_(0, 0, 0, 255).endVertex();
-				tessellator.draw();
-				bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-				bufferbuilder.func_225582_a_((double) i, (double) (l1 + k1), 0.0D).func_225583_a_(0.0F, 1.0F).func_225586_a_(128, 128, 128, 255).endVertex();
-				bufferbuilder.func_225582_a_((double) j, (double) (l1 + k1), 0.0D).func_225583_a_(1.0F, 1.0F).func_225586_a_(128, 128, 128, 255).endVertex();
-				bufferbuilder.func_225582_a_((double) j, (double) l1, 0.0D).func_225583_a_(1.0F, 0.0F).func_225586_a_(128, 128, 128, 255).endVertex();
-				bufferbuilder.func_225582_a_((double) i, (double) l1, 0.0D).func_225583_a_(0.0F, 0.0F).func_225586_a_(128, 128, 128, 255).endVertex();
-				tessellator.draw();
-				bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-				bufferbuilder.func_225582_a_((double) i, (double) (l1 + k1 - 1), 0.0D).func_225583_a_(0.0F, 1.0F).func_225586_a_(192, 192, 192, 255).endVertex();
-				bufferbuilder.func_225582_a_((double) (j - 1), (double) (l1 + k1 - 1), 0.0D).func_225583_a_(1.0F, 1.0F).func_225586_a_(192, 192, 192, 255).endVertex();
-				bufferbuilder.func_225582_a_((double) (j - 1), (double) l1, 0.0D).func_225583_a_(1.0F, 0.0F).func_225586_a_(192, 192, 192, 255).endVertex();
-				bufferbuilder.func_225582_a_((double) i, (double) l1, 0.0D).func_225583_a_(0.0F, 0.0F).func_225586_a_(192, 192, 192, 255).endVertex();
-				tessellator.draw();
-			}
-
-			this.renderDecorations(p_render_1_, p_render_2_);
-			RenderSystem.enableTexture();
-			RenderSystem.shadeModel(7424);
-			RenderSystem.enableAlphaTest();
-			RenderSystem.disableBlend();
-		}
+		// Dirt hacks are applied to stop the dirt texture from being rendered.
+		// see getRowLeft and getScrollbarPosition
+		doHackery = true;
+		super.render(mouseX, mouseY, partialTicks);
 
 		GL11.glDisable(GL11.GL_SCISSOR_TEST);
 	}
 
 	@Override
 	protected int getScrollbarPosition() {
-		return getRight() - 6; // 6 = scrollbar width
+		final int right = getRight();
+		if (doHackery) {
+			// Dirty hack to stop the dirt background from being visible.
+			// Makes all sizes 0 so when the dirt background is rendered nothing is visible.
+			x0 = x1 = y0 = y1 = 0;
+			doHackery = false;
+		}
+		return right - 6; // 6 = scrollbar width
 	}
 
 	@Override
@@ -234,6 +161,12 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 				((TextFieldWidget) widget).setFocused2(false);
 		});
 		return super.mouseClicked(p_mouseClicked_1_, p_mouseClicked_3_, p_mouseClicked_5_);
+	}
+
+	@Override
+	protected int getRowLeft() {
+		this.setBounds(); // Revert dirty hack to stop the dirt background from being visible.
+		return super.getRowLeft();
 	}
 
 	@Override
@@ -263,14 +196,11 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 	/**
 	 * Saves all properties.
 	 * This method returns true if any elements were changed that require a restart for proper handling.
-	 *
-	 * @return If any elements were changed that require the game to restart for proper handling
 	 */
-	public boolean save() {
-		boolean requiresRestart = false;
+	public void save() {
 		for (ConfigListEntry<?> entry : this.getListEntries())
-			requiresRestart |= entry.save();
-		return requiresRestart;
+			if (entry.isChanged())
+				entry.save();
 	}
 
 	/**
@@ -281,7 +211,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 	 */
 	public boolean areAllEntriesDefault(boolean applyToSubcategories) {
 		for (ConfigListEntry<?> entry : this.getListEntries())
-			if (applyToSubcategories || !(entry instanceof CategoryConfigListEntry))
+			if (applyToSubcategories || !entry.isCategory())
 				if (!entry.isDefault())
 					return false;
 		return true;
@@ -294,7 +224,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 	 */
 	public void resetAllToDefault(boolean applyToSubcategories) {
 		for (ConfigListEntry<?> entry : this.getListEntries())
-			if (applyToSubcategories || !(entry instanceof CategoryConfigListEntry))
+			if (applyToSubcategories || !entry.isCategory())
 				entry.resetToDefault();
 	}
 
@@ -306,7 +236,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 	 */
 	public boolean areAnyEntriesChanged(boolean applyToSubcategories) {
 		for (ConfigListEntry<?> entry : this.getListEntries())
-			if (applyToSubcategories || !(entry instanceof CategoryConfigListEntry))
+			if (applyToSubcategories || !entry.isCategory())
 				if (entry.isChanged())
 					return true;
 		return false;
@@ -319,7 +249,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 	 */
 	public void undoAllChanges(boolean applyToSubcategories) {
 		for (ConfigListEntry<?> entry : this.getListEntries())
-			if (applyToSubcategories || !(entry instanceof CategoryConfigListEntry))
+			if (applyToSubcategories || !entry.isCategory())
 				entry.undoChanges();
 	}
 
@@ -331,15 +261,15 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 	 */
 	public boolean areAnyEntriesEnabled(boolean applyToSubcategories) {
 		for (ConfigListEntry<?> entry : this.getListEntries())
-			if (applyToSubcategories || !(entry instanceof CategoryConfigListEntry))
+			if (applyToSubcategories || !entry.isCategory())
 				if (entry.enabled())
 					return true;
 		return false;
 	}
 
-	public boolean anyRequireMcRestart() {
+	public boolean anyRequireGameRestart() {
 		for (ConfigListEntry<?> entry : this.getListEntries())
-			if (entry.requiresMcRestart())
+			if (entry.requiresGameRestart())
 				return true;
 		return false;
 	}

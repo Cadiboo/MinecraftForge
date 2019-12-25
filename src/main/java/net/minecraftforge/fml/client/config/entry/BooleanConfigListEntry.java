@@ -13,12 +13,12 @@ import java.util.List;
  */
 public class BooleanConfigListEntry extends ConfigListEntry<Boolean> {
 
-	private final EntryConfigValue<Boolean> entryConfigValue;
+	private final ConfigElementContainer<Boolean> entryConfigValue;
 	private final GuiButtonExt button;
 
 	public BooleanConfigListEntry(final ConfigScreen configScreen, final ModConfig modConfig, final List<String> path, final ConfigValue<Boolean> configValue) {
 		super(configScreen);
-		this.entryConfigValue = new EntryConfigValue<>(path, modConfig, configValue);
+		this.entryConfigValue = new ConfigElementContainer<>(path, modConfig, configValue);
 		this.children().add(this.button = new GuiButtonExt(0, 0, 18, 18, entryConfigValue.getCurrentValue().toString(), b -> {
 			entryConfigValue.setCurrentValue(!entryConfigValue.getCurrentValue());
 			b.setMessage(entryConfigValue.getCurrentValue().toString());
@@ -42,7 +42,7 @@ public class BooleanConfigListEntry extends ConfigListEntry<Boolean> {
 	}
 
 	@Override
-	protected EntryConfigValue<Boolean> getEntryConfigValue() {
+	protected ConfigElementContainer<Boolean> getBooleanConfigElement() {
 		return entryConfigValue;
 	}
 

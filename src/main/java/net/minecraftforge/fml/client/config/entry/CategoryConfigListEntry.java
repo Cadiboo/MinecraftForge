@@ -23,6 +23,7 @@ import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.Widget;
+import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 
@@ -55,6 +56,11 @@ public abstract class CategoryConfigListEntry<T> extends ConfigListEntry<T> {
 	}
 
 	protected abstract Screen buildChildScreen();
+
+	@Override
+	public boolean isCategory() {
+		return true;
+	}
 
 	@Override
 	public boolean isValidValue() {
@@ -92,7 +98,7 @@ public abstract class CategoryConfigListEntry<T> extends ConfigListEntry<T> {
 	}
 
 	@Override
-	protected EntryConfigValue<T> getEntryConfigValue() {
+	protected ConfigElementContainer<T> getBooleanConfigElement() {
 		return null;
 	}
 
@@ -128,8 +134,9 @@ public abstract class CategoryConfigListEntry<T> extends ConfigListEntry<T> {
 			requiresRestart = this.requiresMcRestart() &&
 					((ConfigScreen) childScreen).getEntryList().areAnyEntriesChanged(true);
 
-			if (((ConfigScreen) childScreen).getEntryList().save())
-				requiresRestart = true;
+//			final ConfigEntryListWidget entryList = ((ConfigScreen) childScreen).getEntryList();
+//			if (entryList.save())
+//				requiresRestart = true;
 		}
 
 		return requiresRestart;
@@ -148,7 +155,7 @@ public abstract class CategoryConfigListEntry<T> extends ConfigListEntry<T> {
 	public boolean requiresMcRestart() {
 		final Screen childScreen = getChildScreen();
 		if (childScreen instanceof ConfigScreen && ((ConfigScreen) childScreen).getEntryList() != null)
-			return ((ConfigScreen) childScreen).getEntryList().anyRequireMcRestart();
+			return ((ConfigScreen) childScreen).getEntryList().anyRequireGameRestart();
 		else
 			return false;
 	}

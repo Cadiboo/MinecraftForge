@@ -31,7 +31,7 @@ public class DummyConfigListEntry extends ConfigListEntry<String> {
 	}
 
 	@Override
-	protected EntryConfigValue<String> getEntryConfigValue() {
+	protected ConfigElementContainer<String> getBooleanConfigElement() {
 		return null;
 	}
 

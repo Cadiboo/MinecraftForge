@@ -21,6 +21,7 @@ package net.minecraftforge.fml.client.config;
 
 import com.electronwill.nightconfig.core.Config;
 import com.google.common.util.concurrent.Runnables;
+import joptsimple.internal.Strings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
@@ -31,16 +32,20 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.ModContainer;
-import net.minecraftforge.fml.client.config.entry.BooleanConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.ConfigCategoryConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.DummyConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.EnumConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.ListCategoryConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.ModConfigCategoryConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.NumberConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.StringConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.TemporalConfigListEntry;
+import net.minecraftforge.fml.client.config.element.BooleanConfigElement;
+import net.minecraftforge.fml.client.config.element.ConfigConfigElement;
+import net.minecraftforge.fml.client.config.element.ConfigElement;
+import net.minecraftforge.fml.client.config.element.DummyConfigElement;
+import net.minecraftforge.fml.client.config.element.EnumConfigElement;
+import net.minecraftforge.fml.client.config.element.IConfigElement;
+import net.minecraftforge.fml.client.config.element.LocalDateConfigElement;
+import net.minecraftforge.fml.client.config.element.LocalDateTimeConfigElement;
+import net.minecraftforge.fml.client.config.element.LocalTimeConfigElement;
+import net.minecraftforge.fml.client.config.element.ModConfigConfigElement;
+import net.minecraftforge.fml.client.config.element.NumberConfigElement;
+import net.minecraftforge.fml.client.config.element.OffsetDateTimeConfigElement;
+import net.minecraftforge.fml.client.config.element.StringConfigElement;
+import net.minecraftforge.fml.client.config.entry.ConfigElementContainer;
 import net.minecraftforge.fml.config.ConfigTracker;
 import net.minecraftforge.fml.config.ModConfig;
 import org.apache.logging.log4j.LogManager;
@@ -48,13 +53,16 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
-import java.time.temporal.Temporal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 
 import static net.minecraftforge.common.ForgeConfigSpec.ValueSpec;
 import static net.minecraftforge.fml.client.config.GuiUtils.RESET_CHAR;
@@ -91,11 +99,11 @@ public class ConfigScreen extends Screen {
 	 * A list of elements on this screen.
 	 * Re-created when {@link #init()} is called if {@link #needsRefresh} is true.
 	 */
-	private final List<ConfigListEntry<?>> configElements;
+	private final List<IConfigElement<?>> configElements;
 	/**
 	 * The initial list of elements on this screen. Same as the first value of {@link #configElements}
 	 */
-	private final List<ConfigListEntry<?>> initialConfigElements;
+	private final List<IConfigElement<?>> initialConfigElements;
 	/**
 	 * If true then the entryList & configValueElements will be re-created next time {@link #init()} is called.
 	 */
@@ -125,14 +133,14 @@ public class ConfigScreen extends Screen {
 	 */
 	private ConfigEntryListWidget entryList;
 
-	public ConfigScreen(final ITextComponent titleIn, final Screen parentScreen, final ModContainer modContainer, @Nullable Function<ConfigScreen, List<ConfigListEntry<?>>> makeConfigElements) {
+	public ConfigScreen(final ITextComponent titleIn, final Screen parentScreen, final ModContainer modContainer, List<IConfigElement<?>> configElements) {
 		super(titleIn);
 		this.parentScreen = parentScreen;
 		this.modContainer = modContainer;
-		if (makeConfigElements == null)
+		if (configElements == null)
 			this.configElements = this.initialConfigElements = makeElementsForMod();
 		else
-			this.configElements = this.initialConfigElements = makeConfigElements.apply(this);
+			this.configElements = this.initialConfigElements = configElements;
 	}
 
 	public ConfigScreen(final ITextComponent titleIn, final Screen parentScreen, final ModContainer modContainer) {
@@ -159,7 +167,7 @@ public class ConfigScreen extends Screen {
 	 * @param obj Either a ConfigValue or a Config
 	 * @see #getSpecConfigValues(ModConfig)
 	 */
-	public static ConfigListEntry<?> makeConfigListEntry(final ConfigScreen configScreen, final ModConfig modConfig, final String name, final Object obj) {
+	public static ConfigElement<?> makeConfigElement(final ModConfig modConfig, final String name, final Object obj) {
 		if (obj instanceof ConfigValue) {
 			final ConfigValue<?> configValue = (ConfigValue<?>) obj;
 			// Because the obj is a ConfigValue the corresponding object in the ValueSpec map must be a ValueSpec
@@ -178,56 +186,69 @@ public class ConfigScreen extends Screen {
 				}
 			}
 			if (Boolean.class.isAssignableFrom(clazz)) {
-				return new BooleanConfigListEntry(configScreen, modConfig, configValue.getPath(), (ConfigValue<Boolean>) configValue);
+				return new BooleanConfigElement(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<Boolean>) configValue));
 			} else if (Byte.class.isAssignableFrom(clazz)) {
-				return new NumberConfigListEntry<Byte>(configScreen, modConfig, configValue.getPath(), (ConfigValue<Byte>) configValue) {
+				return new NumberConfigElement<Byte>(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<Byte>) configValue)) {
 					@Override
-					protected Byte parse(final String text) {
+					public Byte parse(final String text) throws NumberFormatException {
 						return Byte.parseByte(text);
 					}
 				};
 			} else if (Integer.class.isAssignableFrom(clazz)) {
-				return new NumberConfigListEntry<Integer>(configScreen, modConfig, configValue.getPath(), (ConfigValue<Integer>) configValue) {
+				return new NumberConfigElement<Integer>(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<Integer>) configValue)) {
 					@Override
-					protected Integer parse(final String text) {
+					public Integer parse(final String text) throws NumberFormatException {
 						return Integer.parseInt(text);
 					}
 				};
 			} else if (Float.class.isAssignableFrom(clazz)) {
-				return new NumberConfigListEntry<Float>(configScreen, modConfig, configValue.getPath(), (ConfigValue<Float>) configValue) {
+				return new NumberConfigElement<Float>(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<Float>) configValue)) {
 					@Override
-					protected Float parse(final String text) {
+					public Float parse(final String text) throws NumberFormatException {
 						return Float.parseFloat(text);
 					}
 				};
 			} else if (Long.class.isAssignableFrom(clazz)) {
-				return new NumberConfigListEntry<Long>(configScreen, modConfig, configValue.getPath(), (ConfigValue<Long>) configValue) {
+				return new NumberConfigElement<Long>(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<Long>) configValue)) {
 					@Override
-					protected Long parse(final String text) {
+					public Long parse(final String text) throws NumberFormatException {
 						return Long.parseLong(text);
 					}
 				};
 			} else if (Double.class.isAssignableFrom(clazz)) {
-				return new NumberConfigListEntry<Double>(configScreen, modConfig, configValue.getPath(), (ConfigValue<Double>) configValue) {
+				return new NumberConfigElement<Double>(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<Double>) configValue)) {
 					@Override
-					protected Double parse(final String text) {
+					public Double parse(final String text) throws NumberFormatException {
 						return Double.parseDouble(text);
 					}
 				};
 			} else if (String.class.isAssignableFrom(clazz)) {
-				return new StringConfigListEntry(configScreen, modConfig, configValue.getPath(), (ConfigValue<String>) configValue);
+				return new StringConfigElement(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<String>) configValue));
 			} else if (Enum.class.isAssignableFrom(clazz)) {
-				return new EnumConfigListEntry(configScreen, modConfig, configValue.getPath(), (ConfigValue<Enum<?>>) configValue);
-			} else if (List.class.isAssignableFrom(clazz)) {
-				return new ListCategoryConfigListEntry(configScreen, modConfig, configValue.getPath(), (ConfigValue<List<?>>) configValue);
-			} else if (Temporal.class.isAssignableFrom(clazz)) {
-				return new TemporalConfigListEntry(configScreen, modConfig, configValue.getPath(), (ConfigValue<Temporal>) configValue);
+				return new EnumConfigElement<>(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<Enum<?>>) configValue));
+//			} else if (List.class.isAssignableFrom(clazz)) {
+//				return new ListConfigElement<>(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<List<?>>) configValue));
+			} else if (LocalTime.class.isAssignableFrom(clazz)) {
+				return new LocalTimeConfigElement(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<LocalTime>) configValue));
+			} else if (LocalDate.class.isAssignableFrom(clazz)) {
+				return new LocalDateConfigElement(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<LocalDate>) configValue));
+			} else if (LocalDateTime.class.isAssignableFrom(clazz)) {
+				return new LocalDateTimeConfigElement(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<LocalDateTime>) configValue));
+			} else if (OffsetDateTime.class.isAssignableFrom(clazz)) {
+				return new OffsetDateTimeConfigElement(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<OffsetDateTime>) configValue));
 			} else {
-				return new DummyConfigListEntry(configScreen, name);
+				return new DummyConfigElement("(Unknown object " + clazz.getSimpleName() + ") " + name);
 			}
 		} else if (obj instanceof Config) {
 			final Config config = (Config) obj;
-			return new ConfigCategoryConfigListEntry(configScreen, name, modConfig, config);
+			String translationKey = ""; // TODO: No clue how to get this for categories. Doesn't seem to exist currently?
+			String label = I18n.format(translationKey);
+			if (Objects.equals(translationKey, label))
+				label = name;
+			String comment = modConfig.getConfigData().getComment(name); // TODO: Only works for top-level categories?
+			if (Strings.isNullOrEmpty(comment))
+				comment = "";
+			return new ConfigConfigElement(config, modConfig, label, translationKey, comment);
 		} else {
 			throw new IllegalStateException("How? " + name + ", " + obj);
 		}
@@ -426,23 +447,18 @@ public class ConfigScreen extends Screen {
 		return !minecraft.getIntegratedServer().getPublic();
 	}
 
-	protected List<ConfigListEntry<?>> makeElementsForMod() {
-		final List<ConfigListEntry<?>> list = new ArrayList<>();
+	protected List<IConfigElement<?>> makeElementsForMod() {
+		final List<IConfigElement<?>> list = new ArrayList<>();
 		for (final ModConfig.Type type : ModConfig.Type.values())
 			makeConfigElementForModConfigType(type).ifPresent(list::add);
 		return list;
 	}
 
-	protected Optional<ModConfigCategoryConfigListEntry> makeConfigElementForModConfigType(final ModConfig.Type type) {
-
+	protected Optional<ModConfigConfigElement> makeConfigElementForModConfigType(final ModConfig.Type type) {
 		if (type == ModConfig.Type.SERVER && !canPlayerEditServerConfig())
 			return Optional.empty();
-
-		final ModConfig modConfig = ConfigTracker.INSTANCE.getConfig(modContainer.getModId(), type).orElse(null);
-		if (modConfig == null)
-			return Optional.empty();
-
-		return Optional.of(new ModConfigCategoryConfigListEntry(this, modConfig));
+		return ConfigTracker.INSTANCE.getConfig(modContainer.getModId(), type)
+				.map(ModConfigConfigElement::new);
 	}
 
 	@Nullable
@@ -459,9 +475,10 @@ public class ConfigScreen extends Screen {
 					// Why? Maybe to allow adding of stuff to the config? IDK
 //					((ConfigScreen) this.parentScreen).needsRefresh = true;
 				} else {
-					boolean requiresMcRestart = this.entryList.save();
+					this.entryList.save();
+					boolean requiresGameRestart = this.entryList.anyRequireGameRestart();
 					boolean requiresWorldRestart = this.entryList.anyRequireWorldRestart();
-					if (requiresMcRestart) {
+					if (requiresGameRestart) {
 						canClose = false;
 						getMinecraft().displayGuiScreen(new GuiMessageDialog(parentScreen, "fml.configgui.gameRestartTitle", new StringTextComponent(I18n.format("fml.configgui.gameRestartRequired")), "fml.configgui.confirmMessage"));
 					}
@@ -506,12 +523,8 @@ public class ConfigScreen extends Screen {
 		this.drawCenteredString(font, this.title.getFormattedText(), halfWidth, 5, 0xFFFFFF);
 
 		if (subtitle != null) {
-			String title2 = subtitle.getFormattedText();
-			int strWidth = font.getStringWidth(title2);
-			int ellipsisWidth = font.getStringWidth("...");
-			if (strWidth > width - 6 && strWidth > ellipsisWidth)
-				title2 = font.trimStringToWidth(title2, width - 6 - ellipsisWidth).trim() + "...";
-			this.drawCenteredString(font, title2, halfWidth, 20, 0x9D9D97);
+			final String trimmed = GuiUtils.trimStringToSize(font, subtitle.getFormattedText(), width - 6);
+			this.drawCenteredString(font, trimmed, halfWidth, 20, 0x9D9D97);
 		}
 
 		super.render(mouseX, mouseY, partialTicks);
@@ -597,7 +610,7 @@ public class ConfigScreen extends Screen {
 	@Override
 	public void tick() {
 		super.tick();
-		if (entryList != null) // hmmm
+		if (entryList != null) // TODO hmmm
 			this.entryList.tick();
 		setButtonsActive();
 	}
@@ -643,7 +656,7 @@ public class ConfigScreen extends Screen {
 		return MARGIN + BUTTON_HEIGHT + MARGIN;
 	}
 
-	public List<ConfigListEntry<?>> getConfigElements() {
+	public List<IConfigElement<?>> getConfigElements() {
 		return configElements;
 	}
 

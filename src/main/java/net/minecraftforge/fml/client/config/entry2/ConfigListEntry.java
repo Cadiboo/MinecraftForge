@@ -1,4 +1,4 @@
-package net.minecraftforge.fml.client.config.entry;
+package net.minecraftforge.fml.client.config.entry2;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
@@ -9,9 +9,15 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.ForgeConfigSpec.Range;
 import net.minecraftforge.common.ForgeConfigSpec.ValueSpec;
+import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
+import net.minecraftforge.fml.client.config.GuiUtils;
 import net.minecraftforge.fml.client.config.HoverChecker;
+import net.minecraftforge.fml.client.config.element.ConfigElement;
+import net.minecraftforge.fml.client.config.element.IConfigElement;
+import net.minecraftforge.fml.client.config.entry.ConfigElementContainer;
+import net.minecraftforge.fml.client.config.entry.IConfigListEntry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -28,7 +34,7 @@ import static net.minecraftforge.fml.client.config.GuiUtils.UNDO_CHAR;
  *
  * @param <T> The type of the config object. For example Boolean or Float
  */
-public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<ConfigListEntry<?>> {
+public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<ConfigListEntry<?>> implements IConfigListEntry<T> {
 
 	/**
 	 * The space between each button.
@@ -39,12 +45,14 @@ public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<Config
 	protected final List<Widget> children = new ArrayList<>();
 	protected final GuiButtonExt undoChangesButton, resetToDefaultButton;
 	protected final List<String> undoToolTip, defaultToolTip;
+	private final IConfigElement<T> configElement;
 	protected List<String> toolTip;
 	protected HoverChecker tooltipHoverChecker, undoChangesButtonChecker, resetToDefaultButtonHoverChecker;
-	protected boolean drawLabel;
+	protected boolean renderLabel;
 
-	public ConfigListEntry(ConfigScreen owningScreen) {
+	public ConfigListEntry(ConfigScreen owningScreen, final IConfigElement<T> configElement) {
 		this.owningScreen = owningScreen;
+		this.configElement = configElement;
 		this.minecraft = Minecraft.getInstance();
 		this.children().add(this.undoChangesButton = new GuiButtonExt(0, 0, 0, 0, UNDO_CHAR, b -> {
 			this.undoChanges();
@@ -59,36 +67,63 @@ public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<Config
 		this.undoToolTip = Collections.singletonList(I18n.format("fml.configgui.tooltip.undoChanges"));
 		this.defaultToolTip = Collections.singletonList(I18n.format("fml.configgui.tooltip.resetToDefault"));
 
-		this.drawLabel = true;
+		this.renderLabel = true;
+	}
+
+	@Override
+	public IConfigElement<T> getConfigElement() {
+		return configElement;
+	}
+
+	@Override
+	public void tick() {
+		final Widget widget = getWidget();
+		if (widget instanceof TextFieldWidget)
+			((TextFieldWidget) widget).tick();
+	}
+
+	@Override
+	public void renderToolTip(final int mouseX, final int mouseY, final float partialTicks) {
+		// TODO: this is only called for hovered elements anyway?
+		boolean canHover = mouseY < this.owningScreen.getEntryList().getBottom() && mouseY > this.owningScreen.getEntryList().getTop();
+		final List<String> toolTip = getToolTip();
+		if (!toolTip.isEmpty() && this.tooltipHoverChecker != null)
+			if (this.tooltipHoverChecker.checkHover(mouseX, mouseY, canHover))
+				this.owningScreen.drawToolTip(toolTip, mouseX, mouseY);
+
+		if (this.undoChangesButtonChecker.checkHover(mouseX, mouseY, canHover))
+			this.owningScreen.drawToolTip(undoToolTip, mouseX, mouseY);
+
+		if (this.resetToDefaultButtonHoverChecker.checkHover(mouseX, mouseY, canHover))
+			this.owningScreen.drawToolTip(defaultToolTip, mouseX, mouseY);
 	}
 
 	protected void makeTooltip(final ConfigScreen owningScreen) {
 		this.toolTip = new ArrayList<>();
-		final ConfigElementContainer<T> configValue = getBooleanConfigElement();
-		if (configValue != null) {
-			final String translateKey = configValue.getTranslationKey() + ".tooltip";
-			final String comment = I18n.format(translateKey).replace("\\n", "\n");
-			if (!comment.equals(translateKey))
+		final String translateKey = getTranslationKey() + ".tooltip";
+		final String translated = I18n.format(translateKey).replace("\\n", "\n");
+		if (!translated.equals(translateKey)) // TODO: RemoveTag should not exist
+			Collections.addAll(toolTip, (TextFormatting.GREEN + getLabel() + "\n" + TextFormatting.YELLOW + removeTag(translated, "[default:", "]")).split("\n"));
+		else {
+			final String comment = getComment();
+			if (comment != null && !comment.trim().isEmpty())
 				Collections.addAll(toolTip, (TextFormatting.GREEN + getLabel() + "\n" + TextFormatting.YELLOW + removeTag(comment, "[default:", "]")).split("\n"));
-			else if (configValue.getComment() != null && !configValue.getComment().trim().isEmpty())
-				Collections.addAll(toolTip, (TextFormatting.GREEN + getLabel() + "\n" + TextFormatting.YELLOW + removeTag(configValue.getComment(), "[default:", "]")).split("\n"));
 			else
 				Collections.addAll(toolTip, (TextFormatting.GREEN + getLabel() + "\n" + TextFormatting.RED + "No tooltip defined.").split("\n"));
+		}
 
-			final ValueSpec valueSpec = configValue.getValueSpec();
+		// FIXME shhhh
+		final ConfigElementContainer<T> configElementContainer = ((ConfigElement<T>) getConfigElement()).getConfigElementContainer();
+		if (configElementContainer != null) {
+			final ValueSpec valueSpec = configElementContainer.getValueSpec();
 			if (Number.class.isAssignableFrom(valueSpec.getClazz())) {
 				final Range<?> range = valueSpec.getRange();
-				Collections.addAll(toolTip, (TextFormatting.AQUA + I18n.format("fml.configgui.tooltip.defaultNumeric", range.getMin(), range.getMax(), configValue.getDefaultValue())).split("\n"));
-			} else if (!this.isCategory())
-				Collections.addAll(toolTip, (TextFormatting.AQUA + I18n.format("fml.configgui.tooltip.default", configValue.getDefaultValue())).split("\n"));
-
-			if (configValue.requiresGameRestart() || owningScreen.doAllRequireMcRestart())
-				toolTip.add(TextFormatting.RED + "[" + I18n.format("fml.configgui.gameRestartTitle") + "]");
+				Collections.addAll(toolTip, (TextFormatting.AQUA + I18n.format("fml.configgui.tooltip.defaultNumeric", range.getMin(), range.getMax(), getDefault())).split("\n"));
+			} else if (!this.displayDefaultValue())
+				Collections.addAll(toolTip, (TextFormatting.AQUA + I18n.format("fml.configgui.tooltip.default", getDefault())).split("\n"));
 		}
-	}
-
-	public boolean isCategory() {
-		return false;
+		if (requiresGameRestart() || owningScreen.doAllRequireMcRestart())
+			toolTip.add(TextFormatting.RED + "[" + I18n.format("fml.configgui.gameRestartTitle") + "]");
 	}
 
 	@Override
@@ -97,14 +132,15 @@ public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<Config
 
 		final boolean isChanged = isChanged();
 
-		if (drawLabel) {
+		if (renderLabel) {
 			String formatting = "" + TextFormatting.GRAY;
 			if (isChanged)
 				formatting += "" + TextFormatting.WHITE + TextFormatting.ITALIC;
 			if (!isValidValue())
 				formatting += TextFormatting.RED;
+			final String trimmedLabel = GuiUtils.trimStringToSize(this.minecraft.fontRenderer, getLabel(), ConfigEntryListWidget.MAX_LABEL_WIDTH);;
 			this.minecraft.fontRenderer.drawString(
-					formatting + getLabel(),
+					formatting + trimmedLabel,
 					startX,
 					startY + height / 2F - this.minecraft.fontRenderer.FONT_HEIGHT / 2F,
 					0xFFFFFF);
@@ -134,7 +170,7 @@ public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<Config
 		final Widget widget = this.getWidget();
 		if (widget != null) {
 			int widgetX = startX;
-			if (drawLabel)
+			if (renderLabel)
 				widgetX += this.owningScreen.getEntryList().getLongestLabelWidth();
 			preRenderWidget(widget, widgetX, startY, posX - widgetX, height);
 		}
@@ -163,83 +199,9 @@ public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<Config
 	}
 
 	public boolean enabled() {
-		return !owningScreen.isWorldRunning() || !owningScreen.doAllRequireWorldRestart() && !this.requiresWorldRestart();
-	}
-
-	public void tick() {
-		final Widget widget = getWidget();
-		if (widget instanceof TextFieldWidget)
-			((TextFieldWidget) widget).tick();
-	}
-
-	public String getLabel() {
-		final ConfigElementContainer<T> configValue = getBooleanConfigElement();
-		if (configValue != null)
-			return configValue.getLabel();
-		return "Unknown Label!";
-	}
-
-	public boolean isDefault() {
-		final ConfigElementContainer<T> configValue = getBooleanConfigElement();
-		if (configValue != null)
-			return configValue.isDefault();
 		return true;
-	}
-
-	protected abstract ConfigElementContainer<T> getBooleanConfigElement();
-
-	public void resetToDefault() {
-		final ConfigElementContainer<T> configValue = getBooleanConfigElement();
-		if (configValue != null)
-			configValue.resetToDefault();
-	}
-
-	public boolean isChanged() {
-		final ConfigElementContainer<T> configValue = getBooleanConfigElement();
-		if (configValue != null)
-			return configValue.isChanged();
-		return false;
-	}
-
-	public void undoChanges() {
-		final ConfigElementContainer<T> configValue = getBooleanConfigElement();
-		if (configValue != null)
-			configValue.undoChanges();
-	}
-
-	public boolean save() {
-		final ConfigElementContainer<T> configValue = getBooleanConfigElement();
-		if (configValue != null)
-			return configValue.save();
-		return false;
-	}
-
-	public boolean requiresWorldRestart() {
-		final ConfigElementContainer<T> configValue = getBooleanConfigElement();
-		if (configValue != null)
-			return configValue.requiresWorldRestart();
-		return false;
-	}
-
-	public boolean requiresMcRestart() {
-		final ConfigElementContainer<T> configValue = getBooleanConfigElement();
-		if (configValue != null)
-			return configValue.requiresGameRestart();
-		return false;
-	}
-
-	public void renderToolTip(final int mouseX, final int mouseY, final float partialTicks) {
-		boolean canHover = mouseY < this.owningScreen.getEntryList().getBottom() && mouseY > this.owningScreen.getEntryList().getTop();
-		final List<String> toolTip = getToolTip();
-		if (!toolTip.isEmpty() && this.tooltipHoverChecker != null)
-			if (this.tooltipHoverChecker.checkHover(mouseX, mouseY, canHover))
-				this.owningScreen.drawToolTip(toolTip, mouseX, mouseY);
-
-		if (this.undoChangesButtonChecker.checkHover(mouseX, mouseY, canHover))
-			this.owningScreen.drawToolTip(undoToolTip, mouseX, mouseY);
-
-		if (this.resetToDefaultButtonHoverChecker.checkHover(mouseX, mouseY, canHover))
-			this.owningScreen.drawToolTip(defaultToolTip, mouseX, mouseY);
+		// TODO ????
+//		return !owningScreen.isWorldRunning() || !owningScreen.doAllRequireWorldRestart() && !this.requiresWorldRestart();
 	}
 
 	@Nonnull
@@ -250,12 +212,9 @@ public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<Config
 	}
 
 	public int getLabelWidth() {
-		if (!drawLabel)
+		if (!renderLabel)
 			return 0;
 		return this.minecraft.fontRenderer.getStringWidth(this.getLabel());
-	}
-
-	public void onGuiClosed() {
 	}
 
 	/**

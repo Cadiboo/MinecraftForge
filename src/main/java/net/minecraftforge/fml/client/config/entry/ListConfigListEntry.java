@@ -30,7 +30,7 @@ public abstract class ListConfigListEntry<T> extends ConfigListEntry<List<?>> {
 	}
 
 	@Override
-	protected EntryConfigValue<List<?>> getEntryConfigValue() {
+	protected ConfigElementContainer<List<?>> getBooleanConfigElement() {
 		return null;
 	}
 

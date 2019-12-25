@@ -14,12 +14,12 @@ import java.util.List;
  */
 public abstract class NumberConfigListEntry<T extends Number> extends ConfigListEntry<T> {
 
-	private final EntryConfigValue<T> entryConfigValue;
+	private final ConfigElementContainer<T> entryConfigValue;
 	private final TextFieldWidget textFieldWidget;
 
 	public NumberConfigListEntry(final ConfigScreen configScreen, final ModConfig modConfig, final List<String> path, final ConfigValue<T> configValue) {
 		super(configScreen);
-		this.entryConfigValue = new EntryConfigValue<>(path, modConfig, configValue);
+		this.entryConfigValue = new ConfigElementContainer<>(path, modConfig, configValue);
 		this.children().add(this.textFieldWidget = new TextFieldWidget(Minecraft.getInstance().fontRenderer, 0, 0, 18, 18, getLabel()));
 		this.textFieldWidget.setMaxStringLength(Integer.MAX_VALUE);
 		this.textFieldWidget.setText(entryConfigValue.getCurrentValue().toString());
@@ -47,7 +47,7 @@ public abstract class NumberConfigListEntry<T extends Number> extends ConfigList
 	}
 
 	@Override
-	public EntryConfigValue<T> getEntryConfigValue() {
+	public ConfigElementContainer<T> getBooleanConfigElement() {
 		return entryConfigValue;
 	}
 
