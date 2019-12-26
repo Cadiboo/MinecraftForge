@@ -1,9 +1,8 @@
-package net.minecraftforge.fml.client.config.entry2;
+package net.minecraftforge.fml.client.config.entry2.fucked;
 
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.element.IConfigElement;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
 
 /**

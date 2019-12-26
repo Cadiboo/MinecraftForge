@@ -78,6 +78,8 @@ public interface IConfigElement<T> {
 
 	void save();
 
+	boolean isValid(T o);
+
 	/**
 	 * @return true if this element is going to have a slider attached
 	 */
@@ -86,6 +88,8 @@ public interface IConfigElement<T> {
 	}
 
 	ConfigListEntry<T> makeWidgetThing(ConfigScreen configScreen, ConfigEntryListWidget configEntryListWidget);
+
+//	ConfigListEntry<T> makeListWidgetThing(ListConfigScreen configScreen, ConfigEntryListWidget configEntryListWidget);
 
 	default boolean isCategory() {
 		return false;

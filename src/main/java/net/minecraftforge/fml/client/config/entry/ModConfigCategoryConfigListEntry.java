@@ -5,6 +5,7 @@ import com.electronwill.nightconfig.core.file.FileConfig;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraftforge.fml.client.config.ConfigEntriesManager;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.element.ConfigElement;
 import net.minecraftforge.fml.client.config.element.IConfigElement;
@@ -56,11 +57,11 @@ public class ModConfigCategoryConfigListEntry extends CategoryConfigListEntry<Mo
 
 	protected List<IConfigElement<?>> makeChildElementsList() {
 		// name -> ConfigValue|SimpleConfig
-		final Map<String, Object> specConfigValues = ConfigScreen.getSpecConfigValues(modConfig);
+		final Map<String, Object> specConfigValues = ConfigEntriesManager.getSpecConfigValues(modConfig);
 
 		final List<IConfigElement<?>> list = new ArrayList<>();
 		specConfigValues.forEach((name, obj) -> {
-			final ConfigElement<?> configListEntry = ConfigScreen.makeConfigElement(modConfig, name, obj);
+			final ConfigElement<?> configListEntry = ConfigEntriesManager.makeConfigElement(modConfig, name, obj);
 			list.add(configListEntry);
 		});
 		return list;

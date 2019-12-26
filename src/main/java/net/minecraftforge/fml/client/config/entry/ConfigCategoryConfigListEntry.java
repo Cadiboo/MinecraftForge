@@ -4,8 +4,8 @@ import com.electronwill.nightconfig.core.Config;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraftforge.fml.client.config.ConfigEntriesManager;
 import net.minecraftforge.fml.client.config.ConfigScreen;
-import net.minecraftforge.fml.client.config.element.ConfigElement;
 import net.minecraftforge.fml.client.config.element.IConfigElement;
 import net.minecraftforge.fml.config.ModConfig;
 
@@ -43,7 +43,7 @@ public class ConfigCategoryConfigListEntry extends CategoryConfigListEntry<ModCo
 	protected List<IConfigElement<?>> makeChildElementsList() {
 		final List<IConfigElement<?>> list = new ArrayList<>();
 		// obj will always be a ConfigValue or a Config object
-		config.valueMap().forEach((name, obj) -> list.add(ConfigScreen.makeConfigElement(modConfig, name, obj)));
+		config.valueMap().forEach((name, obj) -> list.add(ConfigEntriesManager.makeConfigElement(modConfig, name, obj)));
 		return list;
 	}
 

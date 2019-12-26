@@ -1,10 +1,11 @@
-package net.minecraftforge.fml.client.config.element;
+package net.minecraftforge.fml.client.config.element.borked;
 
 import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
+import net.minecraftforge.fml.client.config.element.ConfigElement;
 import net.minecraftforge.fml.client.config.entry.ConfigElementContainer;
 import net.minecraftforge.fml.client.config.entry2.ConfigListEntry;
-import net.minecraftforge.fml.client.config.entry2.LocalTimeConfigListEntry;
+import net.minecraftforge.fml.client.config.entry2.fucked.LocalTimeConfigListEntry;
 
 import java.time.LocalTime;
 

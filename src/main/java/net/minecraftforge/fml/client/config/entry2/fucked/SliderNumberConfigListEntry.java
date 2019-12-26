@@ -1,4 +1,4 @@
-package net.minecraftforge.fml.client.config.entry2;
+package net.minecraftforge.fml.client.config.entry2.fucked;
 
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraftforge.common.ForgeConfigSpec.Range;
@@ -6,6 +6,7 @@ import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.GuiSlider;
 import net.minecraftforge.fml.client.config.element.ConfigElement;
 import net.minecraftforge.fml.client.config.element.NumberConfigElement;
+import net.minecraftforge.fml.client.config.entry2.ConfigListEntry;
 
 /**
  * @author Cadiboo

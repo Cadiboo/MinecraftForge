@@ -3,8 +3,10 @@ package net.minecraftforge.fml.client.config.element;
 import com.electronwill.nightconfig.core.Config;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraftforge.fml.client.config.ConfigEntriesManager;
 import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
+import net.minecraftforge.fml.client.config.element.IConfigElement;
 import net.minecraftforge.fml.config.ModConfig;
 
 import java.util.ArrayList;
@@ -29,7 +31,7 @@ public class ConfigConfigElement extends HolderConfigElement<Config> {
 	protected static List<IConfigElement<?>> makeChildElementsList(final Config config, final ModConfig modConfig) {
 		final List<IConfigElement<?>> list = new ArrayList<>();
 		// obj will always be a ConfigValue or a Config object
-		config.valueMap().forEach((name, obj) -> list.add(ConfigScreen.makeConfigElement(modConfig, name, obj)));
+		config.valueMap().forEach((name, obj) -> list.add(ConfigEntriesManager.makeConfigElement(modConfig, name, obj)));
 		return list;
 	}
 

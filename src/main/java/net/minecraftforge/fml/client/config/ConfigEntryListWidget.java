@@ -67,7 +67,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 		return Math.min(longestLabelWidth, MAX_LABEL_WIDTH);
 	}
 
-	// TODO: move to ConfigScreen
+	// TODO: move to ConfigScreen?
 	// +2 for nice spacing
 	public int getLongestLabelWidth() {
 		return getLongestLabelWidth0() + 2;
@@ -137,6 +137,8 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 		doHackery = true;
 		super.render(mouseX, mouseY, partialTicks);
 
+//		this.minecraft.getTextureManager().bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
+//		innerBlit(0, 10000, 0, 10000, this.getBlitOffset(), 0, 100, 0, 100);
 		GL11.glDisable(GL11.GL_SCISSOR_TEST);
 	}
 

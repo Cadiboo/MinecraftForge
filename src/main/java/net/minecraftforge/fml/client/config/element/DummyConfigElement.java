@@ -87,7 +87,7 @@ public class DummyConfigElement extends ConfigElement<String> {
 
 	@Override
 	public ConfigListEntry<String> makeWidgetThing(final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListWidget) {
-		return new DummyConfigListEntry(configScreen, this);
+		return new DummyConfigListEntry(configScreen, this.getLabel(), this.getComment());
 	}
 
 }

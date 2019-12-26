@@ -2,6 +2,7 @@ package net.minecraftforge.fml.client.config.element;
 
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraftforge.fml.client.config.ConfigEntriesManager;
 import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.config.ModConfig;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 
 /**
  * TODO: NO, have the list of config elements in here, create the screen in the Entry
+ *
  * @author Cadiboo
  */
 public class ModConfigConfigElement extends HolderConfigElement<ModConfig> {
@@ -80,6 +82,14 @@ public class ModConfigConfigElement extends HolderConfigElement<ModConfig> {
 		}
 	}
 
+	protected static List<IConfigElement<?>> makeConfigElements(final ModConfig modConfig) {
+		final List<IConfigElement<?>> configElements = new ArrayList<>();
+		// name -> ConfigValue|SimpleConfig
+		final Map<String, Object> specConfigValues = ConfigEntriesManager.getSpecConfigValues(modConfig);
+		specConfigValues.forEach((name, obj) -> configElements.add(ConfigEntriesManager.makeConfigElement(modConfig, name, obj)));
+		return configElements;
+	}
+
 	@Override
 	public String getLabel() {
 		return label;
@@ -96,6 +106,11 @@ public class ModConfigConfigElement extends HolderConfigElement<ModConfig> {
 	}
 
 	@Override
+	public boolean isCategory() {
+		return true;
+	}
+
+	@Override
 	protected ConfigScreen makeScreen(final ConfigScreen owningScreen, final ConfigEntryListWidget configEntryListWidget) {
 		final ConfigScreen configScreen = new ConfigScreen(owningScreen.getTitle(), owningScreen, owningScreen.modContainer, getConfigElements());
 		final ITextComponent subtitle;
@@ -105,19 +120,6 @@ public class ModConfigConfigElement extends HolderConfigElement<ModConfig> {
 			subtitle = owningScreen.getSubtitle().deepCopy().appendSibling(new StringTextComponent(" > " + getLabel()));
 		configScreen.setSubtitle(subtitle);
 		return configScreen;
-	}
-
-	protected static List<IConfigElement<?>> makeConfigElements(final ModConfig modConfig) {
-		final List<IConfigElement<?>> configElements = new ArrayList<>();
-		// name -> ConfigValue|SimpleConfig
-		final Map<String, Object> specConfigValues = ConfigScreen.getSpecConfigValues(modConfig);
-		specConfigValues.forEach((name, obj) -> configElements.add(ConfigScreen.makeConfigElement(modConfig, name, obj)));
-		return configElements;
-	}
-
-	@Override
-	public boolean isCategory() {
-		return true;
 	}
 
 }

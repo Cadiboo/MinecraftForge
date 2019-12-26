@@ -1,12 +1,13 @@
-package net.minecraftforge.fml.client.config.entry2;
+package net.minecraftforge.fml.client.config.entry2.fucked;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.Widget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.element.ConfigElement;
 import net.minecraftforge.fml.client.config.element.IConfigElement;
-import net.minecraftforge.fml.client.config.element.NumberConfigElement;
+import net.minecraftforge.fml.client.config.entry2.ConfigListEntry;
+
+import javax.annotation.Nonnull;
 
 /**
  * @author Cadiboo
@@ -34,6 +35,7 @@ public abstract class TextConfigListEntry<T> extends ConfigListEntry<T> {
 		}
 	}
 
+	@Nonnull
 	@Override
 	public TextFieldWidget getWidget() {
 		return textFieldWidget;

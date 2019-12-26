@@ -19,9 +19,7 @@
 
 package net.minecraftforge.fml.client.config;
 
-import com.electronwill.nightconfig.core.Config;
 import com.google.common.util.concurrent.Runnables;
-import joptsimple.internal.Strings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
@@ -29,42 +27,21 @@ import net.minecraft.client.gui.widget.button.CheckboxButton;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.ModContainer;
-import net.minecraftforge.fml.client.config.element.BooleanConfigElement;
-import net.minecraftforge.fml.client.config.element.ConfigConfigElement;
-import net.minecraftforge.fml.client.config.element.ConfigElement;
-import net.minecraftforge.fml.client.config.element.DummyConfigElement;
-import net.minecraftforge.fml.client.config.element.EnumConfigElement;
 import net.minecraftforge.fml.client.config.element.IConfigElement;
-import net.minecraftforge.fml.client.config.element.LocalDateConfigElement;
-import net.minecraftforge.fml.client.config.element.LocalDateTimeConfigElement;
-import net.minecraftforge.fml.client.config.element.LocalTimeConfigElement;
 import net.minecraftforge.fml.client.config.element.ModConfigConfigElement;
-import net.minecraftforge.fml.client.config.element.NumberConfigElement;
-import net.minecraftforge.fml.client.config.element.OffsetDateTimeConfigElement;
-import net.minecraftforge.fml.client.config.element.StringConfigElement;
-import net.minecraftforge.fml.client.config.entry.ConfigElementContainer;
 import net.minecraftforge.fml.config.ConfigTracker;
 import net.minecraftforge.fml.config.ModConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
-import static net.minecraftforge.common.ForgeConfigSpec.ValueSpec;
 import static net.minecraftforge.fml.client.config.GuiUtils.RESET_CHAR;
 import static net.minecraftforge.fml.client.config.GuiUtils.UNDO_CHAR;
 
@@ -133,7 +110,7 @@ public class ConfigScreen extends Screen {
 	 */
 	private ConfigEntryListWidget entryList;
 
-	public ConfigScreen(final ITextComponent titleIn, final Screen parentScreen, final ModContainer modContainer, List<IConfigElement<?>> configElements) {
+	public ConfigScreen(final ITextComponent titleIn, final Screen parentScreen, final ModContainer modContainer, @Nullable final List<IConfigElement<?>> configElements) {
 		super(titleIn);
 		this.parentScreen = parentScreen;
 		this.modContainer = modContainer;
@@ -163,213 +140,6 @@ public class ConfigScreen extends Screen {
 						new ConfigScreen(new StringTextComponent(modContainer.getModInfo().getDisplayName()), screen, modContainer));
 	}
 
-	/**
-	 * @param obj Either a ConfigValue or a Config
-	 * @see #getSpecConfigValues(ModConfig)
-	 */
-	public static ConfigElement<?> makeConfigElement(final ModConfig modConfig, final String name, final Object obj) {
-		if (obj instanceof ConfigValue) {
-			final ConfigValue<?> configValue = (ConfigValue<?>) obj;
-			// Because the obj is a ConfigValue the corresponding object in the ValueSpec map must be a ValueSpec
-			final ValueSpec valueSpec = (ValueSpec) getValueSpec(modConfig, configValue.getPath());
-
-			Class<?> clazz = valueSpec.getClazz();
-			if (clazz == Object.class) {
-				final Object actualValue = configValue.get();
-				final Class<?> valueClass = actualValue.getClass();
-				if (valueClass != null)
-					clazz = valueClass;
-				else {
-					final Object defaultValue = valueSpec.getDefault();
-					if (defaultValue != null)
-						clazz = defaultValue.getClass();
-				}
-			}
-			if (Boolean.class.isAssignableFrom(clazz)) {
-				return new BooleanConfigElement(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<Boolean>) configValue));
-			} else if (Byte.class.isAssignableFrom(clazz)) {
-				return new NumberConfigElement<Byte>(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<Byte>) configValue)) {
-					@Override
-					public Byte parse(final String text) throws NumberFormatException {
-						return Byte.parseByte(text);
-					}
-				};
-			} else if (Integer.class.isAssignableFrom(clazz)) {
-				return new NumberConfigElement<Integer>(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<Integer>) configValue)) {
-					@Override
-					public Integer parse(final String text) throws NumberFormatException {
-						return Integer.parseInt(text);
-					}
-				};
-			} else if (Float.class.isAssignableFrom(clazz)) {
-				return new NumberConfigElement<Float>(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<Float>) configValue)) {
-					@Override
-					public Float parse(final String text) throws NumberFormatException {
-						return Float.parseFloat(text);
-					}
-				};
-			} else if (Long.class.isAssignableFrom(clazz)) {
-				return new NumberConfigElement<Long>(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<Long>) configValue)) {
-					@Override
-					public Long parse(final String text) throws NumberFormatException {
-						return Long.parseLong(text);
-					}
-				};
-			} else if (Double.class.isAssignableFrom(clazz)) {
-				return new NumberConfigElement<Double>(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<Double>) configValue)) {
-					@Override
-					public Double parse(final String text) throws NumberFormatException {
-						return Double.parseDouble(text);
-					}
-				};
-			} else if (String.class.isAssignableFrom(clazz)) {
-				return new StringConfigElement(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<String>) configValue));
-			} else if (Enum.class.isAssignableFrom(clazz)) {
-				return new EnumConfigElement<>(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<Enum<?>>) configValue));
-//			} else if (List.class.isAssignableFrom(clazz)) {
-//				return new ListConfigElement<>(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<List<?>>) configValue));
-			} else if (LocalTime.class.isAssignableFrom(clazz)) {
-				return new LocalTimeConfigElement(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<LocalTime>) configValue));
-			} else if (LocalDate.class.isAssignableFrom(clazz)) {
-				return new LocalDateConfigElement(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<LocalDate>) configValue));
-			} else if (LocalDateTime.class.isAssignableFrom(clazz)) {
-				return new LocalDateTimeConfigElement(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<LocalDateTime>) configValue));
-			} else if (OffsetDateTime.class.isAssignableFrom(clazz)) {
-				return new OffsetDateTimeConfigElement(new ConfigElementContainer<>(configValue.getPath(), modConfig, (ConfigValue<OffsetDateTime>) configValue));
-			} else {
-				return new DummyConfigElement("(Unknown object " + clazz.getSimpleName() + ") " + name);
-			}
-		} else if (obj instanceof Config) {
-			final Config config = (Config) obj;
-			String translationKey = ""; // TODO: No clue how to get this for categories. Doesn't seem to exist currently?
-			String label = I18n.format(translationKey);
-			if (Objects.equals(translationKey, label))
-				label = name;
-			String comment = modConfig.getConfigData().getComment(name); // TODO: Only works for top-level categories?
-			if (Strings.isNullOrEmpty(comment))
-				comment = "";
-			return new ConfigConfigElement(config, modConfig, label, translationKey, comment);
-		} else {
-			throw new IllegalStateException("How? " + name + ", " + obj);
-		}
-	}
-
-//	/**
-//	 * @param parentScreen           the parent Screen object
-//	 * @param modID                  the mod ID for the mod whose config settings will be editted
-//	 * @param allRequireWorldRestart whether all config elements on this screen require a world restart
-//	 * @param allRequireMcRestart    whether all config elements on this screen require a game restart
-//	 * @param title                  the desired title for this screen. For consistency it is recommended that you pass the path of the config file being
-//	 *                               edited.
-//	 * @param configClasses          an array of classes annotated with {@code @Config} providing the configuration
-//	 */
-//	public ConfigScreen(Screen parentScreen, String modID, boolean allRequireWorldRestart, boolean allRequireMcRestart, String title, Class<?>... configClasses) {
-//		this(parentScreen, collectConfigElements(configClasses), modID, null, allRequireWorldRestart, allRequireMcRestart, title, null);
-//	}
-//
-//	/**
-//	 * GuiConfig constructor that will use ConfigChangedEvent when editing is concluded. If a non-null value is passed for configID,
-//	 * the OnConfigChanged and PostConfigChanged events will be posted when the Done button is pressed if any configElements were changed
-//	 * (includes child screens). If configID is not defined, the events will be posted if the parent gui is null or if the parent gui
-//	 * is not an instance of GuiConfig.
-//	 *
-//	 * @param parentScreen           the parent Screen object
-//	 * @param configElements         a List of IConfigElement objects
-//	 * @param modID                  the mod ID for the mod whose config settings will be edited
-//	 * @param configID               an identifier that will be passed to the OnConfigChanged and PostConfigChanged events. Setting this value will force
-//	 *                               the save action to be called when the Done button is pressed on this screen if any configElements were changed.
-//	 * @param allRequireWorldRestart send true if all configElements on this screen require a world restart
-//	 * @param allRequireMcRestart    send true if all configElements on this screen require MC to be restarted
-//	 * @param title                  the desired title for this screen. For consistency it is recommended that you pass the path of the config file being
-//	 *                               edited.
-//	 */
-//	public ConfigScreen(Screen parentScreen, List<IConfigElement> configElements, String modID, String configID,
-//	                    boolean allRequireWorldRestart, boolean allRequireMcRestart, String title) {
-//		this(parentScreen, configElements, modID, configID, allRequireWorldRestart, allRequireMcRestart, title, null);
-//	}
-//
-//	/**
-//	 * GuiConfig constructor that will use ConfigChangedEvent when editing is concluded. This constructor passes null for configID.
-//	 * If configID is not defined, the events will be posted if the parent gui is null or if the parent gui is not an instance of GuiConfig.
-//	 *
-//	 * @param parentScreen           the parent Screen object
-//	 * @param configElements         a List of IConfigElement objects
-//	 * @param modID                  the mod ID for the mod whose config settings will be edited
-//	 * @param allRequireWorldRestart send true if all configElements on this screen require a world restart
-//	 * @param allRequireMcRestart    send true if all configElements on this screen require MC to be restarted
-//	 * @param title                  the desired title for this screen. For consistency it is recommended that you pass the path of the config file being
-//	 *                               edited.
-//	 */
-//	public ConfigScreen(Screen parentScreen, List<IConfigElement> configElements, String modID,
-//	                    boolean allRequireWorldRestart, boolean allRequireMcRestart, String title) {
-//		this(parentScreen, configElements, modID, null, allRequireWorldRestart, allRequireMcRestart, title, null);
-//	}
-//
-//	/**
-//	 * GuiConfig constructor that will use ConfigChangedEvent when editing is concluded. This constructor passes null for configID.
-//	 * If configID is not defined, the events will be posted if the parent gui is null or if the parent gui is not an instance of GuiConfig.
-//	 *
-//	 * @param parentScreen           the parent Screen object
-//	 * @param configElements         a List of IConfigElement objects
-//	 * @param modID                  the mod ID for the mod whose config settings will be edited
-//	 * @param allRequireWorldRestart send true if all configElements on this screen require a world restart
-//	 * @param allRequireMcRestart    send true if all configElements on this screen require MC to be restarted
-//	 * @param title                  the desired title for this screen. For consistency it is recommended that you pass the path of the config file being
-//	 *                               edited.
-//	 * @param titleLine2             the desired title second line for this screen. Typically this is used to send the category name of the category
-//	 *                               currently being edited.
-//	 */
-//	public ConfigScreen(Screen parentScreen, List<IConfigElement> configElements, String modID,
-//	                    boolean allRequireWorldRestart, boolean allRequireMcRestart, String title, String titleLine2) {
-//		this(parentScreen, configElements, modID, null, allRequireWorldRestart, allRequireMcRestart, title, titleLine2);
-//	}
-//
-//	/**
-//	 * @param parentScreen           the parent Screen object
-//	 * @param configElements         a List of IConfigElement objects
-//	 * @param modID                  the mod ID for the mod whose config settings will be edited
-//	 * @param configID               an identifier that will be passed to the OnConfigChanged and PostConfigChanged events
-//	 * @param allRequireWorldRestart send true if all configElements on this screen require a world restart
-//	 * @param allRequireMcRestart    send true if all configElements on this screen require MC to be restarted
-//	 * @param title                  the desired title for this screen. For consistency it is recommended that you pass the path of the config file being
-//	 *                               edited.
-//	 * @param subtitle               the desired title second line for this screen. Typically this is used to send the category name of the category
-//	 *                               currently being edited.
-//	 */
-//	public ConfigScreen(
-//			Screen parentScreen, List<IConfigElement> configElements, String modID, @Nullable String configID, boolean allRequireWorldRestart, boolean allRequireMcRestart, String title, @Nullable String subtitle) {
-//		this.minecraft = Minecraft.getInstance();
-//		this.parentScreen = parentScreen;
-//		this.configElements = configElements;
-//		this.entryList = new GuiConfigEntries(this, minecraft);
-//		this.initEntries = new ArrayList<IConfigEntry>(entryList.listEntries);
-//		this.allRequireWorldRestart = allRequireWorldRestart;
-//		IF:
-//		if (!allRequireWorldRestart) {
-//			for (IConfigElement element : configElements) {
-//				if (!element.requiresWorldRestart()) ;
-//				break IF;
-//			}
-//			allRequireWorldRestart = true;
-//		}
-//		this.allRequireMcRestart = allRequireMcRestart;
-//		IF:
-//		if (!allRequireMcRestart) {
-//			for (IConfigElement element : configElements) {
-//				if (!element.requiresMcRestart()) ;
-//				break IF;
-//			}
-//			allRequireMcRestart = true;
-//		}
-//		this.modID = modID;
-//		this.isWorldRunning = minecraft.world != null;
-//		if (title != null)
-//			this.title = title;
-//		this.subtitle = subtitle;
-//		if (this.subtitle != null && this.subtitle.startsWith(" > "))
-//			this.subtitle = this.subtitle.replaceFirst(" > ", "");
-//	}
-//
 //	private static List<IConfigElement> collectConfigElements(Class<?>[] configClasses) {
 //		List<IConfigElement> toReturn;
 //		if (configClasses.length == 1) {
@@ -384,61 +154,10 @@ public class ConfigScreen extends Screen {
 //		return toReturn;
 //	}
 
-	public static Map<String, Object> getSpecValueSpecs(final ModConfig modConfig) {
-		// name -> ValueSpec|SimpleConfig
-		return modConfig.getSpec().valueMap();
-	}
-
-	public static Map<String, Object> getSpecConfigValues(final ModConfig modConfig) {
-		// name -> ConfigValue|SimpleConfig
-		return modConfig.getSpec().getValues().valueMap();
-	}
-
-	public static Map<String, Object> getConfigValues(final ModConfig modConfig) {
-		// name -> Object
-		return modConfig.getConfigData().valueMap();
-	}
-
-	public static Object getValueSpec(final ModConfig modConfig, final List<String> path) {
-		// name -> ValueSpec|SimpleConfig
-		final Map<String, Object> specValueSpecs = getSpecValueSpecs(modConfig);
-
-		// Either a ValueSpec or a SimpleConfig
-		Object ret = specValueSpecs;
-
-		for (final String s : path) {
-			if (ret instanceof Map) // First iteration
-				ret = ((Map<String, Object>) ret).get(s);
-			else if (ret instanceof ValueSpec)
-				return ret; // Uh, shouldn't happen? TODO: Throw error?
-			else if (ret instanceof Config)
-				ret = ((Config) ret).get(s);
-		}
-		return ret;
-	}
-
-	public static Object getConfigValue(final ModConfig modConfig, final List<String> path) {
-		// name -> ConfigValue|SimpleConfig
-		final Map<String, Object> specConfigVales = getSpecConfigValues(modConfig);
-
-		// Either a ConfigValue or a SimpleConfig
-		Object ret = specConfigVales;
-
-		for (final String s : path) {
-			if (ret instanceof Map) // First iteration
-				ret = ((Map<String, Object>) ret).get(s);
-			else if (ret instanceof ConfigValue)
-				return ret; // Uh, shouldn't happen? TODO: Throw error?
-			else if (ret instanceof Config)
-				ret = ((Config) ret).get(s);
-		}
-		return ret;
-	}
-
 	/**
 	 * @return True if in singleplayer and not open to LAN
 	 */
-	protected boolean canPlayerEditServerConfig() {
+	public static boolean canPlayerEditServerConfig() {
 		final Minecraft minecraft = Minecraft.getInstance();
 		if (minecraft.getIntegratedServer() == null)
 			return false;
@@ -488,8 +207,8 @@ public class ConfigScreen extends Screen {
 					}
 				}
 			}
-		} catch (Throwable e) {
-			LOGGER.error("Error performing GuiConfig action:", e);
+		} catch (Exception e) {
+			LOGGER.error("Error performing ConfigScreen action:", e);
 		}
 		if (canClose)
 			this.onClose();
@@ -514,9 +233,6 @@ public class ConfigScreen extends Screen {
 	public void render(int mouseX, int mouseY, float partialTicks) {
 		this.renderBackground();
 		this.entryList.render(mouseX, mouseY, partialTicks);
-//		this.minecraft.getTextureManager().bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
-//		innerBlit(0, 10000, 0, 10000, this.getBlitOffset(), 0, 100, 0, 100);
-		GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
 		final int halfWidth = this.width / 2;
 

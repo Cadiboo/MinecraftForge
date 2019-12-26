@@ -85,4 +85,9 @@ public abstract class ConfigElement<T> implements IConfigElement<T> {
 		getConfigElementContainer().save();
 	}
 
+	@Override
+	public boolean isValid(T o) {
+		return getConfigElementContainer().isValid(o);
+	}
+
 }
