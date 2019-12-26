@@ -68,6 +68,9 @@ public abstract class CategoryConfigElement<T> implements IConfigElement<T> {
 
 	@Override
 	public boolean isValid(final T o) {
+		for (final IConfigElement configElement : getConfigElements())
+			if (!configElement.isValid(configElement.get()))
+				return false;
 		return true;
 	}
 
