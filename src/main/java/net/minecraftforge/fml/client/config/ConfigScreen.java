@@ -19,28 +19,16 @@
 
 package net.minecraftforge.fml.client.config;
 
-import com.google.common.util.concurrent.Runnables;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.gui.widget.button.CheckboxButton;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.ModContainer;
-import net.minecraftforge.fml.client.config.element.IConfigElement;
-import net.minecraftforge.fml.client.config.element.ModConfigConfigElement;
-import net.minecraftforge.fml.config.ConfigTracker;
-import net.minecraftforge.fml.config.ModConfig;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static net.minecraftforge.fml.client.config.GuiUtils.RESET_CHAR;
 import static net.minecraftforge.fml.client.config.GuiUtils.UNDO_CHAR;
@@ -60,8 +48,10 @@ public class ConfigScreen extends Screen {
 	 * The empty space above & below the buttons at the bottom of the screen, as well as between each button.
 	 */
 	public static final int MARGIN = 5;
-
-	private static final Logger LOGGER = LogManager.getLogger();
+	/**
+	 * The string used for separating categories in the {@link #subtitle}
+	 */
+	public static final String CATEGORY_DIVIDER = " > ";
 
 	/**
 	 * A reference to the screen object that created this. Used for navigating between screens.
@@ -72,15 +62,6 @@ public class ConfigScreen extends Screen {
 	 * The mod that this config is for.
 	 */
 	public final ModContainer modContainer;
-	/**
-	 * A list of elements on this screen.
-	 * Re-created when {@link #init()} is called if {@link #needsRefresh} is true.
-	 */
-	private final List<IConfigElement<?>> configElements;
-	/**
-	 * The initial list of elements on this screen. Same as the first value of {@link #configElements}
-	 */
-	private final List<IConfigElement<?>> initialConfigElements;
 	/**
 	 * If true then the entryList & configValueElements will be re-created next time {@link #init()} is called.
 	 */
@@ -106,78 +87,14 @@ public class ConfigScreen extends Screen {
 	protected HoverChecker undoChangesButtonHoverChecker, resetToDefaultButtonHoverChecker, applyToSubcategoriesCheckBoxHoverChecker;
 	private ITextComponent subtitle;
 	/**
-	 * Displays all our {@link #configElements} in a scrollable list
+	 * Displays all our elements in a scrollable list
 	 */
 	private ConfigEntryListWidget entryList;
 
-	public ConfigScreen(final ITextComponent titleIn, final Screen parentScreen, final ModContainer modContainer, @Nullable final List<IConfigElement<?>> configElements) {
+	public ConfigScreen(final ITextComponent titleIn, final Screen parentScreen, final ModContainer modContainer) {
 		super(titleIn);
 		this.parentScreen = parentScreen;
 		this.modContainer = modContainer;
-		if (configElements == null)
-			this.configElements = this.initialConfigElements = makeElementsForMod();
-		else
-			this.configElements = this.initialConfigElements = configElements;
-	}
-
-	public ConfigScreen(final ITextComponent titleIn, final Screen parentScreen, final ModContainer modContainer) {
-		this(titleIn, parentScreen, modContainer, null);
-	}
-
-	/**
-	 * Makes a Runnable that will register a config gui factory for the ModContainer
-	 * BUT ONLY IF a config gui factory does not already exist for the ModContainer.
-	 *
-	 * @param modContainer The ModContainer to possibly register a config gui factory for
-	 * @return The runnable
-	 */
-	@SuppressWarnings("UnstableApiUsage") // Runnables is marked as unstable
-	public static Runnable makeConfigGuiExtensionPoint(final ModContainer modContainer) {
-		if (modContainer.getCustomExtension(ExtensionPoint.CONFIGGUIFACTORY).isPresent())
-			return Runnables.doNothing();
-		return () -> modContainer.registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY,
-				() -> (minecraft, screen) ->
-						new ConfigScreen(new StringTextComponent(modContainer.getModInfo().getDisplayName()), screen, modContainer));
-	}
-
-//	private static List<IConfigElement> collectConfigElements(Class<?>[] configClasses) {
-//		List<IConfigElement> toReturn;
-//		if (configClasses.length == 1) {
-//			toReturn = ConfigElement.from(configClasses[0]).getChildElements();
-//		} else {
-//			toReturn = new ArrayList<IConfigElement>();
-//			for (Class<?> clazz : configClasses) {
-//				toReturn.add(ConfigElement.from(clazz));
-//			}
-//		}
-//		toReturn.sort(Comparator.comparing(e -> I18n.format(e.getLanguageKey())));
-//		return toReturn;
-//	}
-
-	/**
-	 * @return True if in singleplayer and not open to LAN
-	 */
-	public static boolean canPlayerEditServerConfig() {
-		final Minecraft minecraft = Minecraft.getInstance();
-		if (minecraft.getIntegratedServer() == null)
-			return false;
-		if (!minecraft.isSingleplayer())
-			return false;
-		return !minecraft.getIntegratedServer().getPublic();
-	}
-
-	protected List<IConfigElement<?>> makeElementsForMod() {
-		final List<IConfigElement<?>> list = new ArrayList<>();
-		for (final ModConfig.Type type : ModConfig.Type.values())
-			makeConfigElementForModConfigType(type).ifPresent(list::add);
-		return list;
-	}
-
-	protected Optional<ModConfigConfigElement> makeConfigElementForModConfigType(final ModConfig.Type type) {
-		if (type == ModConfig.Type.SERVER && !canPlayerEditServerConfig())
-			return Optional.empty();
-		return ConfigTracker.INSTANCE.getConfig(modContainer.getModId(), type)
-				.map(ModConfigConfigElement::new);
 	}
 
 	@Nullable
@@ -185,44 +102,19 @@ public class ConfigScreen extends Screen {
 		return entryList;
 	}
 
-	private void onDoneButtonClicked(final Button button) {
-		boolean canClose = true;
-		try {
-			if (this.entryList.areAnyEntriesChanged(this.shouldApplyToSubcategories())) {
-				if (parentScreen != null && parentScreen instanceof ConfigScreen) {
-					// Mark as needing to re-init the entry list.
-					// Why? Maybe to allow adding of stuff to the config? IDK
-//					((ConfigScreen) this.parentScreen).needsRefresh = true;
-				} else {
-					this.entryList.save();
-					boolean requiresGameRestart = this.entryList.anyRequireGameRestart();
-					boolean requiresWorldRestart = this.entryList.anyRequireWorldRestart();
-					if (requiresGameRestart) {
-						canClose = false;
-						getMinecraft().displayGuiScreen(new GuiMessageDialog(parentScreen, "fml.configgui.gameRestartTitle", new StringTextComponent(I18n.format("fml.configgui.gameRestartRequired")), "fml.configgui.confirmMessage"));
-					}
-					if (requiresWorldRestart && Minecraft.getInstance().world != null) {
-						canClose = false;
-						getMinecraft().displayGuiScreen(new GuiMessageDialog(parentScreen, "fml.configgui.worldRestartTitle", new StringTextComponent(I18n.format("fml.configgui.worldRestartRequired")), "fml.configgui.confirmMessage"));
-					}
-				}
-			}
-		} catch (Exception e) {
-			LOGGER.error("Error performing ConfigScreen action:", e);
-		}
-		if (canClose)
-			this.onClose();
+	protected void onDoneButtonClicked(final Button button) {
+		this.onClose();
 	}
 
-	private boolean shouldApplyToSubcategories() {
+	protected boolean shouldApplyToSubcategories() {
 		return this.applyToSubcategoriesCheckBox.func_212942_a();
 	}
 
-	private void onResetToDefaultButtonClicked(final Button button) {
+	protected void onResetToDefaultButtonClicked(final Button button) {
 		this.entryList.resetAllToDefault(shouldApplyToSubcategories());
 	}
 
-	private void onUndoChangesButtonClicked(final Button button) {
+	protected void onUndoChangesButtonClicked(final Button button) {
 		this.entryList.undoAllChanges(shouldApplyToSubcategories());
 	}
 
@@ -247,11 +139,11 @@ public class ConfigScreen extends Screen {
 		this.entryList.postRender(mouseX, mouseY, partialTicks);
 
 		if (this.undoChangesButtonHoverChecker.checkHover(mouseX, mouseY))
-			this.drawToolTip(Arrays.asList(I18n.format("fml.configgui.tooltip.undoChanges").split("\n")), mouseX, mouseY);
+			this.drawToolTip(Arrays.asList(I18n.format("fml.configgui.undoChanges.tooltip").split("\n")), mouseX, mouseY);
 		if (this.resetToDefaultButtonHoverChecker.checkHover(mouseX, mouseY))
-			this.drawToolTip(Arrays.asList(I18n.format("fml.configgui.tooltip.resetToDefault").split("\n")), mouseX, mouseY);
+			this.drawToolTip(Arrays.asList(I18n.format("fml.configgui.resetToDefault.tooltip").split("\n")), mouseX, mouseY);
 		if (this.applyToSubcategoriesCheckBoxHoverChecker.checkHover(mouseX, mouseY))
-			this.drawToolTip(Arrays.asList(I18n.format("fml.configgui.tooltip.applyToSubcategories").split("\n")), mouseX, mouseY);
+			this.drawToolTip(Arrays.asList(I18n.format("fml.configgui.applyToSubcategories.tooltip").split("\n")), mouseX, mouseY);
 	}
 
 	/**
@@ -260,11 +152,6 @@ public class ConfigScreen extends Screen {
 	@Override
 	public void onClose() {
 		this.entryList.onClose();
-//		if (this.configID != null && this.parentScreen instanceof ConfigScreen) {
-//			ConfigScreen parentConfigScreen = (ConfigScreen) this.parentScreen;
-//			parentConfigScreen.needsRefresh = true;
-//			parentConfigScreen.init();
-//		}
 		getMinecraft().displayGuiScreen(parentScreen);
 	}
 
@@ -352,28 +239,12 @@ public class ConfigScreen extends Screen {
 		this.subtitle = subtitle;
 	}
 
-	public boolean isWorldRunning() {
-		return Minecraft.getInstance().world != null;
-	}
-
-	public boolean doAllRequireWorldRestart() {
-		return false; // TODO
-	}
-
-	public boolean doAllRequireMcRestart() {
-		return false; // TODO
-	}
-
 	public int getHeaderSize() {
 		return getSubtitle() != null ? 33 : 23;
 	}
 
 	public int getFooterSize() {
 		return MARGIN + BUTTON_HEIGHT + MARGIN;
-	}
-
-	public List<IConfigElement<?>> getConfigElements() {
-		return configElements;
 	}
 
 }

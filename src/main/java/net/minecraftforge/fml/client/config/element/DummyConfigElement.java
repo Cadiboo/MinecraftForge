@@ -1,27 +1,22 @@
 package net.minecraftforge.fml.client.config.element;
 
+import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
-import net.minecraftforge.fml.client.config.entry.ConfigElementContainer;
-import net.minecraftforge.fml.client.config.entry2.ConfigListEntry;
-import net.minecraftforge.fml.client.config.entry2.DummyConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.DummyConfigListEntry;
 
 import javax.annotation.Nullable;
 
 /**
  * @author Cadiboo
  */
-public class DummyConfigElement extends ConfigElement<String> {
+public class DummyConfigElement<T> implements IConfigElement<T> {
 
 	private final String label;
 
-	public DummyConfigElement(@Nullable final ConfigElementContainer<String> configElementContainer, final String label) {
-		super(configElementContainer);
-		this.label = label;
-	}
-
 	public DummyConfigElement(final String label) {
-		this(null, label);
+		this.label = label;
 	}
 
 	@Override
@@ -45,8 +40,8 @@ public class DummyConfigElement extends ConfigElement<String> {
 	}
 
 	@Override
-	public String getDefault() {
-		return label;
+	public T getDefault() {
+		return null;
 	}
 
 	@Override
@@ -73,12 +68,12 @@ public class DummyConfigElement extends ConfigElement<String> {
 	}
 
 	@Override
-	public String get() {
-		return label;
+	public T get() {
+		return null;
 	}
 
 	@Override
-	public void set(final String value) {
+	public void set(final T value) {
 	}
 
 	@Override
@@ -86,8 +81,19 @@ public class DummyConfigElement extends ConfigElement<String> {
 	}
 
 	@Override
-	public ConfigListEntry<String> makeWidgetThing(final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListWidget) {
-		return new DummyConfigListEntry(configScreen, this.getLabel(), this.getComment());
+	public boolean isValid(final T o) {
+		return true;
+	}
+
+	@Override
+	public ConfigListEntry<T> makeConfigListEntry(final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListWidget) {
+		return new DummyConfigListEntry<>(configScreen, this.getLabel());
+	}
+
+	@Nullable
+	@Override
+	public ForgeConfigSpec.Range<?> getRange() {
+		return null;
 	}
 
 }

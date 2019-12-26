@@ -1,13 +1,20 @@
 package net.minecraftforge.fml.client.config.element;
 
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraftforge.fml.client.config.ConfigEntriesManager;
 import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
+import net.minecraftforge.fml.client.config.ConfigTypesManager;
+import net.minecraftforge.fml.client.config.ElementConfigScreen;
+import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.ScreenElementConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.widget.ScreenButton;
+import net.minecraftforge.fml.client.config.entry.widget.WidgetValueReference;
 import net.minecraftforge.fml.config.ModConfig;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -16,11 +23,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * TODO: NO, have the list of config elements in here, create the screen in the Entry
- *
  * @author Cadiboo
  */
-public class ModConfigConfigElement extends HolderConfigElement<ModConfig> {
+public class ModConfigConfigElement extends CategoryConfigElement<ModConfig> {
 
 	private static final Map<ModConfig.Type, String> COMMENTS;
 	static {
@@ -60,14 +65,20 @@ public class ModConfigConfigElement extends HolderConfigElement<ModConfig> {
 		COMMENTS = map;
 	}
 
+	private final ModConfig modConfig;
 	private final String label;
+	private final String translationKey;
 	private final String comment;
+	private final List<IConfigElement<?>> configElements;
 
 	public ModConfigConfigElement(final ModConfig modConfig) {
-		super(modConfig, makeConfigElements(modConfig));
+		this.modConfig = modConfig;
 		final ModConfig.Type type = modConfig.getType();
-		this.label = StringUtils.capitalize(type.name().toLowerCase());
+		final String str = type.name().toLowerCase();
+		this.label = StringUtils.capitalize(str);
+		this.translationKey = "fml.configgui.modConfigType." + str;
 		this.comment = COMMENTS.get(type);
+		this.configElements = makeConfigElements(modConfig);
 	}
 
 	public static String javadocToString(final String javadoc) {
@@ -82,11 +93,11 @@ public class ModConfigConfigElement extends HolderConfigElement<ModConfig> {
 		}
 	}
 
-	protected static List<IConfigElement<?>> makeConfigElements(final ModConfig modConfig) {
+	protected List<IConfigElement<?>> makeConfigElements(final ModConfig modConfig) {
 		final List<IConfigElement<?>> configElements = new ArrayList<>();
 		// name -> ConfigValue|SimpleConfig
-		final Map<String, Object> specConfigValues = ConfigEntriesManager.getSpecConfigValues(modConfig);
-		specConfigValues.forEach((name, obj) -> configElements.add(ConfigEntriesManager.makeConfigElement(modConfig, name, obj)));
+		final Map<String, Object> specConfigValues = ConfigTypesManager.getSpecConfigValues(modConfig);
+		specConfigValues.forEach((name, obj) -> configElements.add(ConfigTypesManager.makeConfigElement(modConfig, name, obj)));
 		return configElements;
 	}
 
@@ -97,7 +108,7 @@ public class ModConfigConfigElement extends HolderConfigElement<ModConfig> {
 
 	@Override
 	public String getTranslationKey() {
-		return label;
+		return translationKey;
 	}
 
 	@Override
@@ -106,20 +117,38 @@ public class ModConfigConfigElement extends HolderConfigElement<ModConfig> {
 	}
 
 	@Override
-	public boolean isCategory() {
-		return true;
+	public ModConfig getDefault() {
+		return modConfig;
 	}
 
 	@Override
+	public ModConfig get() {
+		return modConfig;
+	}
+
+	@Override
+	public ConfigListEntry<ModConfig> makeConfigListEntry(final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListWidget) {
+		final WidgetValueReference<ModConfig> widgetValueReference = new WidgetValueReference<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
+		final Screen screen = makeScreen(configScreen, configEntryListWidget);
+		final ScreenButton<ModConfig> widget = new ScreenButton<>(getLabel(), widgetValueReference, screen);
+		return new ScreenElementConfigListEntry<>(configScreen, widget, this);
+	}
+
 	protected ConfigScreen makeScreen(final ConfigScreen owningScreen, final ConfigEntryListWidget configEntryListWidget) {
-		final ConfigScreen configScreen = new ConfigScreen(owningScreen.getTitle(), owningScreen, owningScreen.modContainer, getConfigElements());
+		final ConfigScreen configScreen = new ElementConfigScreen(owningScreen.getTitle(), owningScreen, owningScreen.modContainer, getConfigElements());
 		final ITextComponent subtitle;
 		if (owningScreen.getSubtitle() == null)
 			subtitle = new StringTextComponent(getLabel());
 		else
-			subtitle = owningScreen.getSubtitle().deepCopy().appendSibling(new StringTextComponent(" > " + getLabel()));
+			subtitle = owningScreen.getSubtitle().deepCopy().appendSibling(new StringTextComponent(ConfigScreen.CATEGORY_DIVIDER + getLabel()));
 		configScreen.setSubtitle(subtitle);
 		return configScreen;
+	}
+
+	@Nonnull
+	@Override
+	public List<IConfigElement<?>> getConfigElements() {
+		return configElements;
 	}
 
 }

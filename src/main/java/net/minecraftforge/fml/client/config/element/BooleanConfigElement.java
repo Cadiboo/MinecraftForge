@@ -2,10 +2,10 @@ package net.minecraftforge.fml.client.config.element;
 
 import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
-import net.minecraftforge.fml.client.config.entry.ConfigElementContainer;
-import net.minecraftforge.fml.client.config.entry2.ConfigListEntry;
-import net.minecraftforge.fml.client.config.entry2.widget.BooleanButton;
-import net.minecraftforge.fml.client.config.entry2.widget.WidgetValueReference;
+import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.ElementConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.widget.BooleanButton;
+import net.minecraftforge.fml.client.config.entry.widget.WidgetValueReference;
 
 /**
  * @author Cadiboo
@@ -17,17 +17,10 @@ public class BooleanConfigElement extends ConfigElement<Boolean> {
 	}
 
 	@Override
-	public ConfigListEntry<Boolean> makeWidgetThing(final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListWidget) {
-		final WidgetValueReference<Boolean> booleanWidgetValueReference = new WidgetValueReference<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
-		final BooleanButton widget = new BooleanButton(booleanWidgetValueReference);
-		return new ConfigListEntry<>(configScreen, widget);
+	public ConfigListEntry<Boolean> makeConfigListEntry(final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListWidget) {
+		final WidgetValueReference<Boolean> widgetValueReference = new WidgetValueReference<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
+		final BooleanButton widget = new BooleanButton(widgetValueReference);
+		return new ElementConfigListEntry<>(configScreen, widget, this);
 	}
-
-//	@Override
-//	public ConfigListEntry<Boolean> makeListWidgetThing(final ListConfigScreen listConfigScreen, final ConfigEntryListWidget configEntryListWidget) {
-//		final WidgetValueReference<Boolean> booleanWidgetValueReference = new WidgetValueReference<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
-//		final BooleanButton widget = new BooleanButton(booleanWidgetValueReference);
-//		return new ConfigListEntry<>(listConfigScreen, widget);
-//	}
 
 }

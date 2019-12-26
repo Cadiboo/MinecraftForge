@@ -1,7 +1,8 @@
 package net.minecraftforge.fml.client.config.element;
 
-import net.minecraftforge.fml.client.config.entry.ConfigElementContainer;
+import net.minecraftforge.common.ForgeConfigSpec;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -9,15 +10,16 @@ import javax.annotation.Nullable;
  */
 public abstract class ConfigElement<T> implements IConfigElement<T> {
 
-	private final ConfigElementContainer<T> entryConfigValue;
+	@Nonnull
+	private final ConfigElementContainer<T> configElementContainer;
 
-	public ConfigElement(final ConfigElementContainer<T> entryConfigValue) {
-		// entryConfigValue can be null from DummyConfigElements or HolderConfigElements
-		this.entryConfigValue = entryConfigValue;
+	public ConfigElement(@Nonnull final ConfigElementContainer<T> configElementContainer) {
+		this.configElementContainer = configElementContainer;
 	}
 
+	@Nonnull
 	public ConfigElementContainer<T> getConfigElementContainer() {
-		return entryConfigValue;
+		return configElementContainer;
 	}
 
 	@Override
@@ -30,6 +32,7 @@ public abstract class ConfigElement<T> implements IConfigElement<T> {
 		return getConfigElementContainer().getTranslationKey();
 	}
 
+	@Nullable
 	@Override
 	public String getComment() {
 		return getConfigElementContainer().getComment();
@@ -86,8 +89,14 @@ public abstract class ConfigElement<T> implements IConfigElement<T> {
 	}
 
 	@Override
-	public boolean isValid(T o) {
+	public boolean isValid(final T o) {
 		return getConfigElementContainer().isValid(o);
+	}
+
+	@Nullable
+	@Override
+	public ForgeConfigSpec.Range<?> getRange() {
+		return getConfigElementContainer().getRange();
 	}
 
 }

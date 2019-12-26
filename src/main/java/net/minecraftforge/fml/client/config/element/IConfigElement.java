@@ -1,8 +1,12 @@
 package net.minecraftforge.fml.client.config.element;
 
+import net.minecraftforge.common.ForgeConfigSpec.Range;
 import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
-import net.minecraftforge.fml.client.config.entry2.ConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.ElementConfigListEntry;
+
+import javax.annotation.Nullable;
 
 /**
  * Not the actual widget thing. Holds the value of the config thing.
@@ -11,13 +15,24 @@ import net.minecraftforge.fml.client.config.entry2.ConfigListEntry;
  */
 public interface IConfigElement<T> {
 
+//	ConfigElementContainer<T> getConfigElementContainer();
+
 	/**
 	 * @return The result of formatting the translation key
 	 */
 	String getLabel();
 
+	/**
+	 * The translation key for this element is also used as a lookup for the localised comment.
+	 * Can return null or empty.
+	 *
+	 * @return The translation key for this element
+	 * @see ElementConfigListEntry#makeTooltip()
+	 */
+	@Nullable
 	String getTranslationKey();
 
+	@Nullable
 	String getComment();
 
 	/**
@@ -76,23 +91,41 @@ public interface IConfigElement<T> {
 	 */
 	void set(T value);
 
+	/**
+	 * Handles saving any changes that have been made to this entry back to the underlying object.
+	 * It is a good practice to check {@link #isChanged()} before performing the save action.
+	 */
 	void save();
 
+	/**
+	 * @param o The object to check
+	 * @return If the object is valid for this element
+	 */
 	boolean isValid(T o);
 
 	/**
-	 * @return true if this element is going to have a slider attached
+	 * @return If this element is going to have a slider attached (Only for numbers)
 	 */
 	default boolean hasSlidingControl() {
 		return false;
 	}
 
-	ConfigListEntry<T> makeWidgetThing(ConfigScreen configScreen, ConfigEntryListWidget configEntryListWidget);
+	/**
+	 * @return A ConfigListEntry backed by this element
+	 */
+	ConfigListEntry<T> makeConfigListEntry(ConfigScreen configScreen, ConfigEntryListWidget configEntryListWidget);
 
-//	ConfigListEntry<T> makeListWidgetThing(ListConfigScreen configScreen, ConfigEntryListWidget configEntryListWidget);
-
+	/**
+	 * @return If this is backed by a ModConfig or Category
+	 */
 	default boolean isCategory() {
 		return false;
 	}
+
+	/**
+	 * @return The range of this element (Only for numbers)
+	 */
+	@Nullable
+	Range<?> getRange();
 
 }

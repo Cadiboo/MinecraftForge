@@ -25,10 +25,8 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.list.ExtendedList;
-import net.minecraftforge.fml.client.config.entry2.ConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
 import org.lwjgl.opengl.GL11;
-
-import java.util.Objects;
 
 /**
  * This class implements the scrolling list functionality of the config GUI screens.
@@ -47,7 +45,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 	 * The longest size a label of a config element can be before it is trimmed with an ellipsis.
 	 * If it is trimmed, the new text (including the ellipsis) will always be equal to this value.
 	 */
-	public static final int MAX_LABEL_WIDTH = 200;
+	public static final int MAX_LABEL_WIDTH = 300;
 
 	public final ConfigScreen owningScreen;
 	/**
@@ -63,14 +61,13 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 		this.owningScreen = owningScreen;
 	}
 
-	public int getLongestLabelWidth0() {
-		return Math.min(longestLabelWidth, MAX_LABEL_WIDTH);
-	}
-
-	// TODO: move to ConfigScreen?
-	// +2 for nice spacing
 	public int getLongestLabelWidth() {
-		return getLongestLabelWidth0() + 2;
+		this.children().forEach(configListEntry -> {
+			final int labelWidth = configListEntry.getLabelWidth();
+			if (longestLabelWidth < labelWidth)
+				longestLabelWidth = labelWidth;
+		});
+		return Math.min(longestLabelWidth, MAX_LABEL_WIDTH);
 	}
 
 	/**
@@ -85,13 +82,6 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 		this.setFocused(null);
 
 		// Screen#init()
-		this.owningScreen.getConfigElements().forEach(e -> this.children().add(Objects.requireNonNull(e.makeWidgetThing(owningScreen, this), "ConfigListEntry (Widget)")));
-
-		this.children().forEach(configListEntry -> {
-			final int labelWidth = configListEntry.getLabelWidth();
-			if (longestLabelWidth < labelWidth)
-				longestLabelWidth = labelWidth;
-		});
 	}
 
 	public void setBounds() {
@@ -266,20 +256,6 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 			if (applyToSubcategories || !entry.isCategory())
 				if (entry.enabled())
 					return true;
-		return false;
-	}
-
-	public boolean anyRequireGameRestart() {
-		for (ConfigListEntry<?> entry : this.getListEntries())
-			if (entry.requiresGameRestart())
-				return true;
-		return false;
-	}
-
-	public boolean anyRequireWorldRestart() {
-		for (ConfigListEntry<?> entry : this.getListEntries())
-			if (entry.requiresWorldRestart())
-				return true;
 		return false;
 	}
 

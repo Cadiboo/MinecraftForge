@@ -2,8 +2,12 @@ package net.minecraftforge.fml.client.config.entry;
 
 import net.minecraft.client.gui.INestedGuiEventHandler;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.widget.Widget;
 import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
-import net.minecraftforge.fml.client.config.element.IConfigElement;
+import net.minecraftforge.fml.client.config.entry.widget.ConfigListEntryWidget;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Provides an interface for defining {@link ConfigEntryListWidget} entry objects.
@@ -13,96 +17,58 @@ import net.minecraftforge.fml.client.config.element.IConfigElement;
 public interface IConfigListEntry<T> extends INestedGuiEventHandler {
 
 	/**
-	 * Gets the IConfigElement object owned by this entry.
-	 */
-	IConfigElement<T> getConfigElement();
-
-	/**
 	 * Call {@link TextFieldWidget#tick()} for any TextFieldWidget objects in this entry.
 	 */
 	void tick();
 
 	/**
 	 * Handles drawing any tooltips that apply to this entry.
-	 * TODO: \/
-	 * This method is called after all other GUI elements have been drawn to the screen,
-	 * so it could also be used to draw any GUI element that needs to be drawn after
-	 * all entries have had drawEntry() called.
+	 * Only called for visible entries.
 	 */
 	void renderToolTip(int mouseX, int mouseY, float partialTicks);
 
 	/**
-	 * @return The result of formatting the translation key
+	 * @return The default value
 	 */
-	default String getLabel() {
-		return getConfigElement().getLabel();
-	}
-
-	default String getTranslationKey() {
-		return getConfigElement().getTranslationKey();
-	}
-
-	default String getComment() {
-		return getConfigElement().getComment();
+	@Nullable
+	default T getDefault() {
+		return getWidget().getDefault();
 	}
 
 	/**
-	 * Is this property value equal to the default value?
+	 * @return If this value is equal to the default value
 	 */
 	default boolean isDefault() {
-		return getConfigElement().isDefault();
+		return getWidget().isDefault();
 	}
 
 	/**
-	 * Gets this property's default value.
-	 */
-	default T getDefault() {
-		return getConfigElement().getDefault();
-	}
-
-	/**
-	 * Sets this property's value to the default value.
+	 * Sets this value to the default value.
 	 */
 	default void resetToDefault() {
-		getConfigElement().resetToDefault();
+		getWidget().resetToDefault();
 	}
 
 	/**
-	 * Is this property value equal to the initial value?
+	 * @return If this value different from the initial value
 	 */
 	default boolean isChanged() {
-		return getConfigElement().isChanged();
+		return getWidget().isChanged();
 	}
 
 	/**
-	 * Sets this property's value to the default value.
+	 * Sets this value to the initial value.
 	 */
 	default void undoChanges() {
-		getConfigElement().undoChanges();
+		getWidget().undoChanges();
 	}
 
 	/**
 	 * Handles saving any changes that have been made to this entry back to the underlying object.
-	 * It is a good practice to check isChanged() before performing the save action.
+	 * It is a good practice to check {@link #isChanged()} before performing the save action.
 	 */
 	default void save() {
-		getConfigElement().save();
-	}
-
-	/**
-	 * Whether or not this element is safe to modify while a world is running.
-	 * For Categories return false if ANY properties in the category are modifiable
-	 * while a world is running, true if all are not.
-	 */
-	default boolean requiresWorldRestart() {
-		return getConfigElement().requiresWorldRestart();
-	}
-
-	/**
-	 * Whether or not this element requires Minecraft to be restarted when changed.
-	 */
-	default boolean requiresGameRestart() {
-		return getConfigElement().requiresGameRestart();
+		getWidget().save();
 	}
 
 	/**
@@ -114,14 +80,24 @@ public interface IConfigListEntry<T> extends INestedGuiEventHandler {
 
 	/**
 	 * If the default value should be added to the tooltip.
-	 * Categories and Lists return false.
+	 * Categories ({@link #isCategory()}) and Lists return false.
 	 */
 	default boolean displayDefaultValue() {
 		return true;
 	}
 
+	/**
+	 * @return If this is backed by a ModConfig or Category
+	 */
 	default boolean isCategory() {
-		return getConfigElement().isCategory();
+		return false;
 	}
+
+	/**
+	 * @param <W> The type of the widget
+	 * @return The widget
+	 */
+	@Nonnull
+	<W extends Widget & ConfigListEntryWidget<T>> W getWidget();
 
 }
