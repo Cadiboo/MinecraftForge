@@ -33,4 +33,13 @@ public class ScreenButton<T> extends GuiButtonExt implements ConfigListEntryWidg
 	public void updateWidgetValue() {
 	}
 
+	@Override
+	public void render(final int p_render_1_, final int p_render_2_, final float p_render_3_) {
+		if (isValid())
+			this.setFGColor(0);
+		else
+			this.setFGColor(BooleanButton.getColor(false));
+		super.render(p_render_1_, p_render_2_, p_render_3_);
+	}
+
 }
