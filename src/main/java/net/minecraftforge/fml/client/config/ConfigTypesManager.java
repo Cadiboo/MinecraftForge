@@ -151,17 +151,28 @@ public class ConfigTypesManager {
 			// Because the obj is a ConfigValue the corresponding object in the ValueSpec map must be a ValueSpec
 			final ForgeConfigSpec.ValueSpec valueSpec = (ForgeConfigSpec.ValueSpec) getValueSpec(modConfig, configValue.getPath());
 
+			// I give up. defineInList just isn't type safe.
+
 			Class<?> clazz = valueSpec.getClazz();
 			if (clazz == Object.class) {
 				final Object actualValue = configValue.get();
 				final Class<?> valueClass = actualValue.getClass();
-				if (valueClass != null)
+				if (valueClass != Object.class)
 					clazz = valueClass;
 				else {
 					final Object defaultValue = valueSpec.getDefault();
-					if (defaultValue != null)
+					if (defaultValue != null) // Should NEVER happen
 						clazz = defaultValue.getClass();
 				}
+//				final Object defaultValue = valueSpec.getDefault();
+//				if (defaultValue != null) // Should NEVER happen
+//					clazz = defaultValue.getClass();
+//				else {
+//					final Object actualValue = configValue.get();
+//					final Class<?> valueClass = actualValue.getClass();
+//					if (valueClass != Object.class)
+//						clazz = valueClass;
+//				}
 			}
 
 			if (clazz == null || clazz == Object.class)
