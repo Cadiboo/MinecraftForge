@@ -9,6 +9,8 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 public abstract class ObjectTextField<T> extends TextFieldWidget implements ConfigListEntryWidget<T> {
 
 	private final WidgetValueReference<T> widgetValueReference;
+	private boolean hasChanged = true;
+	private boolean isValid = false;
 
 	public ObjectTextField(final WidgetValueReference<T> widgetValueReference) {
 		this("Object Text Field", widgetValueReference);
@@ -21,6 +23,7 @@ public abstract class ObjectTextField<T> extends TextFieldWidget implements Conf
 		this.setText(toText(widgetValueReference.get()));
 		this.setCursorPositionZero(); // Remove weird scroll bug
 		this.func_212954_a(newText -> {
+			hasChanged = true;
 			if (!isWidgetValueValid())
 				return;
 			T t = null;
@@ -41,16 +44,26 @@ public abstract class ObjectTextField<T> extends TextFieldWidget implements Conf
 	@Override
 
 	public boolean isWidgetValueValid() {
+		// Calling fromText is likely to parse & making a new object.
+		// Calling this each frame is pretty performance intensive.
+		// Caching validity avoids this performance cost.
+		if (!hasChanged)
+			return isValid;
+		boolean valid;
 		try {
 			fromText(this.getText());
-			return true;
+			valid = true;
 		} catch (Exception e) {
-			return false;
+			valid = false;
 		}
+		hasChanged = false;
+		isValid = valid;
+		return valid;
 	}
 
 	@Override
 	public void updateWidgetValue() {
+		hasChanged = true;
 		this.setText(toText(getWidgetValueReference().get()));
 	}
 
