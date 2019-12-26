@@ -79,6 +79,7 @@
   "fml.configgui.tooltip.default": "[default: %s]",
   "fml.configgui.tooltip.rangeWithDefault": "[range: %s ~ %s, default: %s]",
   "fml.configgui.tooltip.noTooltip": "No tooltip defined.",
+  "fml.configgui.tooltip.entryValueInvalid": "This entry's value is not valid!",
 
   "fml.messages.artifactversion.ornotinstalled":"{0,ornull,fml.messages.artifactversion.notinstalled}",
   "fml.messages.artifactversion":"{0,ornull,fml.messages.artifactversion.none}",
@@ -150,7 +151,6 @@
   "forge.configgui.clumpingThreshold": "Packet Clumping Threshold",
   "forge.configgui.treatEmptyTagsAsAir.tooltip": "Vanilla will treat crafting recipes using empty tags as air, and allow you to craft with nothing in that slot. If false, this changes empty tags to use BARRIER as the item. To prevent crafting with air.",
   "forge.configgui.treatEmptyTagsAsAir": "Treat empty tags as air",
-
 
   "forge.configgui.zoomInMissingModelTextInGui": "Zoom in Missing model text in the GUI",
   "forge.configgui.zoomInMissingModelTextInGui.tooltip": "Toggle off to make missing model text in the gui fit inside the slot.",
