@@ -274,6 +274,8 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
             context = new BuilderContext();
             return new ConfigValue<>(this, path, defaultSupplier);
         }
+
+        //Object > Comparable (Range)
         public <V extends Comparable<? super V>> ConfigValue<V> defineInRange(String path, V defaultValue, V min, V max, Class<V> clazz) {
             return defineInRange(split(path), defaultValue, min, max, clazz);
         }
@@ -291,6 +293,8 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
                 throw new IllegalArgumentException("Range min most be less then max.");
             return define(path, defaultSupplier, range, clazz);
         }
+
+        //Object > Limited Value Object
         public <T> ConfigValue<T> defineInList(String path, T defaultValue, Collection<? extends T> acceptableValues) {
             return defineInList(split(path), defaultValue, acceptableValues);
         }
@@ -303,6 +307,8 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
         public <T> ConfigValue<T> defineInList(List<String> path, Supplier<T> defaultSupplier, Collection<? extends T> acceptableValues) {
             return define(path, defaultSupplier, acceptableValues::contains);
         }
+
+        //Object > List
         public <T> ConfigValue<List<? extends T>> defineList(String path, List<? extends T> defaultValue, Predicate<Object> elementValidator) {
             return defineList(split(path), defaultValue, elementValidator);
         }
