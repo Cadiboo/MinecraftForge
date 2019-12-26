@@ -305,6 +305,11 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
             return defineInList(path, () -> defaultValue, acceptableValues);
         }
         public <T> ConfigValue<T> defineInList(List<String> path, Supplier<T> defaultSupplier, Collection<? extends T> acceptableValues) {
+            context.setComment(ObjectArrays.concat(context.getComment(), "Allowed Values: " + acceptableValues.stream().map(Object::toString).collect(Collectors.joining(", "))));
+            if (acceptableValues.isEmpty())
+                throw new IllegalArgumentException("Must have potential values.");
+            if (!acceptableValues.contains(defaultSupplier.get()))
+                throw new IllegalArgumentException("Potential values must contain the default value.");
             return define(path, defaultSupplier, acceptableValues::contains);
         }
 
