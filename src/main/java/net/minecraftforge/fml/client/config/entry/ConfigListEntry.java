@@ -5,19 +5,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.list.AbstractOptionList;
-import net.minecraft.client.resources.I18n;
 import net.minecraftforge.fml.client.config.ConfigScreen;
-import net.minecraftforge.fml.client.config.GuiButtonExt;
 import net.minecraftforge.fml.client.config.HoverChecker;
 import net.minecraftforge.fml.client.config.entry.widget.ConfigListEntryWidget;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-
-import static net.minecraftforge.fml.client.config.GuiUtils.RESET_CHAR;
-import static net.minecraftforge.fml.client.config.GuiUtils.UNDO_CHAR;
 
 /**
  * Provides a base entry for others to extend.
@@ -35,6 +29,7 @@ public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<Config
 	protected final Minecraft minecraft;
 	protected final List<Widget> children = new ArrayList<>();
 	private final ConfigListEntryWidget<T> widget;
+	private final HoverChecker widgetHoverChecker;
 	protected int buttonsStartPosX;
 
 	public <W extends Widget & ConfigListEntryWidget<T>> ConfigListEntry(@Nonnull final ConfigScreen owningScreen, @Nonnull final W widget) {
@@ -42,6 +37,7 @@ public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<Config
 		this.widget = widget;
 		this.minecraft = Minecraft.getInstance();
 		this.children().add(widget);
+		this.widgetHoverChecker = new HoverChecker(widget, 500);
 	}
 
 	@Override
@@ -49,6 +45,12 @@ public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<Config
 		final Widget widget = getWidget();
 		if (widget instanceof TextFieldWidget)
 			((TextFieldWidget) widget).tick();
+	}
+
+	@Override
+	public void renderToolTip(final int mouseX, final int mouseY, final float partialTicks) {
+		if (widgetHoverChecker.checkHover(mouseX, mouseY))
+			getWidget().renderToolTip(mouseX, mouseY, partialTicks);
 	}
 
 	@Nonnull
@@ -69,6 +71,7 @@ public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<Config
 		if (shouldRenderLabel())
 			widgetX += this.owningScreen.getEntryList().getLongestLabelWidth() + 2; // Add a tiny bit of space between the label and the entry
 		preRenderWidget(widget, widgetX, startY, buttonsStartPosX - widgetX, height);
+
 		this.children().forEach(c -> c.render(mouseX, mouseY, partialTicks));
 	}
 

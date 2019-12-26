@@ -22,17 +22,17 @@ public class DummyConfigListEntry<T> extends ConfigListEntry<T> {
 	}
 
 	@Override
-	public boolean displayDefaultValue() {
-		return false;
-	}
-
-	@Override
 	public int preRenderWidgets(final int startY, final int startX, final int width, final int height, final int buttonSize) {
-		return 0;
+		return width;
 	}
 
 	@Override
 	public boolean shouldRenderLabel() {
+		return false;
+	}
+
+	@Override
+	public boolean displayDefaultValue() {
 		return false;
 	}
 

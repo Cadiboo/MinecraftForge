@@ -49,9 +49,9 @@ public abstract class ListConfigListEntry<T> extends ConfigListEntry<T> {
 	public void renderToolTip(final int mouseX, final int mouseY, final float partialTicks) {
 		if (this.addEntryBelowButtonHoverChecker.checkHover(mouseX, mouseY, true))
 			this.owningScreen.drawToolTip(addEntryBelowTooltip, mouseX, mouseY);
-
 		if (this.removeEntryButtonHoverChecker.checkHover(mouseX, mouseY, true))
 			this.owningScreen.drawToolTip(removeEntryTooltip, mouseX, mouseY);
+		super.renderToolTip(mouseX, mouseY, partialTicks);
 	}
 
 	public int preRenderWidgets(final int startY, final int startX, final int width, final int height, final int buttonSize) {
