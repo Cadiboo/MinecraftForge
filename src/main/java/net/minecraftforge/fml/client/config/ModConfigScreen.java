@@ -8,7 +8,7 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.client.config.element.IConfigElement;
-import net.minecraftforge.fml.client.config.element.ModConfigConfigElement;
+import net.minecraftforge.fml.client.config.element.category.ModConfigCategoryElement;
 import net.minecraftforge.fml.config.ConfigTracker;
 import net.minecraftforge.fml.config.ModConfig;
 
@@ -74,12 +74,12 @@ public class ModConfigScreen extends ElementConfigScreen {
 		return list;
 	}
 
-	public static Optional<ModConfigConfigElement> makeConfigElementForModConfigType(final ModContainer modContainer, final ModConfig.Type type) {
+	public static Optional<ModConfigCategoryElement> makeConfigElementForModConfigType(final ModContainer modContainer, final ModConfig.Type type) {
 		// TODO: @Config classes?
 		if (type == ModConfig.Type.SERVER && !canPlayerEditServerConfig())
 			return Optional.empty();
 		return ConfigTracker.INSTANCE.getConfig(modContainer.getModId(), type)
-				.map(ModConfigConfigElement::new);
+				.map(ModConfigCategoryElement::new);
 	}
 
 }

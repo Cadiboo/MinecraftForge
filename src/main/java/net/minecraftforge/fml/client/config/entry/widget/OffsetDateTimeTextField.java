@@ -8,8 +8,12 @@ import java.time.ZoneOffset;
  */
 public class OffsetDateTimeTextField extends ObjectTextField<OffsetDateTime> {
 
-	public OffsetDateTimeTextField(final WidgetValueReference<OffsetDateTime> widgetValueReference) {
-		super(widgetValueReference);
+	public OffsetDateTimeTextField(final Callback<OffsetDateTime> callback) {
+		this("OffsetDateTime", callback);
+	}
+
+	public OffsetDateTimeTextField(final String message, final Callback<OffsetDateTime> callback) {
+		super(message, callback);
 	}
 
 	@Override

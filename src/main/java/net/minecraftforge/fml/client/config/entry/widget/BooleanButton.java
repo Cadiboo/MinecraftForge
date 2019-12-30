@@ -8,18 +8,20 @@ import net.minecraftforge.fml.client.config.GuiButtonExt;
  */
 public class BooleanButton extends GuiButtonExt implements ConfigListEntryWidget<Boolean> {
 
-	private final WidgetValueReference<Boolean> widgetValueReference;
+	private final Callback<Boolean> callback;
 
-	public BooleanButton(final WidgetValueReference<Boolean> widgetValueReference) {
-		this("Boolean Button", widgetValueReference);
+	public BooleanButton(final Callback<Boolean> callback) {
+		this("Boolean", callback);
 	}
 
-	public BooleanButton(final String message, final WidgetValueReference<Boolean> widgetValueReference) {
+	public BooleanButton(final String message, final Callback<Boolean> callback) {
 		super(0, 0, 0, 0, message, button -> {
-			widgetValueReference.set(!widgetValueReference.get());
-			updateTextAndColor(button, widgetValueReference.get());
+			callback.set(!callback.get());
+			if (!callback.isValid())
+				callback.set(!callback.get());
+			updateTextAndColor(button, callback.get());
 		});
-		this.widgetValueReference = widgetValueReference;
+		this.callback = callback;
 		updateWidgetValue();
 	}
 
@@ -35,8 +37,8 @@ public class BooleanButton extends GuiButtonExt implements ConfigListEntryWidget
 		return b ? 0x55FF55 : 0xFF5555;
 	}
 
-	public WidgetValueReference<Boolean> getWidgetValueReference() {
-		return widgetValueReference;
+	public Callback<Boolean> getCallback() {
+		return callback;
 	}
 
 	@Override
@@ -46,7 +48,7 @@ public class BooleanButton extends GuiButtonExt implements ConfigListEntryWidget
 
 	@Override
 	public void updateWidgetValue() {
-		updateTextAndColor(this, getWidgetValueReference().get());
+		updateTextAndColor(this, getCallback().get());
 	}
 
 }

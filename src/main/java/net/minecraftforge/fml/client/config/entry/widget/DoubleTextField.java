@@ -2,8 +2,12 @@ package net.minecraftforge.fml.client.config.entry.widget;
 
 public class DoubleTextField extends ObjectTextField<Double> {
 
-	public DoubleTextField(final WidgetValueReference<Double> widgetValueReference) {
-		super(widgetValueReference);
+	public DoubleTextField(final Callback<Double> callback) {
+		this("Double", callback);
+	}
+
+	public DoubleTextField(final String message, final Callback<Double> callback) {
+		super(message, callback);
 	}
 
 	@Override

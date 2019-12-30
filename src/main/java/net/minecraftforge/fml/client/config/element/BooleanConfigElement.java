@@ -5,7 +5,7 @@ import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
 import net.minecraftforge.fml.client.config.entry.ElementConfigListEntry;
 import net.minecraftforge.fml.client.config.entry.widget.BooleanButton;
-import net.minecraftforge.fml.client.config.entry.widget.WidgetValueReference;
+import net.minecraftforge.fml.client.config.entry.widget.ConfigListEntryWidget;
 
 /**
  * @author Cadiboo
@@ -18,7 +18,7 @@ public class BooleanConfigElement extends ConfigElement<Boolean> {
 
 	@Override
 	public ConfigListEntry<Boolean> makeConfigListEntry(final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListWidget) {
-		final WidgetValueReference<Boolean> widgetValueReference = new WidgetValueReference<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
+		final ConfigListEntryWidget.Callback<Boolean> widgetValueReference = new ConfigListEntryWidget.Callback<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
 		final BooleanButton widget = new BooleanButton(widgetValueReference);
 		return new ElementConfigListEntry<>(configScreen, widget, this);
 	}

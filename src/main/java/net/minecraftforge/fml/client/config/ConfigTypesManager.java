@@ -1,5 +1,6 @@
 package net.minecraftforge.fml.client.config;
 
+import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Runnables;
@@ -8,9 +9,9 @@ import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.client.config.element.BooleanConfigElement;
 import net.minecraftforge.fml.client.config.element.ConfigConfigElement;
 import net.minecraftforge.fml.client.config.element.ConfigElementContainer;
-import net.minecraftforge.fml.client.config.element.DummyConfigElement;
 import net.minecraftforge.fml.client.config.element.EnumConfigElement;
 import net.minecraftforge.fml.client.config.element.IConfigElement;
+import net.minecraftforge.fml.client.config.element.InfoTextConfigElement;
 import net.minecraftforge.fml.client.config.element.ListConfigElement;
 import net.minecraftforge.fml.client.config.element.LocalDateConfigElement;
 import net.minecraftforge.fml.client.config.element.LocalDateTimeConfigElement;
@@ -18,21 +19,23 @@ import net.minecraftforge.fml.client.config.element.LocalTimeConfigElement;
 import net.minecraftforge.fml.client.config.element.NumberConfigElement;
 import net.minecraftforge.fml.client.config.element.OffsetDateTimeConfigElement;
 import net.minecraftforge.fml.client.config.element.StringConfigElement;
-import net.minecraftforge.fml.client.config.entry.DummyConfigListEntry;
+import net.minecraftforge.fml.client.config.element.category.ConfigCategoryElement;
 import net.minecraftforge.fml.client.config.entry.widget.BooleanButton;
 import net.minecraftforge.fml.client.config.entry.widget.ByteTextField;
+import net.minecraftforge.fml.client.config.entry.widget.ConfigButton;
 import net.minecraftforge.fml.client.config.entry.widget.ConfigListEntryWidget;
 import net.minecraftforge.fml.client.config.entry.widget.DoubleTextField;
 import net.minecraftforge.fml.client.config.entry.widget.EnumButton;
 import net.minecraftforge.fml.client.config.entry.widget.FloatTextField;
+import net.minecraftforge.fml.client.config.entry.widget.InfoText;
 import net.minecraftforge.fml.client.config.entry.widget.IntegerTextField;
+import net.minecraftforge.fml.client.config.entry.widget.ListButton;
 import net.minecraftforge.fml.client.config.entry.widget.LocalDateTextField;
 import net.minecraftforge.fml.client.config.entry.widget.LocalDateTimeTextField;
 import net.minecraftforge.fml.client.config.entry.widget.LocalTimeTextField;
 import net.minecraftforge.fml.client.config.entry.widget.LongTextField;
 import net.minecraftforge.fml.client.config.entry.widget.OffsetDateTimeTextField;
 import net.minecraftforge.fml.client.config.entry.widget.StringTextField;
-import net.minecraftforge.fml.client.config.entry.widget.WidgetValueReference;
 import net.minecraftforge.fml.config.ModConfig;
 
 import javax.annotation.Nonnull;
@@ -60,11 +63,16 @@ import java.util.function.Supplier;
  */
 public class ConfigTypesManager {
 
-	private static final Function NO_FACTORY = o -> null;
+	private static final Function<?, ?> NO_FACTORY = o -> null;
 	private static final Map<Class<?>, Function<ConfigElementContainer<?>, IConfigElement<?>>> CONFIG_ELEMENTS = new HashMap<>();
-	private static final Map<Class<?>, Function<WidgetValueReference<?>, ConfigListEntryWidget<?>>> WIDGETS = new HashMap<>();
+	private static final Map<Class<?>, Function<ConfigListEntryWidget.Callback<?>, ConfigListEntryWidget<?>>> WIDGETS = new HashMap<>();
 
 	static {
+		register();
+	}
+
+	private static void register() {
+		CONFIG_ELEMENTS.clear();
 		registerElementFactory(Boolean.class, BooleanConfigElement::new);
 		registerElementFactory(Byte.class, $ -> new NumberConfigElement<Byte>($) {
 			@Override
@@ -109,7 +117,9 @@ public class ConfigTypesManager {
 		registerElementFactory(LocalDate.class, LocalDateConfigElement::new);
 		registerElementFactory(LocalDateTime.class, LocalDateTimeConfigElement::new);
 		registerElementFactory(OffsetDateTime.class, OffsetDateTimeConfigElement::new);
+		registerElementFactory(Config.class, ConfigConfigElement::new);
 
+		WIDGETS.clear();
 		registerWidgetFactory(Boolean.class, BooleanButton::new);
 		registerWidgetFactory(Byte.class, ByteTextField::new);
 		registerWidgetFactory(Integer.class, IntegerTextField::new);
@@ -118,16 +128,14 @@ public class ConfigTypesManager {
 		registerWidgetFactory(Double.class, DoubleTextField::new);
 		registerWidgetFactory(String.class, StringTextField::new);
 		registerWidgetFactory(Enum.class, EnumButton::new);
-//		registerWidgetFactory(List.class, ListButton::new); // TODO
-		registerWidgetFactory(List.class, $ -> new DummyConfigListEntry.DummyWidget("Unsupported nested list type: List"));
+		registerWidgetFactory(List.class, callback -> new ListButton<>(((ScreenedCallback) callback).screen, callback));
 		registerWidgetFactory(LocalTime.class, LocalTimeTextField::new);
 		registerWidgetFactory(LocalDate.class, LocalDateTextField::new);
 		registerWidgetFactory(LocalDateTime.class, LocalDateTimeTextField::new);
 		registerWidgetFactory(OffsetDateTime.class, OffsetDateTimeTextField::new);
-//		registerWidgetFactory(Config.class, ConfigButton::new); // TODO
-		registerWidgetFactory(Config.class, $ -> new DummyConfigListEntry.DummyWidget("Unsupported nested list type: Config"));
+		registerWidgetFactory(Config.class, callback -> new ConfigButton(((ScreenedCallback) callback).screen, callback));
 		// ModConfig should NEVER be an element in a config list.
-		registerWidgetFactory(ModConfig.class, $ -> new DummyConfigListEntry.DummyWidget("Unsupported nested list type: ModConfig"));
+		registerWidgetFactory(ModConfig.class, $ -> new InfoText<>("fml.configgui.list.unsupportedTypeUseConfig", "ModConfig"));
 	}
 
 	@SuppressWarnings({"rawtypes", "unchecked"})
@@ -136,7 +144,7 @@ public class ConfigTypesManager {
 	}
 
 	@SuppressWarnings({"rawtypes", "unchecked"})
-	public static <C, W extends Widget & ConfigListEntryWidget<C>> void registerWidgetFactory(final Class<C> clazz, final Function<WidgetValueReference<C>, W> factory) {
+	public static <C, W extends Widget & ConfigListEntryWidget<C>> void registerWidgetFactory(final Class<C> clazz, final Function<ConfigListEntryWidget.Callback<C>, W> factory) {
 		WIDGETS.put(clazz, (Function) factory);
 	}
 
@@ -145,13 +153,11 @@ public class ConfigTypesManager {
 	 * @see #getSpecConfigValues(ModConfig)
 	 */
 	@SuppressWarnings({"unchecked"})
-	public static IConfigElement<?> makeConfigElement(final ModConfig modConfig, @Deprecated final String name, final Object obj) {
+	public static IConfigElement<?> makeConfigElement(final ModConfig modConfig, final String path, final Object obj) {
 		if (obj instanceof ForgeConfigSpec.ConfigValue) {
 			final ForgeConfigSpec.ConfigValue<?> configValue = (ForgeConfigSpec.ConfigValue<?>) obj;
 			// Because the obj is a ConfigValue the corresponding object in the ValueSpec map must be a ValueSpec
 			final ForgeConfigSpec.ValueSpec valueSpec = (ForgeConfigSpec.ValueSpec) getValueSpec(modConfig, configValue.getPath());
-
-			// I give up. defineInList just isn't type safe.
 
 			Class<?> clazz = valueSpec.getClazz();
 			if (clazz == Object.class) {
@@ -164,19 +170,10 @@ public class ConfigTypesManager {
 					if (defaultValue != null) // Should NEVER happen
 						clazz = defaultValue.getClass();
 				}
-//				final Object defaultValue = valueSpec.getDefault();
-//				if (defaultValue != null) // Should NEVER happen
-//					clazz = defaultValue.getClass();
-//				else {
-//					final Object actualValue = configValue.get();
-//					final Class<?> valueClass = actualValue.getClass();
-//					if (valueClass != Object.class)
-//						clazz = valueClass;
-//				}
 			}
 
 			if (clazz == null || clazz == Object.class)
-				return new DummyConfigElement<>("(No element factory applicable for null class) " + name);
+				return new InfoTextConfigElement<>("(No element factory applicable for null class) " + path);
 
 			Function<ConfigElementContainer<?>, IConfigElement<?>> factory = recursiveGetFactory(clazz, clazz, (Map) CONFIG_ELEMENTS);
 			if (factory != null && factory != NO_FACTORY) {
@@ -184,52 +181,96 @@ public class ConfigTypesManager {
 					return factory.apply(new ConfigElementContainer(configValue.getPath(), modConfig, configValue));
 				} catch (Exception e) {
 					e.printStackTrace();
-					return new DummyConfigElement<>("(An error occurred trying to create the element for object " + clazz.getSimpleName() + ") " + name);
+					return new InfoTextConfigElement<>("(An error occurred trying to create the element for object " + clazz.getSimpleName() + ") " + path);
 				}
 			} else {
-				return new DummyConfigElement<>("(No element factory applicable for object " + clazz.getSimpleName() + ") " + name);
+				return new InfoTextConfigElement<>("(No element factory applicable for object " + clazz.getSimpleName() + ") " + path);
 			}
 		} else if (obj instanceof Config) {
 			final Config config = (Config) obj;
-			return new ConfigConfigElement(config, modConfig, name);
+			final List<String> split = ForgeConfigSpec.split(path);
+			split.remove(split.size() - 1);
+			final @Nullable Object parentConfig;
+			if (split.isEmpty())
+				parentConfig = modConfig.getConfigData();
+			else
+				parentConfig = getValue(modConfig, split);
+			if (parentConfig instanceof CommentedConfig)
+				return new ConfigCategoryElement(config, modConfig, ((CommentedConfig) parentConfig), path);
+			else
+				return new ConfigCategoryElement(config, modConfig, null, path);
 		} else {
-			throw new IllegalStateException("How? " + name + ", " + obj);
+			throw new IllegalStateException("How? " + path + ", " + obj);
+//			return new InfoTextConfigElement<>("Uh, this is an error... " + path + ", " + obj);
 		}
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes", "UnstableApiUsage"})
-	public static <T extends List<?>, W> W makeWidget(@Nonnull final ListConfigElement<T> listConfigElement, @Nonnull final Object obj) {
+	public static <W> W makeWidget(@Nonnull final List list, @Nonnull final ConfigScreen configScreen, @Nonnull final Predicate<Object> isValidPredicate, @Nonnull final Object obj) {
 		final Class<?> clazz = obj.getClass();
-		final List list = listConfigElement.get();
 
-		AtomicReference<Object> atomicReference = new AtomicReference<>();
-		atomicReference.set(obj);
+		if (clazz == null || clazz == Object.class)
+			return (W) new InfoText("fml.configgui.list.nullTypeUseConfig");
 
-		Supplier getter = () -> list.get(list.indexOf(atomicReference.get()));
-		Consumer setter = newObj -> {
-			final int i = list.indexOf(getter.get());
-			list.set(i, newObj);
-			atomicReference.set(newObj);
-		};
-		final Supplier defaultValueGetter = () -> obj;
-		final BooleanSupplier isDefault = () -> true;
-
-		final Runnable resetToDefault = Runnables.doNothing();
-		final BooleanSupplier isChanged = () -> !Objects.equals(getter.get(), obj);
-		final Runnable undoChanges = () -> setter.accept(obj);
-		// Ew
-		final Predicate isValid = o -> listConfigElement.isValid((T) Lists.newArrayList(getter.get()));
-
-		Function<WidgetValueReference<?>, ConfigListEntryWidget<?>> factory = recursiveGetFactory(clazz, clazz, (Map) WIDGETS);
+		Function<ConfigListEntryWidget.Callback<?>, ConfigListEntryWidget<?>> factory = recursiveGetFactory(clazz, clazz, (Map) WIDGETS);
 		if (factory != null && factory != NO_FACTORY) {
 			try {
-				return (W) factory.apply(new WidgetValueReference<>(getter, setter, defaultValueGetter, isDefault, resetToDefault, isChanged, undoChanges, isValid));
+				// TODO: do these indices better?
+				AtomicReference<Object> atomicReference = new AtomicReference<>();
+				atomicReference.set(obj);
+				Supplier getter = () -> list.get(list.indexOf(atomicReference.get()));
+				Consumer setter = newObj -> {
+					final int i = list.indexOf(getter.get());
+					list.set(i, newObj);
+					atomicReference.set(newObj);
+				};
+				final Supplier defaultValueGetter = () -> obj;
+				final BooleanSupplier isDefault = () -> true;
+				final Runnable resetToDefault = Runnables.doNothing();
+				final BooleanSupplier isChanged = () -> !Objects.equals(getter.get(), obj);
+				final Runnable undoChanges = () -> setter.accept(obj);
+				// Ew
+				final Predicate isValid = o -> isValidPredicate.test(Lists.newArrayList(getter.get()));
+				return (W) factory.apply(new ScreenedCallback<>(getter, setter, defaultValueGetter, isDefault, resetToDefault, isChanged, undoChanges, isValid, configScreen));
 			} catch (Exception e) {
 				e.printStackTrace();
-				return (W) new DummyConfigListEntry.DummyWidget("An error occurred trying to create the widget for object " + clazz.getSimpleName());
+				return (W) new InfoText("fml.configgui.list.errorForTypeUseConfig" + clazz.getSimpleName());
 			}
 		} else {
-			return (W) new DummyConfigListEntry.DummyWidget("No widget factory applicable for object " + clazz.getSimpleName());
+			return (W) new InfoText("fml.configgui.list.unsupportedTypeUseConfig", clazz.getSimpleName());
+		}
+	}
+
+	@SuppressWarnings({"unchecked", "rawtypes", "UnstableApiUsage"})
+	public static <W> W makeWidget(@Nonnull final Config config, @Nonnull final ConfigScreen configScreen, @Nonnull final Predicate<Object> isValidPredicate, @Nonnull final String path, @Nonnull final Object obj) {
+		final Class<?> clazz = obj.getClass();
+
+		if (clazz == null || clazz == Object.class)
+			return (W) new InfoText("fml.configgui.list.nullTypeUseConfig");
+
+		Function<ConfigListEntryWidget.Callback<?>, ConfigListEntryWidget<?>> factory = recursiveGetFactory(clazz, clazz, (Map) WIDGETS);
+		if (factory != null && factory != NO_FACTORY) {
+			try {
+				Supplier getter = () -> config.get(path);
+				Consumer setter = newObj -> config.set(path, newObj);
+				final Supplier defaultValueGetter = () -> obj;
+				final BooleanSupplier isDefault = () -> true;
+				final Runnable resetToDefault = Runnables.doNothing();
+				final BooleanSupplier isChanged = () -> !Objects.equals(getter.get(), obj);
+				final Runnable undoChanges = () -> setter.accept(obj);
+				// Ew
+				final Predicate isValid = o -> {
+					final Config temp = config.configFormat().createConfig();
+					temp.add(path, getter.get());
+					return isValidPredicate.test(config);
+				};
+				return (W) factory.apply(new ScreenedCallback<>(getter, setter, defaultValueGetter, isDefault, resetToDefault, isChanged, undoChanges, isValid, configScreen));
+			} catch (Exception e) {
+				e.printStackTrace();
+				return (W) new InfoText("fml.configgui.list.errorForTypeUseConfig" + clazz.getSimpleName());
+			}
+		} else {
+			return (W) new InfoText("fml.configgui.list.unsupportedTypeUseConfig", clazz.getSimpleName());
 		}
 	}
 
@@ -303,6 +344,40 @@ public class ConfigTypesManager {
 				ret = ((Config) ret).get(s);
 		}
 		return ret;
+	}
+
+	public static Object getValue(final ModConfig modConfig, final List<String> path) {
+		// name -> Object
+		final Map<String, Object> specConfigVales = getConfigValues(modConfig);
+
+		// Either a ConfigValue or a SimpleConfig
+		Object ret = specConfigVales;
+
+		for (final String s : path) {
+			if (ret instanceof Map) // First iteration
+				ret = ((Map<String, Object>) ret).get(s);
+//			else if (ret instanceof Something)
+//				return ret; // Uh, shouldn't happen? TODO: Throw error?
+			else if (ret instanceof Config)
+				ret = ((Config) ret).get(s);
+		}
+		return ret;
+	}
+
+	public static class ScreenedCallback<T> extends ConfigListEntryWidget.Callback<T> {
+
+		public final ConfigScreen screen;
+
+		public ScreenedCallback(final Supplier<T> getter, final Consumer<T> setter, final Supplier<T> defaultValueGetter, final BooleanSupplier isDefault, final Runnable resetToDefault, final BooleanSupplier isChanged, final Runnable undoChanges, final Predicate<Object> isValid, final ConfigScreen screen) {
+			super(getter, setter, defaultValueGetter, isDefault, resetToDefault, isChanged, undoChanges, isValid);
+			this.screen = screen;
+		}
+
+		public ScreenedCallback(final Supplier<T> getter, final Consumer<T> setter, final Supplier<T> defaultValueGetter, final BooleanSupplier isDefault, final Runnable resetToDefault, final BooleanSupplier isChanged, final Runnable undoChanges, final Predicate<Object> isValid, @Nullable final Runnable save, final ConfigScreen screen) {
+			super(getter, setter, defaultValueGetter, isDefault, resetToDefault, isChanged, undoChanges, isValid, save);
+			this.screen = screen;
+		}
+
 	}
 
 }

@@ -7,8 +7,12 @@ import java.time.LocalDateTime;
  */
 public class LocalDateTimeTextField extends ObjectTextField<LocalDateTime> {
 
-	public LocalDateTimeTextField(final WidgetValueReference<LocalDateTime> widgetValueReference) {
-		super(widgetValueReference);
+	public LocalDateTimeTextField(final Callback<LocalDateTime> callback) {
+		this("LocalDateTime", callback);
+	}
+
+	public LocalDateTimeTextField(final String message, final Callback<LocalDateTime> callback) {
+		super(message, callback);
 	}
 
 	@Override

@@ -26,6 +26,7 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.fml.ModContainer;
+import net.minecraftforge.fml.client.config.element.InfoTextConfigElement;
 import net.minecraftforge.fml.client.config.element.IConfigElement;
 import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
 import org.apache.logging.log4j.LogManager;
@@ -100,7 +101,13 @@ public class ElementConfigScreen extends ConfigScreen {
 		super.init();
 		final ConfigEntryListWidget entryList = Objects.requireNonNull(getEntryList());
 		final List<ConfigListEntry<?>> children = entryList.children();
-		getConfigElements().stream()
+		final List<IConfigElement<?>> configElements = getConfigElements();
+		if (configElements.isEmpty()) {
+			children.add(new InfoTextConfigElement<>("fml.configgui.noElements")
+					.makeConfigListEntry(this, entryList));
+			return;
+		}
+		configElements.stream()
 				.filter(IConfigElement::showInGui)
 				.map(element -> element.makeConfigListEntry(this, entryList))
 				.map(configListEntry -> Objects.requireNonNull(configListEntry, "ConfigListEntry (Widget)"))

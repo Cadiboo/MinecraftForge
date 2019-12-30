@@ -2,8 +2,12 @@ package net.minecraftforge.fml.client.config.entry.widget;
 
 public class ByteTextField extends ObjectTextField<Byte> {
 
-	public ByteTextField(final WidgetValueReference<Byte> widgetValueReference) {
-		super(widgetValueReference);
+	public ByteTextField(final Callback<Byte> callback) {
+		this("Byte", callback);
+	}
+
+	public ByteTextField(final String message, final Callback<Byte> callback) {
+		super(message, callback);
 	}
 
 	@Override

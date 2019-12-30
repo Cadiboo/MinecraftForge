@@ -16,10 +16,8 @@ import net.minecraftforge.common.ForgeConfigSpec.FloatValue;
 import net.minecraftforge.common.ForgeConfigSpec.IntValue;
 import net.minecraftforge.common.ForgeConfigSpec.LongValue;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.forgespi.language.IModInfo;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 
@@ -28,11 +26,11 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static net.minecraftforge.fml.loading.LogMarkers.FORGEMOD;
 
@@ -75,9 +73,39 @@ public class TestConfig {
 	private static List<LocalDate> aLocalDateList;
 	private static List<LocalDateTime> aLocalDateTimeList;
 	private static List<OffsetDateTime> anOffsetDateTimeList;
-	private static List<? extends String> aStringListOld;
-	private static List<List<String>> aStringListList;
 	private static List<Config> aConfigList;
+	private static List<String> aStringWeirdList;
+	private static List<? extends String> aStringListOld;
+
+	private static List<List<Boolean>> aBooleanListList;
+	private static List<List<Byte>> aByteListList;
+	private static List<List<Integer>> anIntegerListList;
+	private static List<List<Float>> aFloatListList;
+	private static List<List<Long>> aLongListList;
+	private static List<List<Double>> aDoubleListList;
+	private static List<List<Enum<DyeColor>>> anEnumListList;
+	private static List<List<String>> aStringListList;
+	private static List<List<LocalTime>> aLocalTimeListList;
+	private static List<List<LocalDate>> aLocalDateListList;
+	private static List<List<LocalDateTime>> aLocalDateTimeListList;
+	private static List<List<OffsetDateTime>> anOffsetDateTimeListList;
+	private static List<List<Config>> aConfigListList;
+	private static List<List<String>> aStringWeirdListWeirdList;
+	private static List<? extends List<String>> aStringListOldList;
+
+	private static Config aBooleanConfig;
+	private static Config aByteConfig;
+	private static Config anIntegerConfig;
+	private static Config aFloatConfig;
+	private static Config aLongConfig;
+	private static Config aDoubleConfig;
+	private static Config anEnumConfig;
+	private static Config aStringConfig;
+	private static Config aLocalTimeConfig;
+	private static Config aLocalDateConfig;
+	private static Config aLocalDateTimeConfig;
+	private static Config anOffsetDateTimeConfig;
+	private static Config aConfigConfig;
 
 	private static boolean aBooleanInList;
 	private static byte aByteInList;
@@ -93,6 +121,12 @@ public class TestConfig {
 	private static OffsetDateTime anOffsetDateTimeInList;
 	private static Config aConfigInList;
 	private static List<String> aStringListInList;
+
+	// 10x list
+	private static List<List<List<List<List<List<List<List<List<List<String>>>>>>>>>> aVeryNestedStringList;
+	// 10x config
+	private static Config aVeryNestedStringConfig;
+	private static String aPathDefinedString;
 
 	private static boolean category0_aBoolean;
 	private static int category0_anInt;
@@ -142,16 +176,31 @@ public class TestConfig {
 		bakeAndDebug(() -> aLocalDateTimeList, COMMON.aLocalDateTimeList, $ -> aLocalDateTimeList = $);
 		bakeAndDebug(() -> anOffsetDateTimeList, COMMON.anOffsetDateTimeList, $ -> anOffsetDateTimeList = $);
 		bakeAndDebug(() -> aConfigList, COMMON.aConfigList, $ -> aConfigList = $);
+		bakeAndDebug(() -> aStringWeirdList, COMMON.aStringWeirdList, $ -> aStringWeirdList = $);
 		bakeAndDebug(() -> aStringListOld, COMMON.aStringListOld, $ -> aStringListOld = $);
+		bakeAndDebug(() -> aBooleanListList, COMMON.aBooleanListList, $ -> aBooleanListList = $);
+		bakeAndDebug(() -> aByteListList, COMMON.aByteListList, $ -> aByteListList = $);
+		bakeAndDebug(() -> anIntegerListList, COMMON.anIntegerListList, $ -> anIntegerListList = $);
+		bakeAndDebug(() -> aFloatListList, COMMON.aFloatListList, $ -> aFloatListList = $);
+		bakeAndDebug(() -> aLongListList, COMMON.aLongListList, $ -> aLongListList = $);
+		bakeAndDebug(() -> aDoubleListList, COMMON.aDoubleListList, $ -> aDoubleListList = $);
+		bakeAndDebug(() -> anEnumListList, COMMON.anEnumListList, $ -> anEnumListList = $);
 		bakeAndDebug(() -> aStringListList, COMMON.aStringListList, $ -> aStringListList = $);
+		bakeAndDebug(() -> aLocalTimeListList, COMMON.aLocalTimeListList, $ -> aLocalTimeListList = $);
+		bakeAndDebug(() -> aLocalDateListList, COMMON.aLocalDateListList, $ -> aLocalDateListList = $);
+		bakeAndDebug(() -> aLocalDateTimeListList, COMMON.aLocalDateTimeListList, $ -> aLocalDateTimeListList = $);
+		bakeAndDebug(() -> anOffsetDateTimeListList, COMMON.anOffsetDateTimeListList, $ -> anOffsetDateTimeListList = $);
+		bakeAndDebug(() -> aConfigListList, COMMON.aConfigListList, $ -> aConfigListList = $);
+		bakeAndDebug(() -> aStringWeirdListWeirdList, COMMON.aStringWeirdListWeirdList, $ -> aStringWeirdListWeirdList = $);
+		bakeAndDebug(() -> aStringListOldList, COMMON.aStringListOldList, $ -> aStringListOldList = $);
 
 		bakeAndDebug(() -> aBooleanInList, COMMON.aBooleanInList, $ -> aBooleanInList = $);
-//		bakeAndDebug(() -> aByteInList, COMMON.aByteInList, $ -> aByteInList = $); // FIXME: aByteInList returns Integer not Byte
+		bakeAndDebug(() -> aByteInList, COMMON.aByteInList, $ -> aByteInList = $);
 		bakeAndDebug(() -> anIntInList, COMMON.anIntegerInList, $ -> anIntInList = $);
-//		bakeAndDebug(() -> aFloatInList, COMMON.aFloatInList, $ -> aFloatInList = $); // FIXME: aFloatInList returns Double not Float
-//		bakeAndDebug(() -> aLongInList, COMMON.aLongInList, $ -> aLongInList = $); // FIXME: aLongInList returns Integer not Long
+		bakeAndDebug(() -> aFloatInList, COMMON.aFloatInList, $ -> aFloatInList = $);
+		bakeAndDebug(() -> aLongInList, COMMON.aLongInList, $ -> aLongInList = $);
 		bakeAndDebug(() -> aDoubleInList, COMMON.aDoubleInList, $ -> aDoubleInList = $);
-//		bakeAndDebug(() -> anEnumInList, COMMON.anEnumInList, $ -> anEnumInList = $);  // FIXME: anEnumInList returns String not Enum<>
+		bakeAndDebug(() -> anEnumInList, COMMON.anEnumInList, $ -> anEnumInList = $);
 		bakeAndDebug(() -> aStringInList, COMMON.aStringInList, $ -> aStringInList = $);
 		bakeAndDebug(() -> aLocalTimeInList, COMMON.aLocalTimeInList, $ -> aLocalTimeInList = $);
 		bakeAndDebug(() -> aLocalDateInList, COMMON.aLocalDateInList, $ -> aLocalDateInList = $);
@@ -159,6 +208,24 @@ public class TestConfig {
 		bakeAndDebug(() -> anOffsetDateTimeInList, COMMON.anOffsetDateTimeInList, $ -> anOffsetDateTimeInList = $);
 		bakeAndDebug(() -> aConfigInList, COMMON.aConfigInList, $ -> aConfigInList = $);
 		bakeAndDebug(() -> aStringListInList, COMMON.aStringListInList, $ -> aStringListInList = $);
+
+		bakeAndDebug(() -> aBooleanConfig, COMMON.aBooleanConfig, $ -> aBooleanConfig = $);
+		bakeAndDebug(() -> aByteConfig, COMMON.aByteConfig, $ -> aByteConfig = $);
+		bakeAndDebug(() -> anIntegerConfig, COMMON.anIntegerConfig, $ -> anIntegerConfig = $);
+		bakeAndDebug(() -> aFloatConfig, COMMON.aFloatConfig, $ -> aFloatConfig = $);
+		bakeAndDebug(() -> aLongConfig, COMMON.aLongConfig, $ -> aLongConfig = $);
+		bakeAndDebug(() -> aDoubleConfig, COMMON.aDoubleConfig, $ -> aDoubleConfig = $);
+		bakeAndDebug(() -> anEnumConfig, COMMON.anEnumConfig, $ -> anEnumConfig = $);
+		bakeAndDebug(() -> aStringConfig, COMMON.aStringConfig, $ -> aStringConfig = $);
+		bakeAndDebug(() -> aLocalTimeConfig, COMMON.aLocalTimeConfig, $ -> aLocalTimeConfig = $);
+		bakeAndDebug(() -> aLocalDateConfig, COMMON.aLocalDateConfig, $ -> aLocalDateConfig = $);
+		bakeAndDebug(() -> aLocalDateTimeConfig, COMMON.aLocalDateTimeConfig, $ -> aLocalDateTimeConfig = $);
+		bakeAndDebug(() -> anOffsetDateTimeConfig, COMMON.anOffsetDateTimeConfig, $ -> anOffsetDateTimeConfig = $);
+		bakeAndDebug(() -> aConfigConfig, COMMON.aConfigConfig, $ -> aConfigConfig = $);
+
+		bakeAndDebug(() -> aVeryNestedStringList, COMMON.aVeryNestedStringList, $ -> aVeryNestedStringList = $);
+		bakeAndDebug(() -> aVeryNestedStringConfig, COMMON.aVeryNestedStringConfig, $ -> aVeryNestedStringConfig = $);
+		bakeAndDebug(() -> aPathDefinedString, COMMON.aPathDefinedString, $ -> aPathDefinedString = $);
 
 		bakeAndDebug(() -> category0_aBoolean, COMMON.category0_aBoolean, $ -> category0_aBoolean = $);
 		bakeAndDebug(() -> category0_anInt, COMMON.category0_anInt, $ -> category0_anInt = $);
@@ -174,6 +241,11 @@ public class TestConfig {
 //		LogManager.getLogger().warn(FORGEMOD, path + ": " + oldValue + ", " + newValue + ", " + Objects.equals(oldValue, newValue));
 		LogManager.getLogger().warn(FORGEMOD, path + ": " + Objects.equals(oldValue, newValue));
 		setter.accept(newValue);
+	}
+
+	@SafeVarargs
+	private static <E> List<E> newList(E... elements) {
+		return Lists.newArrayList(elements);
 	}
 
 	public static class Common {
@@ -205,8 +277,24 @@ public class TestConfig {
 		private final ConfigValue<List<LocalDateTime>> aLocalDateTimeList;
 		private final ConfigValue<List<OffsetDateTime>> anOffsetDateTimeList;
 		private final ConfigValue<List<Config>> aConfigList;
+		private final ConfigValue<List<String>> aStringWeirdList;
 		private final ConfigValue<List<? extends String>> aStringListOld;
+
+		private final ConfigValue<List<List<Boolean>>> aBooleanListList;
+		private final ConfigValue<List<List<Byte>>> aByteListList;
+		private final ConfigValue<List<List<Integer>>> anIntegerListList;
+		private final ConfigValue<List<List<Float>>> aFloatListList;
+		private final ConfigValue<List<List<Long>>> aLongListList;
+		private final ConfigValue<List<List<Double>>> aDoubleListList;
+		private final ConfigValue<List<List<Enum<DyeColor>>>> anEnumListList;
 		private final ConfigValue<List<List<String>>> aStringListList;
+		private final ConfigValue<List<List<LocalTime>>> aLocalTimeListList;
+		private final ConfigValue<List<List<LocalDate>>> aLocalDateListList;
+		private final ConfigValue<List<List<LocalDateTime>>> aLocalDateTimeListList;
+		private final ConfigValue<List<List<OffsetDateTime>>> anOffsetDateTimeListList;
+		private final ConfigValue<List<List<Config>>> aConfigListList;
+		private final ConfigValue<List<List<String>>> aStringWeirdListWeirdList;
+		private final ConfigValue<List<? extends List<String>>> aStringListOldList;
 
 		private final ConfigValue<Boolean> aBooleanInList;
 		private final ConfigValue<Byte> aByteInList;
@@ -223,6 +311,26 @@ public class TestConfig {
 		private final ConfigValue<Config> aConfigInList;
 		private final ConfigValue<List<String>> aStringListInList;
 
+		private final ConfigValue<Config> aBooleanConfig;
+		private final ConfigValue<Config> aByteConfig;
+		private final ConfigValue<Config> anIntegerConfig;
+		private final ConfigValue<Config> aFloatConfig;
+		private final ConfigValue<Config> aLongConfig;
+		private final ConfigValue<Config> aDoubleConfig;
+		private final ConfigValue<Config> anEnumConfig;
+		private final ConfigValue<Config> aStringConfig;
+		private final ConfigValue<Config> aLocalTimeConfig;
+		private final ConfigValue<Config> aLocalDateConfig;
+		private final ConfigValue<Config> aLocalDateTimeConfig;
+		private final ConfigValue<Config> anOffsetDateTimeConfig;
+		private final ConfigValue<Config> aConfigConfig;
+
+		// 10x List
+		private final ConfigValue<List<List<List<List<List<List<List<List<List<List<String>>>>>>>>>>> aVeryNestedStringList;
+		// 10x Config
+		private final ConfigValue<Config> aVeryNestedStringConfig;
+		private final ConfigValue<String> aPathDefinedString;
+
 		private final BooleanValue category0_aBoolean;
 		private final IntValue category0_anInt;
 
@@ -235,7 +343,7 @@ public class TestConfig {
 					.comment("a Boolean")
 					.translation("aBoolean")
 					.worldRestart()
-					.define("aBoolean", false);
+					.define("aBoolean", true);
 
 			aByte = builder
 					.comment("a Byte")
@@ -302,10 +410,10 @@ public class TestConfig {
 			aConfig = builder
 					.comment("a Config")
 					.translation("aConfig")
-					.define("aConfig", TomlFormat.instance().createConfig());
+					.define("aConfig", newConfig(true, "hello", 0));
 
-			builder.push("lists");
-			builder.comment("List tests");
+			builder.comment("List tests")
+					.push("lists");
 			{
 				aBooleanList = builder
 						.comment("a BooleanList")
@@ -372,22 +480,104 @@ public class TestConfig {
 				aConfigList = builder
 						.comment("a ConfigList")
 						.translation("aConfigList")
-						.define("aConfigList", Lists.newArrayList(TomlFormat.instance().createConfig(), TomlFormat.instance().createConfig(), TomlFormat.instance().createConfig(), TomlFormat.instance().createConfig()));
+						.define("aConfigList", Lists.newArrayList(newConfig("foo"), newConfig("bar"), newConfig("baz"), newConfig("fuz")));
+
+				aStringWeirdList = builder
+						.comment("a StringWeirdList")
+						.translation("aStringWeirdList")
+						.define("aStringWeirdList", Arrays.asList("aStringWeirdList_value0", "aStringWeirdList_value1"));
 
 				aStringListOld = builder
 						.comment("a StringListOld")
 						.translation("aStringListOld")
 						.defineList("aStringListOld", Lists.newArrayList("aStringListOld_value0", "aStringListOld_value1"), o -> o instanceof String);
+			}
+			builder.pop();
+
+			builder.comment("Nested List tests")
+					.push("nestedlists");
+			{
+				aBooleanListList = builder
+						.comment("a BooleanList")
+						.translation("aBooleanList")
+						.define("aBooleanList", Lists.newArrayList(Lists.newArrayList(true, false), Lists.newArrayList(true, false), Lists.newArrayList(true, false)));
+
+				aByteListList = builder
+						.comment("a ByteList")
+						.translation("aByteList")
+						.define("aByteList", Lists.newArrayList(Lists.newArrayList((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 256), Lists.newArrayList((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 256), Lists.newArrayList((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 256)));
+
+				anIntegerListList = builder
+						.comment("an IntegerList")
+						.translation("anIntegerList")
+						.define("anIntegerList", Lists.newArrayList(Lists.newArrayList(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 256), Lists.newArrayList(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 256), Lists.newArrayList(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 256)));
+
+				aFloatListList = builder
+						.comment("a FloatList")
+						.translation("aFloatList")
+						.define("aFloatList", Lists.newArrayList(Lists.newArrayList(0F, Float.MIN_VALUE, Float.MAX_VALUE, 256F), Lists.newArrayList(0F, Float.MIN_VALUE, Float.MAX_VALUE, 256F), Lists.newArrayList(0F, Float.MIN_VALUE, Float.MAX_VALUE, 256F)));
+
+				aLongListList = builder
+						.comment("a LongList")
+						.translation("aLongList")
+						.define("aLongList", Lists.newArrayList(Lists.newArrayList(0L, Long.MIN_VALUE, Long.MAX_VALUE, 256L), Lists.newArrayList(0L, Long.MIN_VALUE, Long.MAX_VALUE, 256L), Lists.newArrayList(0L, Long.MIN_VALUE, Long.MAX_VALUE, 256L)));
+
+				aDoubleListList = builder
+						.comment("a DoubleList")
+						.translation("aDoubleList")
+						.define("aDoubleList", Lists.newArrayList(Lists.newArrayList(0d, Double.MIN_VALUE, Double.MAX_VALUE, 256d), Lists.newArrayList(0d, Double.MIN_VALUE, Double.MAX_VALUE, 256d), Lists.newArrayList(0d, Double.MIN_VALUE, Double.MAX_VALUE, 256d)));
+
+				anEnumListList = builder
+						.comment("an EnumList")
+						.translation("anEnumList")
+						.define("anEnumList", Lists.newArrayList(Lists.newArrayList(DyeColor.BLACK, DyeColor.GREEN, DyeColor.CYAN, DyeColor.RED), Lists.newArrayList(DyeColor.BLACK, DyeColor.GREEN, DyeColor.CYAN, DyeColor.RED), Lists.newArrayList(DyeColor.BLACK, DyeColor.GREEN, DyeColor.CYAN, DyeColor.RED)));
 
 				aStringListList = builder
 						.comment("a StringListList")
 						.translation("aStringListList")
-						.define("aStringListList", Lists.newArrayList(Lists.newArrayList("Hello"), Lists.newArrayList("World")));
+						.define("aStringListList", Lists.newArrayList(Lists.newArrayList("Hello", "World!"), Lists.newArrayList("World", "Hello")));
+
+				// Negative years or years that have less/more than 4 digits break toml's parser
+
+				aLocalTimeListList = builder
+						.comment("a LocalTimeList")
+						.translation("aLocalTimeList")
+						.define("aLocalTimeList", Lists.newArrayList(Lists.newArrayList(LocalTime.of(0, 0, 0), LocalTime.of(23, 59, 59)), Lists.newArrayList(LocalTime.of(0, 0, 0), LocalTime.of(23, 59, 59)), Lists.newArrayList(LocalTime.of(0, 0, 0), LocalTime.of(23, 59, 59))));
+
+				aLocalDateListList = builder
+						.comment("a LocalDateList")
+						.translation("aLocalDateList")
+						.define("aLocalDateList", Lists.newArrayList(Lists.newArrayList(LocalDate.of(1999, 1, 1), LocalDate.of(2000, 1, 1)), Lists.newArrayList(LocalDate.of(1999, 1, 1), LocalDate.of(2000, 1, 1)), Lists.newArrayList(LocalDate.of(1999, 1, 1), LocalDate.of(2000, 1, 1))));
+
+				aLocalDateTimeListList = builder
+						.comment("a LocalDateTimeList")
+						.translation("aLocalDateTimeList")
+						.define("aLocalDateTimeList", Lists.newArrayList(Lists.newArrayList(LocalDateTime.of(1999, 1, 1, 10, 0), LocalDateTime.of(2000, 1, 1, 23, 59)), Lists.newArrayList(LocalDateTime.of(1999, 1, 1, 10, 0), LocalDateTime.of(2000, 1, 1, 23, 59)), Lists.newArrayList(LocalDateTime.of(1999, 1, 1, 10, 0), LocalDateTime.of(2000, 1, 1, 23, 59))));
+
+				anOffsetDateTimeListList = builder
+						.comment("an OffsetDateTimeList")
+						.translation("anOffsetDateTimeList")
+						.define("anOffsetDateTimeList", Lists.newArrayList(Lists.newArrayList(OffsetDateTime.now(), OffsetDateTime.now(ZoneOffset.UTC)), Lists.newArrayList(OffsetDateTime.now(), OffsetDateTime.now(ZoneOffset.UTC)), Lists.newArrayList(OffsetDateTime.now(), OffsetDateTime.now(ZoneOffset.UTC))));
+
+				aConfigListList = builder
+						.comment("a ConfigList")
+						.translation("aConfigList")
+						.define("aConfigList", Lists.newArrayList(Lists.newArrayList(newConfig("foo"), newConfig("bar"), newConfig("baz"), newConfig("lumen")), Lists.newArrayList(newConfig("F"), newConfig("O"), newConfig("O"), newConfig("B")), Lists.newArrayList(newConfig("A"), newConfig("R"), newConfig("Baz"), newConfig("Im not very inventive in my testing stuff naming sorry"))));
+
+				aStringWeirdListWeirdList = builder
+						.comment("a StringWeirdListWeirdList")
+						.translation("aStringWeirdListWeirdList")
+						.define("aStringWeirdListWeirdList", Arrays.asList(Arrays.asList("aStringWeirdListWeirdList_value0", "aStringWeirdListWeirdList_value1"), Arrays.asList("aStringWeirdListWeirdList_value0", "aStringWeirdListWeirdList_value1"), Arrays.asList("aStringWeirdListWeirdList_value0", "aStringWeirdListWeirdList_value1")));
+
+				aStringListOldList = builder
+						.comment("a StringListOld")
+						.translation("aStringListOld")
+						.defineList("aStringListOld", newList(newList("aStringListOld_value0", "aStringListOld_value1"), newList("aStringListOld_value0", "aStringListOld_value1"), newList("aStringListOld_value0", "aStringListOld_value1")), o -> o instanceof List || o instanceof String);
 			}
 			builder.pop();
 
-			builder.push("inLists");
-			builder.comment("In List tests");
+			builder.comment("In List tests")
+					.push("inLists");
 			{
 				aBooleanInList = builder
 						.comment("a BooleanInList")
@@ -407,7 +597,7 @@ public class TestConfig {
 				aFloatInList = builder
 						.comment("a FloatInList")
 						.translation("aFloatInList")
-						.defineInList("aFloatInList", 256F,  Lists.newArrayList(0F, Float.MIN_VALUE, Float.MAX_VALUE, 256F));
+						.defineInList("aFloatInList", 256F, Lists.newArrayList(0F, Float.MIN_VALUE, Float.MAX_VALUE, 256F));
 
 				aLongInList = builder
 						.comment("a LongInList")
@@ -444,18 +634,18 @@ public class TestConfig {
 				aLocalDateTimeInList = builder
 						.comment("a LocalDateTimeInList")
 						.translation("aLocalDateTimeInList")
-						.defineInList("aLocalDateTimeInList",LocalDateTime.of(1999, 1, 1, 10, 0), Lists.newArrayList(LocalDateTime.of(1999, 1, 1, 10, 0), LocalDateTime.of(2000, 1, 1, 23, 59)));
+						.defineInList("aLocalDateTimeInList", LocalDateTime.of(1999, 1, 1, 10, 0), Lists.newArrayList(LocalDateTime.of(1999, 1, 1, 10, 0), LocalDateTime.of(2000, 1, 1, 23, 59)));
 
 				anOffsetDateTimeInList = builder
 						.comment("an OffsetDateTimeInList")
 						.translation("anOffsetDateTimeInList")
 						.defineInList("anOffsetDateTimeInList", OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+11:00")), Lists.newArrayList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+11:00")), OffsetDateTime.now(), OffsetDateTime.now(ZoneOffset.UTC)));
 
-				final CommentedConfig config = TomlFormat.instance().createConfig();
+				final CommentedConfig config = newConfig("defaultValue yay :D");
 				aConfigInList = builder
 						.comment("a ConfigInList")
 						.translation("aConfigInList")
-						.defineInList("aConfigInList", config, Lists.newArrayList(config, TomlFormat.instance().createConfig(), TomlFormat.instance().createConfig(), TomlFormat.instance().createConfig()));
+						.defineInList("aConfigInList", config, Lists.newArrayList(config, newConfig(1111, 2222, 3333, 4444), newConfig("How is this going to work???"), newConfig("erm.....")));
 
 				aStringListInList = builder
 						.comment("a StringListInList")
@@ -464,14 +654,104 @@ public class TestConfig {
 			}
 			builder.pop();
 
-			builder.push("category0");
-			builder.comment("Category0 configuration settings");
+			builder.comment("Config tests")
+					.push("configs");
+			{
+				aBooleanConfig = builder
+						.comment("a BooleanConfig")
+						.translation("aBooleanConfig")
+						.define("aBooleanConfig", newConfig(true, false));
+
+				aByteConfig = builder
+						.comment("a ByteConfig")
+						.translation("aByteConfig")
+						.define("aByteConfig", newConfig((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 256));
+
+				anIntegerConfig = builder
+						.comment("an IntegerConfig")
+						.translation("anIntegerConfig")
+						.define("anIntegerConfig", newConfig(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 256));
+
+				aFloatConfig = builder
+						.comment("a FloatConfig")
+						.translation("aFloatConfig")
+						.define("aFloatConfig", newConfig(0F, Float.MIN_VALUE, Float.MAX_VALUE, 256F));
+
+				aLongConfig = builder
+						.comment("a LongConfig")
+						.translation("aLongConfig")
+						.define("aLongConfig", newConfig(0L, Long.MIN_VALUE, Long.MAX_VALUE, 256L));
+
+				aDoubleConfig = builder
+						.comment("a DoubleConfig")
+						.translation("aDoubleConfig")
+						.define("aDoubleConfig", newConfig(0d, Double.MIN_VALUE, Double.MAX_VALUE, 256d));
+
+				anEnumConfig = builder
+						.comment("an EnumConfig")
+						.translation("anEnumConfig")
+						.define("anEnumConfig", newConfig(DyeColor.BLACK, DyeColor.GREEN, DyeColor.CYAN, DyeColor.RED));
+
+				aStringConfig = builder
+						.comment("a StringConfig")
+						.translation("aStringConfig")
+						.define("aStringConfig", newConfig("aStringConfig_value0", "aStringConfig_value1"));
+
+				// Negative years or years that have less/more than 4 digits break toml's parser
+
+				aLocalTimeConfig = builder
+						.comment("a LocalTimeConfig")
+						.translation("aLocalTimeConfig")
+						.define("aLocalTimeConfig", newConfig(LocalTime.of(0, 0, 0), LocalTime.of(23, 59, 59)));
+
+				aLocalDateConfig = builder
+						.comment("a LocalDateConfig")
+						.translation("aLocalDateConfig")
+						.define("aLocalDateConfig", newConfig(LocalDate.of(1999, 1, 1), LocalDate.of(2000, 1, 1)));
+
+				aLocalDateTimeConfig = builder
+						.comment("a LocalDateTimeConfig")
+						.translation("aLocalDateTimeConfig")
+						.define("aLocalDateTimeConfig", newConfig(LocalDateTime.of(1999, 1, 1, 10, 0), LocalDateTime.of(2000, 1, 1, 23, 59)));
+
+				anOffsetDateTimeConfig = builder
+						.comment("an OffsetDateTimeConfig")
+						.translation("anOffsetDateTimeConfig")
+						.define("anOffsetDateTimeConfig", newConfig(OffsetDateTime.now(), OffsetDateTime.now(ZoneOffset.UTC)));
+
+				aConfigConfig = builder
+						.comment("a ConfigConfig")
+						.translation("aConfigConfig")
+						.define("aConfigConfig", newConfig(newConfig(true, false), newConfig("hello", "world"), newConfig(Lists.newArrayList("Hello!!!", "World___"), Lists.newArrayList("Hello______!!!", "World__!!_!!")), newConfig("foo")));
+			}
+			builder.pop();
+
+			aVeryNestedStringList = builder
+					.comment("a very nested string list (10x Lists)")
+					.translation("aVeryNestedStringList")
+					// 10x List
+					.define("aVeryNestedStringList", newList(newList(newList(newList(newList(newList(newList(newList(newList(newList("Hello Lists!")))))))))));
+
+
+			aVeryNestedStringConfig = builder
+					.comment("a very nested string config (10x Configs)")
+					.translation("aVeryNestedStringConfig")
+					// 10x Config
+					.define("aVeryNestedStringConfig", newConfig(newConfig(newConfig(newConfig(newConfig(newConfig(newConfig(newConfig(newConfig(newList("Hello Configs!")))))))))));
+
+			aPathDefinedString = builder
+					.comment("a pathDefinedString")
+					.translation("aPathDefinedString")
+					.define("aPathDefinedString0.aPathDefinedString1.aPathDefinedString2", "Did this work?");
+
+			builder.comment("Category0 configuration settings")
+					.push("category0");
 			{
 				category0_aBoolean = builder
 						.comment("category0 > a Boolean")
 						.translation("category0_aBoolean")
 						.worldRestart()
-						.define("category0_aBoolean", false);
+						.define("category0_aBoolean", true);
 
 				category0_anInt = builder
 						.comment("category0 > an Int")
@@ -479,14 +759,14 @@ public class TestConfig {
 						.worldRestart()
 						.defineInRange("category0_anInt", 10, 0, 100);
 
-				builder.push("category1");
-				builder.comment("Category0 > category1 configuration settings");
+				builder.comment("Category0 > category1 configuration settings")
+						.push("category1");
 				{
 					category0_category1_aBoolean = builder
 							.comment("category0 > category1 a Boolean")
 							.translation("category0_category1_aBoolean")
 							.worldRestart()
-							.define("category0_category1_aBoolean", false);
+							.define("category0_category1_aBoolean", true);
 
 					category0_category1_anInt = builder
 							.comment("category0 > category1 > an Int")
@@ -497,6 +777,14 @@ public class TestConfig {
 				builder.pop();
 			}
 			builder.pop();
+		}
+
+		@SafeVarargs
+		private static <T> CommentedConfig newConfig(final T... elements) {
+			final CommentedConfig config = TomlFormat.newConfig();
+			for (final T element : elements)
+				config.add(Integer.toString(element.hashCode()), element);
+			return config;
 		}
 
 	}

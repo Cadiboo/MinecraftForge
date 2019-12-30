@@ -1,22 +1,25 @@
 package net.minecraftforge.fml.client.config.element;
 
+import net.minecraft.client.resources.I18n;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.DummyConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.InfoTextConfigListEntry;
 
 import javax.annotation.Nullable;
 
 /**
  * @author Cadiboo
  */
-public class DummyConfigElement<T> implements IConfigElement<T> {
+public class InfoTextConfigElement<T> implements IConfigElement<T> {
 
 	private final String label;
+	private final String translationKey;
 
-	public DummyConfigElement(final String label) {
-		this.label = label;
+	public InfoTextConfigElement(final String translationKey) {
+		this.translationKey = translationKey;
+		this.label = I18n.format(translationKey);
 	}
 
 	@Override
@@ -26,7 +29,7 @@ public class DummyConfigElement<T> implements IConfigElement<T> {
 
 	@Override
 	public String getTranslationKey() {
-		return label;
+		return translationKey;
 	}
 
 	@Override
@@ -87,7 +90,7 @@ public class DummyConfigElement<T> implements IConfigElement<T> {
 
 	@Override
 	public ConfigListEntry<T> makeConfigListEntry(final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListWidget) {
-		return new DummyConfigListEntry<>(configScreen, this.getLabel());
+		return new InfoTextConfigListEntry<>(configScreen, this.getLabel());
 	}
 
 	@Nullable

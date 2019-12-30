@@ -9,22 +9,29 @@ import net.minecraftforge.fml.client.config.GuiButtonExt;
  */
 public class EnumButton<T extends Enum<?>> extends GuiButtonExt implements ConfigListEntryWidget<T> {
 
-	private final WidgetValueReference<T> widgetValueReference;
+	private final Callback<T> callback;
 
-	public EnumButton(final WidgetValueReference<T> widgetValueReference) {
-		this("Enum Button", widgetValueReference);
+	public EnumButton(final Callback<T> callback) {
+		this("Enum", callback);
 	}
 
-	public EnumButton(final String message, final WidgetValueReference<T> widgetValueReference) {
-		super(0, 0, 0, 0, "Enum", button -> {
-			final T currentValue = widgetValueReference.get();
-			final T[] enumConstants = (T[]) currentValue.getClass().getEnumConstants();
-			final T newValue = enumConstants[(currentValue.ordinal() + 1) % enumConstants.length];
-			widgetValueReference.set(newValue);
-			updateTextAndColor(button, widgetValueReference.get());
-		});
-		this.widgetValueReference = widgetValueReference;
-		updateTextAndColor(this, widgetValueReference.get());
+	public EnumButton(final String message, final Callback<T> callback) {
+		super(0, 0, 0, 0, message, button -> nextValue(callback, button, 0));
+		this.callback = callback;
+		updateTextAndColor(this, callback.get());
+	}
+
+	private static <T extends Enum<?>> void nextValue(final Callback<T> callback, final Button button, final int _try) {
+		final T currentValue = callback.get();
+		final T[] enumConstants = (T[]) currentValue.getClass().getEnumConstants();
+		if (_try >= enumConstants.length)
+			return;
+		final T newValue = enumConstants[(currentValue.ordinal() + 1) % enumConstants.length];
+		callback.set(newValue);
+		if (!callback.isValid())
+			nextValue(callback, button, _try + 1);
+		else
+			updateTextAndColor(button, callback.get());
 	}
 
 	public static void updateTextAndColor(final Button button, final Enum<?> newValue) {
@@ -42,8 +49,8 @@ public class EnumButton<T extends Enum<?>> extends GuiButtonExt implements Confi
 	}
 
 	@Override
-	public WidgetValueReference<T> getWidgetValueReference() {
-		return widgetValueReference;
+	public Callback<T> getCallback() {
+		return callback;
 	}
 
 	@Override
@@ -53,7 +60,7 @@ public class EnumButton<T extends Enum<?>> extends GuiButtonExt implements Confi
 
 	@Override
 	public void updateWidgetValue() {
-		updateTextAndColor(this, getWidgetValueReference().get());
+		updateTextAndColor(this, getCallback().get());
 	}
 
 	public interface IColorable {

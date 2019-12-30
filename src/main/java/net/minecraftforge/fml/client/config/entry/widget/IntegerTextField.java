@@ -2,8 +2,12 @@ package net.minecraftforge.fml.client.config.entry.widget;
 
 public class IntegerTextField extends ObjectTextField<Integer> {
 
-	public IntegerTextField(final WidgetValueReference<Integer> widgetValueReference) {
-		super(widgetValueReference);
+	public IntegerTextField(final Callback<Integer> callback) {
+		this("Integer", callback);
+	}
+
+	public IntegerTextField(final String message, final Callback<Integer> callback) {
+		super(message, callback);
 	}
 
 	@Override

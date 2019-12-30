@@ -9,13 +9,13 @@ import net.minecraftforge.fml.client.config.entry.ElementConfigListEntry;
 import javax.annotation.Nullable;
 
 /**
- * Not the actual widget thing. Holds the value of the config thing.
+ * Not the actual widget thing.
+ * Holds the value of the config thing.
+ * The widget updates this value.
  *
  * @author Cadiboo
  */
 public interface IConfigElement<T> {
-
-//	ConfigElementContainer<T> getConfigElementContainer();
 
 	/**
 	 * @return The result of formatting the translation key
@@ -116,7 +116,7 @@ public interface IConfigElement<T> {
 	ConfigListEntry<T> makeConfigListEntry(ConfigScreen configScreen, ConfigEntryListWidget configEntryListWidget);
 
 	/**
-	 * @return If this is backed by a ModConfig or Category
+	 * @return If this is backed by a ModConfig or ConfigCategory
 	 */
 	default boolean isCategory() {
 		return false;

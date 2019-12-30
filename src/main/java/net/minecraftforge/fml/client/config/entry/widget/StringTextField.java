@@ -2,8 +2,12 @@ package net.minecraftforge.fml.client.config.entry.widget;
 
 public class StringTextField extends ObjectTextField<String> {
 
-	public StringTextField(final WidgetValueReference<String> widgetValueReference) {
-		super(widgetValueReference);
+	public StringTextField(final Callback<String> callback) {
+		this("String", callback);
+	}
+
+	public StringTextField(final String message, final Callback<String> callback) {
+		super(message, callback);
 	}
 
 	@Override

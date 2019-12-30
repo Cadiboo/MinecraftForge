@@ -10,15 +10,15 @@ import java.util.function.Function;
  */
 public class NumberSlider<T extends Number & Comparable<? super T>> extends GuiSlider {
 
-	public NumberSlider(final WidgetValueReference<T> widgetValueReference, final Range<T> range, final Function<String, T> parser) {
-		this("Number Slider", widgetValueReference, range, parser);
+	public NumberSlider(final ConfigListEntryWidget.Callback<T> callback, final Range<T> range, final Function<String, T> parser) {
+		this("Number Slider", callback, range, parser);
 	}
 
-	public NumberSlider(final String message, final WidgetValueReference<T> widgetValueReference, final Range<T> range, final Function<String, T> parser) {
-		super(0, 0, message, range.getMin().doubleValue(), range.getMax().doubleValue(), widgetValueReference.get().doubleValue(), b -> {
+	public NumberSlider(final String message, final ConfigListEntryWidget.Callback<T> callback, final Range<T> range, final Function<String, T> parser) {
+		super(0, 0, message, range.getMin().doubleValue(), range.getMax().doubleValue(), callback.get().doubleValue(), b -> {
 		}, s -> {
 			final String string = Double.toString(s.getValue());
-			widgetValueReference.set(parser.apply(string));
+			callback.set(parser.apply(string));
 		});
 	}
 

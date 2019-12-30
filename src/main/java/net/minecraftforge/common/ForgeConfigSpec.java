@@ -244,6 +244,14 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
             return define(split(path), defaultValue);
         }
         public <T> ConfigValue<T> define(List<String> path, T defaultValue) {
+            // Arrays.asList returns a private implementation of List (java.util.Arrays.ArrayList) that does not extend ArrayList (java.util.ArrayList).
+            // By default TOML parses all Lists into ArrayLists (java.util.ArrayList).
+            // Since the list TOML returns is not assignable from Arrays.asList's impl,
+            // `defaultValue.getClass().isAssignableFrom(o.getClass())` will always be false, and the element will
+            // always be incorrect and it will be reset whenever #correct() is called.
+            // This is undesirable so a
+            if (defaultValue.getClass().getName().equals("java.util.Arrays$ArrayList"))
+                return define(path, defaultValue, o -> o != null && defaultValue instanceof List);
             return define(path, defaultValue, o -> o != null && defaultValue.getClass().isAssignableFrom(o.getClass()));
         }
         public <T> ConfigValue<T> define(String path, T defaultValue, Predicate<Object> validator) {
@@ -295,22 +303,60 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
         }
 
         //Object > Limited Value Object
-        public <T> ConfigValue<T> defineInList(String path, T defaultValue, Collection<? extends T> acceptableValues) {
-            return defineInList(split(path), defaultValue, acceptableValues);
+        public <T> ConfigValue<T> defineInList(String path, T defaultValue, Collection<? extends T> allowedValues) {
+            return defineInList(split(path), defaultValue, allowedValues);
         }
-        public <T> ConfigValue<T> defineInList(String path, Supplier<T> defaultSupplier, Collection<? extends T> acceptableValues) {
-            return defineInList(split(path), defaultSupplier, acceptableValues);
+        public <T> ConfigValue<T> defineInList(String path, Supplier<T> defaultSupplier, Collection<? extends T> allowedValues) {
+            return defineInList(split(path), defaultSupplier, allowedValues);
         }
-        public <T> ConfigValue<T> defineInList(List<String> path, T defaultValue, Collection<? extends T> acceptableValues) {
-            return defineInList(path, () -> defaultValue, acceptableValues);
+        public <T> ConfigValue<T> defineInList(List<String> path, T defaultValue, Collection<? extends T> allowedValues) {
+            return defineInList(path, () -> defaultValue, allowedValues);
         }
-        public <T> ConfigValue<T> defineInList(List<String> path, Supplier<T> defaultSupplier, Collection<? extends T> acceptableValues) {
-            context.setComment(ObjectArrays.concat(context.getComment(), "Allowed Values: " + acceptableValues.stream().map(Object::toString).collect(Collectors.joining(", "))));
-            if (acceptableValues.isEmpty())
-                throw new IllegalArgumentException("Must have potential values.");
-            if (!acceptableValues.contains(defaultSupplier.get()))
-                throw new IllegalArgumentException("Potential values must contain the default value.");
-            return define(path, defaultSupplier, acceptableValues::contains);
+        public <T> ConfigValue<T> defineInList(List<String> path, Supplier<T> defaultSupplier, Collection<? extends T> allowedValues) {
+            return defineInList(path, defaultSupplier, allowedValues, Object.class);
+        }
+        public <T> ConfigValue<T> defineInList(List<String> path, Supplier<T> defaultSupplier, Collection<? extends T> allowedValues, Class<?> clazz) {
+            if (allowedValues.isEmpty())
+                throw new IllegalArgumentException("Must have allowed values.");
+            if (!allowedValues.contains(defaultSupplier.get()))
+                throw new IllegalArgumentException("Allowed values must contain the default value.");
+            context.setComment(ObjectArrays.concat(context.getComment(), "Allowed Values: " + allowedValues.stream().map(t -> t instanceof Enum<?>? ((Enum<?>) t).name() : t.toString()).collect(Collectors.joining(", "))));
+            return define(path, defaultSupplier, allowedValues::contains, clazz);
+        }
+        //Object > Limited Value Object (Byte)
+        // Byte needs special handling otherwise it gets read as an Integer and a class cast exception can occur.
+        public ByteValue defineInList(String path, byte defaultValue, Collection<Byte> allowedValues) {
+            return defineInList(split(path), defaultValue, allowedValues);
+        }
+        public ByteValue defineInList(List<String> path, byte defaultValue, Collection<Byte> allowedValues) {
+            final Supplier<Byte> defaultSupplier = () -> defaultValue;
+            return new ByteValue(this, defineInList(path, defaultSupplier, allowedValues, Byte.class).getPath(), defaultSupplier);
+        }
+        //Object > Limited Value Object (Float)
+        // Float needs special handling otherwise it gets read as an Double and a class cast exception can occur.
+        public FloatValue defineInList(String path, float defaultValue, Collection<Float> allowedValues) {
+            return defineInList(split(path), defaultValue, allowedValues);
+        }
+        public FloatValue defineInList(List<String> path, float defaultValue, Collection<Float> allowedValues) {
+            final Supplier<Float> defaultSupplier = () -> defaultValue;
+            return new FloatValue(this, defineInList(path, defaultSupplier, allowedValues, Float.class).getPath(), defaultSupplier);
+        }
+        //Object > Limited Value Object (Long)
+        // Long needs special handling otherwise it gets read as an Integer and a class cast exception can occur.
+        public LongValue defineInList(String path, long defaultValue, Collection<Long> allowedValues) {
+            return defineInList(split(path), defaultValue, allowedValues);
+        }
+        public LongValue defineInList(List<String> path, long defaultValue, Collection<Long> allowedValues) {
+            final Supplier<Long> defaultSupplier = () -> defaultValue;
+            return new LongValue(this, defineInList(path, defaultSupplier, allowedValues, Long.class).getPath(), defaultSupplier);
+        }
+        //Object > Limited Value Object (Enum)
+        // Enum needs special handling otherwise it gets read as a String and a class cast exception can occur.
+        public <V extends Enum<V>> EnumValue<V> defineInList(String path, V defaultValue, Collection<V> allowedValues) {
+            return defineInList(split(path), defaultValue, allowedValues);
+        }
+        public <V extends Enum<V>> EnumValue<V> defineInList(List<String> path, V defaultValue, Collection<V> allowedValues) {
+            return defineEnum(path, defaultValue, allowedValues::contains);
         }
 
         //Object > List
@@ -354,38 +400,38 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
         public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, EnumGetMethod converter) {
             return defineEnum(path, defaultValue, converter, defaultValue.getDeclaringClass().getEnumConstants());
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, V defaultValue, @SuppressWarnings("unchecked") V... acceptableValues) {
-            return defineEnum(split(path), defaultValue, acceptableValues);
+        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, V defaultValue, @SuppressWarnings("unchecked") V... allowedValues) {
+            return defineEnum(split(path), defaultValue, allowedValues);
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, V defaultValue, EnumGetMethod converter, @SuppressWarnings("unchecked") V... acceptableValues) {
-            return defineEnum(split(path), defaultValue, converter, acceptableValues);
+        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, V defaultValue, EnumGetMethod converter, @SuppressWarnings("unchecked") V... allowedValues) {
+            return defineEnum(split(path), defaultValue, converter, allowedValues);
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, @SuppressWarnings("unchecked") V... acceptableValues) {
-            return defineEnum(path, defaultValue, (Collection<V>) Arrays.asList(acceptableValues));
+        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, @SuppressWarnings("unchecked") V... allowedValues) {
+            return defineEnum(path, defaultValue, (Collection<V>) Arrays.asList(allowedValues));
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, EnumGetMethod converter, @SuppressWarnings("unchecked") V... acceptableValues) {
-            return defineEnum(path, defaultValue, converter, Arrays.asList(acceptableValues));
+        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, EnumGetMethod converter, @SuppressWarnings("unchecked") V... allowedValues) {
+            return defineEnum(path, defaultValue, converter, Arrays.asList(allowedValues));
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, V defaultValue, Collection<V> acceptableValues) {
-            return defineEnum(split(path), defaultValue, acceptableValues);
+        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, V defaultValue, Collection<V> allowedValues) {
+            return defineEnum(split(path), defaultValue, allowedValues);
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, V defaultValue, EnumGetMethod converter, Collection<V> acceptableValues) {
-            return defineEnum(split(path), defaultValue, converter, acceptableValues);
+        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, V defaultValue, EnumGetMethod converter, Collection<V> allowedValues) {
+            return defineEnum(split(path), defaultValue, converter, allowedValues);
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, Collection<V> acceptableValues) {
-            return defineEnum(path, defaultValue, EnumGetMethod.NAME_IGNORECASE, acceptableValues);
+        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, Collection<V> allowedValues) {
+            return defineEnum(path, defaultValue, EnumGetMethod.NAME_IGNORECASE, allowedValues);
         }
         @SuppressWarnings("unchecked")
-        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, EnumGetMethod converter, Collection<V> acceptableValues) {
+        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, EnumGetMethod converter, Collection<V> allowedValues) {
             return defineEnum(path, defaultValue, converter, obj -> {
                 if (obj instanceof Enum) {
-                    return acceptableValues.contains(obj);
+                    return allowedValues.contains(obj);
                 }
                 if (obj == null) {
                     return false;
                 }
                 try {
-                    return acceptableValues.contains(converter.get(obj, defaultValue.getClass()));
+                    return allowedValues.contains(converter.get(obj, defaultValue.getClass()));
                 } catch (IllegalArgumentException | ClassCastException e) {
                     return false;
                 }
@@ -415,7 +461,7 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
         public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, Supplier<V> defaultSupplier, EnumGetMethod converter, Predicate<Object> validator, Class<V> clazz) {
             context.setClazz(clazz);
             V[] allowedValues = clazz.getEnumConstants();
-            context.setComment(ObjectArrays.concat(context.getComment(), "Allowed Values: " + Arrays.stream(allowedValues).map(Enum::name).collect(Collectors.joining(", "))));
+            context.setComment(ObjectArrays.concat(context.getComment(), "Allowed Values: " + Arrays.stream(allowedValues).filter(validator).map(Enum::name).collect(Collectors.joining(", "))));
             return new EnumValue<V>(this, define(path, new ValueSpec(defaultSupplier, validator, context), defaultSupplier).getPath(), defaultSupplier, converter, clazz);
         }
 

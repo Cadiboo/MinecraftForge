@@ -4,8 +4,8 @@ import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
 import net.minecraftforge.fml.client.config.entry.ElementConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.widget.ConfigListEntryWidget;
 import net.minecraftforge.fml.client.config.entry.widget.EnumButton;
-import net.minecraftforge.fml.client.config.entry.widget.WidgetValueReference;
 
 /**
  * @author Cadiboo
@@ -18,8 +18,8 @@ public class EnumConfigElement<T extends Enum<?>> extends ConfigElement<T> {
 
 	@Override
 	public ConfigListEntry<T> makeConfigListEntry(final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListWidget) {
-		final WidgetValueReference<T> widgetValueReference = new WidgetValueReference<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
-		final EnumButton<T> widget = new EnumButton<>(widgetValueReference);
+		final ConfigListEntryWidget.Callback<T> widgetValueReference = new ConfigListEntryWidget.Callback<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
+		final EnumButton<T> widget = new EnumButton<>(getLabel(), widgetValueReference);
 		return new ElementConfigListEntry<>(configScreen, widget, this);
 	}
 

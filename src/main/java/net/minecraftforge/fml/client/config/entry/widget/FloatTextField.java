@@ -2,8 +2,12 @@ package net.minecraftforge.fml.client.config.entry.widget;
 
 public class FloatTextField extends ObjectTextField<Float> {
 
-	public FloatTextField(final WidgetValueReference<Float> widgetValueReference) {
-		super(widgetValueReference);
+	public FloatTextField(final Callback<Float> callback) {
+		this("Float", callback);
+	}
+
+	public FloatTextField(final String message, final Callback<Float> callback) {
+		super(message, callback);
 	}
 
 	@Override

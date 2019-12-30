@@ -2,8 +2,12 @@ package net.minecraftforge.fml.client.config.entry.widget;
 
 public class LongTextField extends ObjectTextField<Long> {
 
-	public LongTextField(final WidgetValueReference<Long> widgetValueReference) {
-		super(widgetValueReference);
+	public LongTextField(final Callback<Long> callback) {
+		this("Long", callback);
+	}
+
+	public LongTextField(final String message, final Callback<Long> callback) {
+		super(message, callback);
 	}
 
 	@Override

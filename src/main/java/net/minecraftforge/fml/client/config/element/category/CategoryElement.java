@@ -1,6 +1,7 @@
-package net.minecraftforge.fml.client.config.element;
+package net.minecraftforge.fml.client.config.element.category;
 
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.fml.client.config.element.IConfigElement;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -9,7 +10,7 @@ import java.util.List;
 /**
  * @author Cadiboo
  */
-public abstract class CategoryConfigElement<T> implements IConfigElement<T> {
+public abstract class CategoryElement<T> implements IConfigElement<T> {
 
 	@Override
 	public boolean isDefault() {
@@ -67,7 +68,7 @@ public abstract class CategoryConfigElement<T> implements IConfigElement<T> {
 	}
 
 	@Override
-	public boolean isValid(final T o) {
+	public boolean isValid(final Object o) {
 		for (final IConfigElement configElement : getConfigElements())
 			if (!configElement.isValid(configElement.get()))
 				return false;

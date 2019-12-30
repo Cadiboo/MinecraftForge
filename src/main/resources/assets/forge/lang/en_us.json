@@ -80,6 +80,12 @@
   "fml.configgui.tooltip.rangeWithDefault": "[range: %s ~ %s, default: %s]",
   "fml.configgui.tooltip.noTooltip": "No tooltip defined.",
   "fml.configgui.tooltip.entryValueInvalid": "This entry's value is not valid!",
+  "fml.configgui.noElements": "No elements",
+  "fml.configgui.list.fixedSize": "Fixed size",
+  "fml.configgui.list.unsupportedTypeUseConfig": "Can't display type %s. Use config file to change this.",
+  "fml.configgui.list.errorForTypeUseConfig": "Error occurred displaying type %s. Use config file to change this.",
+  "fml.configgui.list.nullTypeUseConfig": "Can't display unknown types. Use config file to change this.",
+  "fml.configgui.config.unmodifiable": "Unmodifiable",
 
   "fml.messages.artifactversion.ornotinstalled":"{0,ornull,fml.messages.artifactversion.notinstalled}",
   "fml.messages.artifactversion":"{0,ornull,fml.messages.artifactversion.none}",

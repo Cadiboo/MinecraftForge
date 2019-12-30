@@ -1,4 +1,4 @@
-package net.minecraftforge.fml.client.config.element;
+package net.minecraftforge.fml.client.config.element.category;
 
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.text.ITextComponent;
@@ -7,10 +7,11 @@ import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.ConfigTypesManager;
 import net.minecraftforge.fml.client.config.ElementConfigScreen;
+import net.minecraftforge.fml.client.config.element.IConfigElement;
 import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
 import net.minecraftforge.fml.client.config.entry.ScreenElementConfigListEntry;
+import net.minecraftforge.fml.client.config.entry.widget.ConfigListEntryWidget;
 import net.minecraftforge.fml.client.config.entry.widget.ScreenButton;
-import net.minecraftforge.fml.client.config.entry.widget.WidgetValueReference;
 import net.minecraftforge.fml.config.ModConfig;
 import org.apache.commons.lang3.StringUtils;
 
@@ -23,9 +24,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
+ * Category element for a ModConfig.
+ * Has some hacks because it is a top level element and isn't actually written to/read from the config.
+ * (ModConfig is just a wrapper around the NightConfig library + ForgeConfigSpec)
+ *
  * @author Cadiboo
  */
-public class ModConfigConfigElement extends CategoryConfigElement<ModConfig> {
+public class ModConfigCategoryElement extends CategoryElement<ModConfig> {
 
 	private static final Map<ModConfig.Type, String> COMMENTS;
 	static {
@@ -71,7 +76,7 @@ public class ModConfigConfigElement extends CategoryConfigElement<ModConfig> {
 	private final String comment;
 	private final List<IConfigElement<?>> configElements;
 
-	public ModConfigConfigElement(final ModConfig modConfig) {
+	public ModConfigCategoryElement(final ModConfig modConfig) {
 		this.modConfig = modConfig;
 		final ModConfig.Type type = modConfig.getType();
 		final String str = type.name().toLowerCase();
@@ -128,7 +133,7 @@ public class ModConfigConfigElement extends CategoryConfigElement<ModConfig> {
 
 	@Override
 	public ConfigListEntry<ModConfig> makeConfigListEntry(final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListWidget) {
-		final WidgetValueReference<ModConfig> widgetValueReference = new WidgetValueReference<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
+		final ConfigListEntryWidget.Callback<ModConfig> widgetValueReference = new ConfigListEntryWidget.Callback<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
 		final Screen screen = makeScreen(configScreen, configEntryListWidget);
 		final ScreenButton<ModConfig> widget = new ScreenButton<>(getLabel(), widgetValueReference, screen);
 		return new ScreenElementConfigListEntry<>(configScreen, widget, this);
