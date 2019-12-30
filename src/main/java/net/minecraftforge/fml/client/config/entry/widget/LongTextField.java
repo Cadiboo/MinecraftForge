@@ -1,5 +1,8 @@
 package net.minecraftforge.fml.client.config.entry.widget;
 
+/**
+ * @author Cadiboo
+ */
 public class LongTextField extends ObjectTextField<Long> {
 
 	public LongTextField(final Callback<Long> callback) {

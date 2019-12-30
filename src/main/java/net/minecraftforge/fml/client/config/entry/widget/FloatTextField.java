@@ -1,5 +1,8 @@
 package net.minecraftforge.fml.client.config.entry.widget;
 
+/**
+ * @author Cadiboo
+ */
 public class FloatTextField extends ObjectTextField<Float> {
 
 	public FloatTextField(final Callback<Float> callback) {

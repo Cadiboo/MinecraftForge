@@ -1,5 +1,8 @@
 package net.minecraftforge.fml.client.config.entry.widget;
 
+/**
+ * @author Cadiboo
+ */
 public class IntegerTextField extends ObjectTextField<Integer> {
 
 	public IntegerTextField(final Callback<Integer> callback) {

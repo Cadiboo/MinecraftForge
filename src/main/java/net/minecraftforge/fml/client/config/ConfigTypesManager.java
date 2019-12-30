@@ -59,6 +59,13 @@ import java.util.function.Supplier;
 /**
  * Run away, here be dragons.
  * RUN AWAY!!!
+ * <p>
+ * All the hacks necessary for the ConfigScreen to work.
+ * Handles creating {@link IConfigElement}s and {@link IConfigListEntryWidget}s.
+ * <p>
+ * Lots of unchecked casts, lots of raw uses of generic classes.
+ * <p>
+ * Also has the method for sorting
  *
  * @author Cadiboo
  */
@@ -67,6 +74,8 @@ public class ConfigTypesManager {
 	private static final Function<?, ?> NO_FACTORY = o -> null;
 	private static final Map<Class<?>, Function<ConfigElementContainer<?>, IConfigElement<?>>> CONFIG_ELEMENTS = new HashMap<>();
 	private static final Map<Class<?>, Function<IConfigListEntryWidget.Callback<?>, IConfigListEntryWidget<?>>> WIDGETS = new HashMap<>();
+	private static Comparator<IConfigElement<?>> CONFIG_ELEMENTS_COMPARATOR = null;
+	private static Comparator<?> WIDGETS_COMPARATOR = null;
 
 	static {
 		register();
@@ -137,16 +146,45 @@ public class ConfigTypesManager {
 		registerWidgetFactory(Config.class, callback -> new ConfigButton(((ScreenedCallback) callback).screen, callback));
 		// ModConfig should NEVER be an element in a config list.
 		registerWidgetFactory(ModConfig.class, $ -> new InfoText<>("fml.configgui.list.unsupportedTypeUseConfig", "ModConfig"));
+
+		setElementComparator(Comparator.comparing(IConfigElement::getLabel));
+
+		setWidgetComparator(Comparator.comparing(Widget::getMessage));
 	}
 
+	/**
+	 * Registers a factory for making config elements for the specific class.
+	 */
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	public static <E> void registerElementFactory(final Class<E> clazz, final Function<ConfigElementContainer<E>, IConfigElement<E>> factory) {
 		CONFIG_ELEMENTS.put(clazz, (Function) factory);
 	}
 
+	/**
+	 * Registers a factory for making widgets for the specific class.
+	 *
+	 * @param <C> The type of the class
+	 * @param <W> The type of the widget
+	 */
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	public static <C, W extends Widget & IConfigListEntryWidget<C>> void registerWidgetFactory(final Class<C> clazz, final Function<IConfigListEntryWidget.Callback<C>, W> factory) {
 		WIDGETS.put(clazz, (Function) factory);
+	}
+
+	/**
+	 * Set the comparator that will be used to sort lists of config elements before displaying them on the screen.
+	 */
+	public static void setElementComparator(final Comparator<IConfigElement<?>> comparator) {
+		CONFIG_ELEMENTS_COMPARATOR = comparator;
+	}
+
+	/**
+	 * Set the comparator that will be used to sort lists of widgets before displaying them on the screen.
+	 *
+	 * @param <W> The type of the widget
+	 */
+	public static <W extends Widget & IConfigListEntryWidget<?>> void setWidgetComparator(final Comparator<W> comparator) {
+		WIDGETS_COMPARATOR = comparator;
 	}
 
 	/**
@@ -216,7 +254,7 @@ public class ConfigTypesManager {
 		Function<IConfigListEntryWidget.Callback<?>, IConfigListEntryWidget<?>> factory = recursiveGetFactory(clazz, clazz, (Map) WIDGETS);
 		if (factory != null && factory != NO_FACTORY) {
 			try {
-				// TODO: do these indices better?
+				// TODO: Do these indices better? What about duplicate values? Pass in index as param?
 				AtomicReference<Object> atomicReference = new AtomicReference<>();
 				atomicReference.set(obj);
 				Supplier getter = () -> list.get(list.indexOf(atomicReference.get()));
@@ -290,9 +328,9 @@ public class ConfigTypesManager {
 			}
 		}
 		if (factory == null)
-			factories.put(clazz, NO_FACTORY);
+			factories.put(clazz, NO_FACTORY); // A factory does NOT exist, avoid checking hierarchy as extensively in the future.
 		else
-			factories.put(originalClass, factory);
+			factories.put(originalClass, factory); // A factory DOES exist, avoid checking the class' entire hierarchy in the future.
 		return (T) factory;
 	}
 
@@ -366,13 +404,17 @@ public class ConfigTypesManager {
 	}
 
 	public static void sortElements(final List<IConfigElement<?>> configElements) {
-		configElements.sort(Comparator.comparing(IConfigElement::getLabel));
+		configElements.sort(CONFIG_ELEMENTS_COMPARATOR);
 	}
 
 	public static <W extends Widget & IConfigListEntryWidget<?>> void sortWidgets(final List<W> widgets) {
 		widgets.sort(Comparator.comparing(Widget::getMessage));
 	}
 
+	/**
+	 *
+	 * @param <T>
+	 */
 	public static class ScreenedCallback<T> extends IConfigListEntryWidget.Callback<T> {
 
 		public final ConfigScreen screen;

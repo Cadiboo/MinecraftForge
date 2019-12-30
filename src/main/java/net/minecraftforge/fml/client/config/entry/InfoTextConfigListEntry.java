@@ -4,6 +4,8 @@ import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.entry.widget.InfoText;
 
 /**
+ * A dummy ConfigListEntry that just displays text (Usually error text) and does nothing else.
+ *
  * @author Cadiboo
  */
 public class InfoTextConfigListEntry<T> extends ConfigListEntry<T> {

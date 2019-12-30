@@ -2,7 +2,6 @@ package net.minecraftforge.fml.client.config.element;
 
 import net.minecraft.client.resources.I18n;
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
 import net.minecraftforge.fml.client.config.entry.InfoTextConfigListEntry;
@@ -10,6 +9,8 @@ import net.minecraftforge.fml.client.config.entry.InfoTextConfigListEntry;
 import javax.annotation.Nullable;
 
 /**
+ * A dummy IConfigElement that just displays text (Usually error text) and does nothing else.
+ *
  * @author Cadiboo
  */
 public class InfoTextConfigElement<T> implements IConfigElement<T> {

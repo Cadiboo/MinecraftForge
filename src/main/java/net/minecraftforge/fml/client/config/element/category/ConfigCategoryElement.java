@@ -25,7 +25,8 @@ import java.util.Objects;
 import static net.minecraftforge.common.ForgeConfigSpec.DOT_JOINER;
 
 /**
- * Element for a SubCategory (as opposed to a ConfigValue<Config>)
+ * Element for a SubCategory (as opposed to a ConfigValue<Config>).
+ * See the package-info.java for more information.
  *
  * @author Cadiboo
  */

@@ -29,8 +29,7 @@ import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
 import org.lwjgl.opengl.GL11;
 
 /**
- * This class implements the scrolling list functionality of the config GUI screens.
- * It also provides all the default control handlers for the various property types.
+ * This class implements the scrolling list functionality of the ConfigScreen.
  *
  * @author bspkrs
  * @author Cadiboo
@@ -54,6 +53,9 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 	 * Used for rendering all widgets at the same x position
 	 */
 	private int longestLabelWidth;
+	/**
+	 * Exists for dirt background hacks.
+	 */
 	private boolean doHackery = false;
 
 	public ConfigEntryListWidget(final ConfigScreen owningScreen) {
@@ -82,6 +84,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 		this.setFocused(null);
 
 		// Screen#init()
+		// No logic here, all widgets are added by the owningScreen
 	}
 
 	public void setBounds() {
@@ -98,6 +101,9 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 		this.height = this.y1 - this.y0;
 	}
 
+	/**
+	 * @return The width minus the padding (from both sides)
+	 */
 	public int getRowWidth() {
 		return getWidth() - PADDING_X * 2;
 	}
@@ -132,6 +138,9 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 		GL11.glDisable(GL11.GL_SCISSOR_TEST);
 	}
 
+	/**
+	 * Exists for dirt background hacks.
+	 */
 	@Override
 	protected int getScrollbarPosition() {
 		final int right = getRight();
@@ -145,22 +154,28 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 	}
 
 	@Override
-	public boolean mouseClicked(final double p_mouseClicked_1_, final double p_mouseClicked_3_, final int p_mouseClicked_5_) {
+	public boolean mouseClicked(final double mouseX, final double mouseY, final int mouseEvent) {
 		// Unfocus all TextFieldWidgets otherwise their cursor still appears. Vanilla bug that they don't do it themselves?
 		this.children().forEach(configListEntry -> {
 			final Widget widget = configListEntry.getWidget();
 			if (widget instanceof TextFieldWidget)
 				((TextFieldWidget) widget).setFocused2(false);
 		});
-		return super.mouseClicked(p_mouseClicked_1_, p_mouseClicked_3_, p_mouseClicked_5_);
+		return super.mouseClicked(mouseX, mouseY, mouseEvent);
 	}
 
+	/**
+	 * Exists for dirt background hacks.
+	 */
 	@Override
 	protected int getRowLeft() {
 		this.setBounds(); // Revert dirty hack to stop the dirt background from being visible.
 		return super.getRowLeft();
 	}
 
+	/**
+	 * Exists for dirt background hacks.
+	 */
 	@Override
 	protected void renderHoleBackground(final int p_renderHoleBackground_1_, final int p_renderHoleBackground_2_, final int p_renderHoleBackground_3_, final int p_renderHoleBackground_4_) {
 		// No-op We use GLScissors instead of hiding overflow afterwards by rendering over the top
@@ -186,8 +201,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 	}
 
 	/**
-	 * Saves all properties.
-	 * This method returns true if any elements were changed that require a restart for proper handling.
+	 * Saves all entries.
 	 */
 	public void save() {
 		for (ConfigListEntry<?> entry : this.getListEntries())

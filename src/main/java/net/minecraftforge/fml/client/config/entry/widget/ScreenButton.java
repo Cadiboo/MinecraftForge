@@ -2,9 +2,14 @@ package net.minecraftforge.fml.client.config.entry.widget;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 
 /**
+ * Opens a screen when pressed.
+ * Used by Lists ({@link ConfigValue}), Configs ({@link ConfigValue}) and Categories (ModConfigs and Configs).
+ *
  * @author Cadiboo
  */
 public class ScreenButton<T> extends GuiButtonExt implements IConfigListEntryWidget<T> {

@@ -33,8 +33,8 @@ import java.util.List;
 
 /**
  * A config value that can be saved and loaded.
- * A wrapper around a path + {@link ValueSpec} + {@link ModConfig}
- * Pipes get and save through {@link ConfigValue}
+ * A wrapper around a path + {@link ValueSpec} + {@link ModConfig}.
+ * Pipes get and save through {@link ConfigValue}.
  *
  * @author Cadiboo
  */

@@ -14,13 +14,17 @@ import java.util.List;
 import java.util.function.Predicate;
 
 /**
+ * A ConfigScreen for a Config (ConfigValue).
+ *
  * @author Cadiboo
  */
 public class ConfigConfigScreen extends ConfigScreen {
 
 	private final IConfigListEntryWidget.Callback<Config> callback;
 
+	// Original is used as the value for resetToDefault
 	private final Config original;
+	// Clone is used for everything else
 	private final Config clone;
 	private final boolean isUnmodifiable;
 
@@ -32,14 +36,16 @@ public class ConfigConfigScreen extends ConfigScreen {
 		if (this.original instanceof AbstractConfig)
 			this.clone = ((AbstractConfig) original).clone();
 		else
-			throw new IllegalStateException("I don't know what to do here");
+			throw new IllegalStateException("Could not clone Config");
 		this.callback.set(clone);
 
 	}
 
-	private static boolean isUnmodifiable(final Config original) {
+	public static boolean isUnmodifiable(final Config original) {
 		// Yeah... what? Config extends UnmodifiableConfig.
 		// Maybe I should accept UnmodifiableConfig instead of Config as params?
+		// Looks like the config passed in is never unmodifiable though, which makes
+		// sense as this is a gui for modifying configs.
 		return !(original instanceof Config);
 	}
 

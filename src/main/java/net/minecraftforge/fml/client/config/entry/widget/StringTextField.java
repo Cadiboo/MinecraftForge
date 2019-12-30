@@ -1,5 +1,8 @@
 package net.minecraftforge.fml.client.config.entry.widget;
 
+/**
+ * @author Cadiboo
+ */
 public class StringTextField extends ObjectTextField<String> {
 
 	public StringTextField(final Callback<String> callback) {

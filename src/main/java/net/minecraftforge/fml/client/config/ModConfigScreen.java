@@ -1,7 +1,6 @@
 package net.minecraftforge.fml.client.config;
 
 import com.google.common.util.concurrent.Runnables;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
@@ -17,6 +16,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * ConfigScreen that displays a list of {@link ModConfigCategoryElement}s for each ModConfig that the mod has.
+ *
  * @author Cadiboo
  */
 public class ModConfigScreen extends ElementConfigScreen {
@@ -31,6 +32,7 @@ public class ModConfigScreen extends ElementConfigScreen {
 	 *
 	 * @param modContainer The ModContainer to possibly register a config gui factory for
 	 * @return The runnable
+	 * @see ModContainer#addConfig(ModConfig)
 	 */
 	@SuppressWarnings("UnstableApiUsage") // Runnables is marked as unstable
 	public static Runnable makeConfigGuiExtensionPoint(final ModContainer modContainer) {

@@ -1,5 +1,8 @@
 package net.minecraftforge.fml.client.config.entry.widget;
 
+/**
+ * @author Cadiboo
+ */
 public class DoubleTextField extends ObjectTextField<Double> {
 
 	public DoubleTextField(final Callback<Double> callback) {

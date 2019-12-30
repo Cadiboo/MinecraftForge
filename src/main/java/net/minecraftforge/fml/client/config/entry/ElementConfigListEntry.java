@@ -27,10 +27,11 @@ import static net.minecraftforge.fml.client.config.GuiUtils.RESET_CHAR;
 import static net.minecraftforge.fml.client.config.GuiUtils.UNDO_CHAR;
 
 /**
- * Provides a base entry for others to extend.
- * Handles drawing the prop label (if drawLabel == true) and the Undo/Default buttons.
+ * A ConfigListEntry for an {@link IConfigElement}
+ * Has the undo changes and reset to default buttons on the right.
+ * Also handles rendering the label (only if renderLabel == true).
  *
- * @param <T> The type of the config object. For example Boolean or Float
+ * @param <T> The type of the config object (e.g. Boolean/Float).
  */
 public class ElementConfigListEntry<T> extends ConfigListEntry<T> {
 

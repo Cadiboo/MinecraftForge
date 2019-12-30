@@ -2,6 +2,7 @@ package net.minecraftforge.fml.client.config.entry;
 
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.resources.I18n;
+import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 import net.minecraftforge.fml.client.config.HoverChecker;
@@ -15,6 +16,10 @@ import java.util.List;
 import static net.minecraftforge.fml.client.config.GuiUtils.UNDO_CHAR;
 
 /**
+ * A ConfigListEntry for a List ({@link ConfigValue})
+ * Has the undo changes, add entry below and remove entry buttons on the right.
+ *
+ * @param <T> The type of the config object (e.g. Boolean/Float).
  * @author Cadiboo
  */
 public abstract class ListConfigListEntry<T> extends ConfigListEntry<T> {

@@ -1,5 +1,8 @@
 package net.minecraftforge.fml.client.config.entry.widget;
 
+/**
+ * @author Cadiboo
+ */
 public class ByteTextField extends ObjectTextField<Byte> {
 
 	public ByteTextField(final Callback<Byte> callback) {

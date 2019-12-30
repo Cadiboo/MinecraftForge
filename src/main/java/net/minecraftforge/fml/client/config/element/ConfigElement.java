@@ -6,6 +6,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
+ * Default implementation of IConfigElement.
+ * Pipes all calls to its {@link ConfigElementContainer}.
+ *
+ * @param <T> Type type of the element (e.g Boolean/Float)
  * @author Cadiboo
  */
 public abstract class ConfigElement<T> implements IConfigElement<T> {

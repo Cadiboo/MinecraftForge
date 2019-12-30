@@ -6,6 +6,8 @@ import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.resources.I18n;
 
 /**
+ * A dummy Widget & IConfigListEntryWidget that just displays text (Usually error text) and does nothing else.
+ *
  * @author Cadiboo
  */
 public class InfoText<T> extends Widget implements IConfigListEntryWidget<T> {
@@ -19,6 +21,10 @@ public class InfoText<T> extends Widget implements IConfigListEntryWidget<T> {
 	@Override
 	public Callback<T> getCallback() {
 		return null;
+	}
+
+	@Override
+	public void renderToolTip(final int mouseX, final int mouseY, final float partialTicks) {
 	}
 
 	@Override
@@ -67,11 +73,6 @@ public class InfoText<T> extends Widget implements IConfigListEntryWidget<T> {
 		Minecraft minecraft = Minecraft.getInstance();
 		FontRenderer fontrenderer = minecraft.fontRenderer;
 		this.drawCenteredString(fontrenderer, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, 0xFF_FF_00_00);
-	}
-
-	@Override
-	public void renderToolTip(final int mouseX, final int mouseY, final float partialTicks) {
-
 	}
 
 }

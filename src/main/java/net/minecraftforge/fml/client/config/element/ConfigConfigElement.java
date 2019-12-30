@@ -2,6 +2,7 @@ package net.minecraftforge.fml.client.config.element;
 
 import com.electronwill.nightconfig.core.Config;
 import net.minecraftforge.fml.client.config.ConfigScreen;
+import net.minecraftforge.fml.client.config.element.category.CategoryElement;
 import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
 import net.minecraftforge.fml.client.config.entry.ScreenElementConfigListEntry;
 import net.minecraftforge.fml.client.config.entry.widget.ConfigButton;
@@ -12,6 +13,7 @@ import net.minecraftforge.fml.client.config.entry.widget.ScreenButton;
  * Config Element for a ConfigValue<Config> (as opposed to a category)
  *
  * @author Cadiboo
+ * @see CategoryElement
  */
 public class ConfigConfigElement extends ConfigElement<Config> {
 

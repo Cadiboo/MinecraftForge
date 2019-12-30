@@ -25,7 +25,9 @@ public class ListConfigScreen<T extends List<?>> extends ConfigScreen {
 
 	private final IConfigListEntryWidget.Callback<T> callback;
 
+	// Original is used as the value for resetToDefault
 	private final T original;
+	// Clone is used for everything else
 	private final T clone;
 	private final boolean isFixedSize;
 	@Nullable
@@ -48,7 +50,8 @@ public class ListConfigScreen<T extends List<?>> extends ConfigScreen {
 	}
 
 	public static boolean isFixedSize(@Nonnull final List<?> list) {
-		return list.getClass().getName().equals("java.util.Arrays$ArrayList");
+//		return list.getClass().getName().equals("java.util.Arrays$ArrayList");
+		return false;
 	}
 
 	public boolean isFixedSize() {

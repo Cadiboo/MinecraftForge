@@ -1,5 +1,6 @@
 package net.minecraftforge.fml.client.config.element;
 
+import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.common.ForgeConfigSpec.Range;
 import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
@@ -9,10 +10,11 @@ import net.minecraftforge.fml.client.config.entry.ElementConfigListEntry;
 import javax.annotation.Nullable;
 
 /**
- * Not the actual widget thing.
- * Holds the value of the config thing.
- * The widget updates this value.
+ * Not the actual widget that is displayed on the {@link ConfigEntryListWidget}.
+ * Holds the actual value of the {@link ConfigValue}.
+ * The widget updates the value by calling these methods.
  *
+ * @param <T> Type type of the element (e.g Boolean/Float)
  * @author Cadiboo
  */
 public interface IConfigElement<T> {
@@ -32,28 +34,31 @@ public interface IConfigElement<T> {
 	@Nullable
 	String getTranslationKey();
 
+	/**
+	 * @return The comment for this element
+	 */
 	@Nullable
 	String getComment();
 
 	/**
-	 * Is this property value equal to the default value?
+	 * @return If this value is equal to the default value
 	 */
 	boolean isDefault();
 
 	/**
-	 * Gets this property's default value.
+	 * @return The default value
 	 */
 	T getDefault();
 
 	/**
-	 * Sets this property's value to the default value.
+	 * Sets this value to the default value
 	 */
 	void resetToDefault();
 
 	/**
 	 * Has the value of this element changed?
 	 *
-	 * @return true if changes have been made to this element's value, false otherwise.
+	 * @return If changes have been made to this element's value, false otherwise
 	 */
 	boolean isChanged();
 
@@ -63,37 +68,44 @@ public interface IConfigElement<T> {
 	void undoChanges();
 
 	/**
-	 * Whether or not this element is safe to modify while a world is running.
-	 * For Categories return false if ANY properties in the category are modifiable
-	 * while a world is running, true if all are not.
+	 * For Categories/Lists return false if ANY children of the element cannot be
+	 * changed while a world is running, true if ALL children can be changed.
+	 *
+	 * @return If this is requires the world to be restarted when changed
 	 */
 	boolean requiresWorldRestart();
 
 	/**
-	 * Whether or not this element should be allowed to show on config GUIs.
+	 * @return If this should be allowed to show on ConfigScreens
 	 */
 	default boolean showInGui() {
 		return true;
 	}
 
 	/**
-	 * Whether or not this element requires Minecraft to be restarted when changed.
+	 * For Categories/Lists return false if ANY children of the element cannot be
+	 * changed while a world is running, true if ALL children can be changed.
+	 *
+	 * @return If this is requires Minecraft to be restarted when changed
 	 */
 	boolean requiresGameRestart();
 
 	/**
-	 * Gets this value.
+	 * @return The value of this element
 	 */
 	T get();
 
 	/**
-	 * Sets this value.
+	 * Sets the value of this element.
 	 */
 	void set(T value);
 
 	/**
 	 * Handles saving any changes that have been made to this entry back to the underlying object.
 	 * It is a good practice to check {@link #isChanged()} before performing the save action.
+	 * <p>
+	 * Currently only called when the main ConfigScreen is closed, but this could be easily changed
+	 * to make config elements save on modification.
 	 */
 	void save();
 
@@ -111,7 +123,7 @@ public interface IConfigElement<T> {
 	}
 
 	/**
-	 * @return A ConfigListEntry backed by this element
+	 * @return A new ConfigListEntry backed by this element
 	 */
 	ConfigListEntry<T> makeConfigListEntry(ConfigScreen configScreen);
 

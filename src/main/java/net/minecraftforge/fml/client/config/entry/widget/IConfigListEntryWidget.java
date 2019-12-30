@@ -9,7 +9,11 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
- * @param <T> The type param. E.g. Boolean or Float.
+ * Provides an interface for defining Widgets that are backed by actual values.
+ * <p>
+ * It's also a hacky use of inheritance to delegate everything to the callback.
+ *
+ * @param <T> Type type of the value (e.g Boolean/Float)
  * @author Cadiboo
  */
 public interface IConfigListEntryWidget<T> {
@@ -17,32 +21,39 @@ public interface IConfigListEntryWidget<T> {
 	Callback<T> getCallback();
 
 	/**
-	 * Call {@link TextFieldWidget#tick()} for any TextFieldWidget objects in this entry.
+	 * Calls {@link TextFieldWidget#tick()} if this is a TextFieldWidget.
 	 */
 	default void tick() {
 	}
 
 	/**
-	 * Handles drawing any tooltips that apply to this entry.
+	 * Handles rendering any tooltips that apply to this widget.
+	 * Only called for visible widgets.
 	 */
 	default void renderToolTip(int mouseX, int mouseY, float partialTicks) {
 	}
 
 	/**
-	 * Gets the default value
+	 * By default delegates to the callback.
+	 *
+	 * @return The default value
 	 */
 	default T getDefault() {
 		return getCallback().getDefault();
 	}
 
 	/**
-	 * Is this value equal to the default value?
+	 * By default delegates to the callback.
+	 *
+	 * @return If this value is equal to the default value
 	 */
 	default boolean isDefault() {
 		return getCallback().isDefault();
 	}
 
 	/**
+	 * By default delegates to the callback.
+	 * <p>
 	 * Sets this value to the default value.
 	 */
 	default void resetToDefault() {
@@ -51,13 +62,17 @@ public interface IConfigListEntryWidget<T> {
 	}
 
 	/**
-	 * Is this value different from the initial value?
+	 * By default delegates to the callback.
+	 *
+	 * @return If this value is different from the initial value
 	 */
 	default boolean isChanged() {
 		return getCallback().isChanged();
 	}
 
 	/**
+	 * By default delegates to the callback.
+	 * <p>
 	 * Sets this value to the initial value.
 	 */
 	default void undoChanges() {
@@ -66,6 +81,8 @@ public interface IConfigListEntryWidget<T> {
 	}
 
 	/**
+	 * By default delegates to the callback.
+	 * <p>
 	 * Handles saving any changes that have been made to this entry back to the underlying object.
 	 * It is a good practice to check isChanged() before performing the save action.
 	 */
@@ -74,14 +91,18 @@ public interface IConfigListEntryWidget<T> {
 	}
 
 	/**
-	 * Is this value is a valid value?
+	 * By default delegates to the callback.
+	 *
+	 * @return If the value this backs is a valid value AND the displayed value is a valid value.
 	 */
 	default boolean isValid() {
 		return getCallback().isValid() && isWidgetValueValid();
 	}
 
 	/**
-	 * Is the value of the widget a valid value?
+	 * For example "Hello, World" is not a valid value for a widget that is backed by a number.
+	 *
+	 * @return If the value of the widget is a valid value
 	 */
 	boolean isWidgetValueValid();
 

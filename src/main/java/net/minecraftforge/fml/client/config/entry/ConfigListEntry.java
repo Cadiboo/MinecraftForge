@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.list.AbstractOptionList;
+import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.HoverChecker;
 import net.minecraftforge.fml.client.config.entry.widget.IConfigListEntryWidget;
@@ -14,10 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Provides a base entry for others to extend.
- * Handles drawing the prop label (if drawLabel == true) and the Undo/Default buttons.
+ * Base class for entries of the {@link ConfigEntryListWidget}.
  *
- * @param <T> The type of the config object. For example Boolean or Float
+ * @param <T> The type of the config object (e.g. Boolean/Float).
+ * @author Cadiboo
  */
 public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<ConfigListEntry<?>> implements IConfigListEntry<T> {
 
@@ -30,8 +31,15 @@ public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<Config
 	protected final List<Widget> children = new ArrayList<>();
 	private final IConfigListEntryWidget<T> widget;
 	private final HoverChecker widgetHoverChecker;
+	/**
+	 * @see #render(int, int, int, int, int, int, int, boolean, float)
+	 * @see #preRenderWidgets(int, int, int, int, int)
+	 */
 	protected int buttonsStartPosX;
 
+	/**
+	 * @param <W> The type of the Widget
+	 */
 	public <W extends Widget & IConfigListEntryWidget<T>> ConfigListEntry(@Nonnull final ConfigScreen owningScreen, @Nonnull final W widget) {
 		this.owningScreen = owningScreen;
 		this.widget = widget;
@@ -75,8 +83,16 @@ public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<Config
 		this.children().forEach(c -> c.render(mouseX, mouseY, partialTicks));
 	}
 
+	/**
+	 * Call {@link #preRenderWidget(Widget, int, int, int, int)} for all widgets & return how much space they took up
+	 *
+	 * @return startX + width - buttonsWidth
+	 */
 	public abstract int preRenderWidgets(final int startY, final int startX, final int width, final int height, final int buttonSize);
 
+	/**
+	 * Helper method that is called for each widget before it is rendered to update it's bounds & active state.
+	 */
 	protected void preRenderWidget(final Widget widget, final int x, final int y, final int width, final int height) {
 		// TextFieldWidget render larger than they should be (reeeee)
 		if (widget instanceof TextFieldWidget) {
@@ -95,7 +111,7 @@ public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<Config
 
 	public boolean enabled() {
 		return true;
-		// TODO ????
+		// TODO Return true if this does not require a world restart or the game is not running?
 //		return !owningScreen.isWorldRunning() || !owningScreen.doAllRequireWorldRestart() && !this.requiresWorldRestart();
 	}
 
@@ -105,8 +121,19 @@ public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<Config
 		return children;
 	}
 
+	/**
+	 * Exists here for convenience and because I cbf to refactor everything to make the code not need it here.
+	 *
+	 * @return If the label for this entry should be (theoretically) rendered (Doesn't take into account if this label is empty or null)
+	 */
 	public abstract boolean shouldRenderLabel();
 
+	/**
+	 * Exists here for convenience and because I cbf to refactor everything to make the code not need it here.
+	 * By default entries don't have a label so by default it returns 0.
+	 *
+	 * @return The width of this label or 0 if this does not have a label
+	 */
 	public int getLabelWidth() {
 		return 0;
 	}

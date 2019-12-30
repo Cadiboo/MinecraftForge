@@ -26,12 +26,14 @@ import java.util.stream.Collectors;
 /**
  * Category element for a ModConfig.
  * Has some hacks because it is a top level element and isn't actually written to/read from the config.
- * (ModConfig is just a wrapper around the NightConfig library + ForgeConfigSpec)
+ * (ModConfig is just a wrapper around the NightConfig library + ForgeConfigSpec).
+ * See the package-info.java for more information.
  *
  * @author Cadiboo
  */
 public class ModConfigCategoryElement extends CategoryElement<ModConfig> {
 
+	// TODO: Move these to translation keys once forge's API stabilizes a bit more and the player type is added back in.
 	private static final Map<ModConfig.Type, String> COMMENTS;
 	static {
 		final Map<ModConfig.Type, String> map = new HashMap<>();
@@ -54,13 +56,15 @@ public class ModConfigCategoryElement extends CategoryElement<ModConfig> {
 				" * Player type config is configuration that is associated with a player.\n" +
 				" * Preferences around machine states, for example.\n" +
 				" */");
-		final String serverComment = javadocToString("/**\n" +
+		String serverComment = javadocToString("/**\n" +
 				" * Server type config is configuration that is associated with a server instance.\n" +
 				" * Only loaded during server startup.\n" +
 				" * Stored in a server/save specific \"serverconfig\" directory.\n" +
 				" * Synced to clients during connection.\n" +
 				" * Suffix is \"-server\" by default.\n" +
 				" */");
+
+		serverComment += "\nRequires you to be in your singleplayer world to change its values from the config gui";
 
 		map.put(ModConfig.Type.COMMON, commonComment);
 		map.put(ModConfig.Type.CLIENT, clientComment);
@@ -122,8 +126,8 @@ public class ModConfigCategoryElement extends CategoryElement<ModConfig> {
 	}
 
 	public boolean canDisplay() {
-		if (modConfig.getType() == ModConfig.Type.SERVER && !canPlayerEditServerConfig())
-			return false;
+		if (modConfig.getType() == ModConfig.Type.SERVER)
+			return canPlayerEditServerConfig();
 		return true;
 	}
 
@@ -162,9 +166,9 @@ public class ModConfigCategoryElement extends CategoryElement<ModConfig> {
 			widget = new ScreenButton<ModConfig>(getLabel(), callback, b -> {
 			}) {
 				@Override
-				public void render(final int p_render_1_, final int p_render_2_, final float p_render_3_) {
+				public void render(final int mouseX, final int mouseY, final float partialTicks) {
 					this.active = false;
-					super.render(p_render_1_, p_render_2_, p_render_3_);
+					super.render(mouseX, mouseY, partialTicks);
 				}
 			};
 		return new ScreenElementConfigListEntry<>(configScreen, widget, this);

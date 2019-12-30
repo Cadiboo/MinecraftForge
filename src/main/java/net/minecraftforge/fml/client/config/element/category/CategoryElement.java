@@ -8,6 +8,11 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
+ * A category element represents a ModConfig or a Config.
+ * It is not backed by a ConfigValue and is a bit of a hack
+ * and bridge between night config and forge's config spec system.
+ * See the package-info.java for more information.
+ *
  * @author Cadiboo
  */
 public abstract class CategoryElement<T> implements IConfigElement<T> {
