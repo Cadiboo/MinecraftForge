@@ -15,7 +15,7 @@ import net.minecraftforge.fml.client.config.GuiButtonExt;
 import net.minecraftforge.fml.client.config.GuiUtils;
 import net.minecraftforge.fml.client.config.HoverChecker;
 import net.minecraftforge.fml.client.config.element.IConfigElement;
-import net.minecraftforge.fml.client.config.entry.widget.ConfigListEntryWidget;
+import net.minecraftforge.fml.client.config.entry.widget.IConfigListEntryWidget;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,7 +41,7 @@ public class ElementConfigListEntry<T> extends ConfigListEntry<T> {
 	protected List<String> toolTip;
 	protected HoverChecker tooltipHoverChecker;
 
-	public <W extends Widget & ConfigListEntryWidget<T>> ElementConfigListEntry(@Nonnull final ConfigScreen owningScreen, @Nonnull final W widget, final IConfigElement<T> configElement) {
+	public <W extends Widget & IConfigListEntryWidget<T>> ElementConfigListEntry(@Nonnull final ConfigScreen owningScreen, @Nonnull final W widget, final IConfigElement<T> configElement) {
 		super(owningScreen, widget);
 		this.configElement = configElement;
 

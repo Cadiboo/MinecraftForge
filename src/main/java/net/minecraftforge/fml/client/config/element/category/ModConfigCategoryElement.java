@@ -1,16 +1,16 @@
 package net.minecraftforge.fml.client.config.element.category;
 
-import net.minecraft.client.gui.screen.Screen;
+import com.google.common.collect.Lists;
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.ConfigTypesManager;
 import net.minecraftforge.fml.client.config.ElementConfigScreen;
 import net.minecraftforge.fml.client.config.element.IConfigElement;
 import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
 import net.minecraftforge.fml.client.config.entry.ScreenElementConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.widget.ConfigListEntryWidget;
+import net.minecraftforge.fml.client.config.entry.widget.IConfigListEntryWidget;
 import net.minecraftforge.fml.client.config.entry.widget.ScreenButton;
 import net.minecraftforge.fml.config.ModConfig;
 import org.apache.commons.lang3.StringUtils;
@@ -98,12 +98,33 @@ public class ModConfigCategoryElement extends CategoryElement<ModConfig> {
 		}
 	}
 
+	/**
+	 * @return True if in singleplayer and not open to LAN
+	 */
+	public static boolean canPlayerEditServerConfig() {
+		final Minecraft minecraft = Minecraft.getInstance();
+		if (minecraft.getIntegratedServer() == null)
+			return false;
+		if (!minecraft.isSingleplayer())
+			return false;
+		return !minecraft.getIntegratedServer().getPublic();
+	}
+
 	protected List<IConfigElement<?>> makeConfigElements(final ModConfig modConfig) {
+		if (!canDisplay())
+			return Lists.newArrayList();
 		final List<IConfigElement<?>> configElements = new ArrayList<>();
 		// name -> ConfigValue|SimpleConfig
 		final Map<String, Object> specConfigValues = ConfigTypesManager.getSpecConfigValues(modConfig);
 		specConfigValues.forEach((name, obj) -> configElements.add(ConfigTypesManager.makeConfigElement(modConfig, name, obj)));
+		ConfigTypesManager.sortElements(configElements);
 		return configElements;
+	}
+
+	public boolean canDisplay() {
+		if (modConfig.getType() == ModConfig.Type.SERVER && !canPlayerEditServerConfig())
+			return false;
+		return true;
 	}
 
 	@Override
@@ -132,14 +153,24 @@ public class ModConfigCategoryElement extends CategoryElement<ModConfig> {
 	}
 
 	@Override
-	public ConfigListEntry<ModConfig> makeConfigListEntry(final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListWidget) {
-		final ConfigListEntryWidget.Callback<ModConfig> widgetValueReference = new ConfigListEntryWidget.Callback<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
-		final Screen screen = makeScreen(configScreen, configEntryListWidget);
-		final ScreenButton<ModConfig> widget = new ScreenButton<>(getLabel(), widgetValueReference, screen);
+	public ConfigListEntry<ModConfig> makeConfigListEntry(final ConfigScreen configScreen) {
+		final IConfigListEntryWidget.Callback<ModConfig> callback = new IConfigListEntryWidget.Callback<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
+		final ScreenButton<ModConfig> widget;
+		if (canDisplay())
+			widget = new ScreenButton<>(getLabel(), callback, makeScreen(configScreen));
+		else // Do nothing when pressed
+			widget = new ScreenButton<ModConfig>(getLabel(), callback, b -> {
+			}) {
+				@Override
+				public void render(final int p_render_1_, final int p_render_2_, final float p_render_3_) {
+					this.active = false;
+					super.render(p_render_1_, p_render_2_, p_render_3_);
+				}
+			};
 		return new ScreenElementConfigListEntry<>(configScreen, widget, this);
 	}
 
-	protected ConfigScreen makeScreen(final ConfigScreen owningScreen, final ConfigEntryListWidget configEntryListWidget) {
+	protected ConfigScreen makeScreen(final ConfigScreen owningScreen) {
 		final ConfigScreen configScreen = new ElementConfigScreen(owningScreen.getTitle(), owningScreen, owningScreen.modContainer, getConfigElements());
 		final ITextComponent subtitle;
 		if (owningScreen.getSubtitle() == null)

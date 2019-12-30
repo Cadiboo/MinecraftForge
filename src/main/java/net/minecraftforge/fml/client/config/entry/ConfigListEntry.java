@@ -7,7 +7,7 @@ import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.list.AbstractOptionList;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.HoverChecker;
-import net.minecraftforge.fml.client.config.entry.widget.ConfigListEntryWidget;
+import net.minecraftforge.fml.client.config.entry.widget.IConfigListEntryWidget;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -28,11 +28,11 @@ public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<Config
 	protected final ConfigScreen owningScreen;
 	protected final Minecraft minecraft;
 	protected final List<Widget> children = new ArrayList<>();
-	private final ConfigListEntryWidget<T> widget;
+	private final IConfigListEntryWidget<T> widget;
 	private final HoverChecker widgetHoverChecker;
 	protected int buttonsStartPosX;
 
-	public <W extends Widget & ConfigListEntryWidget<T>> ConfigListEntry(@Nonnull final ConfigScreen owningScreen, @Nonnull final W widget) {
+	public <W extends Widget & IConfigListEntryWidget<T>> ConfigListEntry(@Nonnull final ConfigScreen owningScreen, @Nonnull final W widget) {
 		this.owningScreen = owningScreen;
 		this.widget = widget;
 		this.minecraft = Minecraft.getInstance();
@@ -54,7 +54,7 @@ public abstract class ConfigListEntry<T> extends AbstractOptionList.Entry<Config
 	}
 
 	@Nonnull
-	public final <W extends Widget & ConfigListEntryWidget<T>> W getWidget() {
+	public final <W extends Widget & IConfigListEntryWidget<T>> W getWidget() {
 		return (W) widget;
 	}
 

@@ -23,10 +23,10 @@ import net.minecraftforge.fml.client.config.element.category.ConfigCategoryEleme
 import net.minecraftforge.fml.client.config.entry.widget.BooleanButton;
 import net.minecraftforge.fml.client.config.entry.widget.ByteTextField;
 import net.minecraftforge.fml.client.config.entry.widget.ConfigButton;
-import net.minecraftforge.fml.client.config.entry.widget.ConfigListEntryWidget;
 import net.minecraftforge.fml.client.config.entry.widget.DoubleTextField;
 import net.minecraftforge.fml.client.config.entry.widget.EnumButton;
 import net.minecraftforge.fml.client.config.entry.widget.FloatTextField;
+import net.minecraftforge.fml.client.config.entry.widget.IConfigListEntryWidget;
 import net.minecraftforge.fml.client.config.entry.widget.InfoText;
 import net.minecraftforge.fml.client.config.entry.widget.IntegerTextField;
 import net.minecraftforge.fml.client.config.entry.widget.ListButton;
@@ -44,6 +44,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +66,7 @@ public class ConfigTypesManager {
 
 	private static final Function<?, ?> NO_FACTORY = o -> null;
 	private static final Map<Class<?>, Function<ConfigElementContainer<?>, IConfigElement<?>>> CONFIG_ELEMENTS = new HashMap<>();
-	private static final Map<Class<?>, Function<ConfigListEntryWidget.Callback<?>, ConfigListEntryWidget<?>>> WIDGETS = new HashMap<>();
+	private static final Map<Class<?>, Function<IConfigListEntryWidget.Callback<?>, IConfigListEntryWidget<?>>> WIDGETS = new HashMap<>();
 
 	static {
 		register();
@@ -144,7 +145,7 @@ public class ConfigTypesManager {
 	}
 
 	@SuppressWarnings({"rawtypes", "unchecked"})
-	public static <C, W extends Widget & ConfigListEntryWidget<C>> void registerWidgetFactory(final Class<C> clazz, final Function<ConfigListEntryWidget.Callback<C>, W> factory) {
+	public static <C, W extends Widget & IConfigListEntryWidget<C>> void registerWidgetFactory(final Class<C> clazz, final Function<IConfigListEntryWidget.Callback<C>, W> factory) {
 		WIDGETS.put(clazz, (Function) factory);
 	}
 
@@ -212,7 +213,7 @@ public class ConfigTypesManager {
 		if (clazz == null || clazz == Object.class)
 			return (W) new InfoText("fml.configgui.list.nullTypeUseConfig");
 
-		Function<ConfigListEntryWidget.Callback<?>, ConfigListEntryWidget<?>> factory = recursiveGetFactory(clazz, clazz, (Map) WIDGETS);
+		Function<IConfigListEntryWidget.Callback<?>, IConfigListEntryWidget<?>> factory = recursiveGetFactory(clazz, clazz, (Map) WIDGETS);
 		if (factory != null && factory != NO_FACTORY) {
 			try {
 				// TODO: do these indices better?
@@ -248,7 +249,7 @@ public class ConfigTypesManager {
 		if (clazz == null || clazz == Object.class)
 			return (W) new InfoText("fml.configgui.list.nullTypeUseConfig");
 
-		Function<ConfigListEntryWidget.Callback<?>, ConfigListEntryWidget<?>> factory = recursiveGetFactory(clazz, clazz, (Map) WIDGETS);
+		Function<IConfigListEntryWidget.Callback<?>, IConfigListEntryWidget<?>> factory = recursiveGetFactory(clazz, clazz, (Map) WIDGETS);
 		if (factory != null && factory != NO_FACTORY) {
 			try {
 				Supplier getter = () -> config.get(path);
@@ -364,7 +365,15 @@ public class ConfigTypesManager {
 		return ret;
 	}
 
-	public static class ScreenedCallback<T> extends ConfigListEntryWidget.Callback<T> {
+	public static void sortElements(final List<IConfigElement<?>> configElements) {
+		configElements.sort(Comparator.comparing(IConfigElement::getLabel));
+	}
+
+	public static <W extends Widget & IConfigListEntryWidget<?>> void sortWidgets(final List<W> widgets) {
+		widgets.sort(Comparator.comparing(Widget::getMessage));
+	}
+
+	public static class ScreenedCallback<T> extends IConfigListEntryWidget.Callback<T> {
 
 		public final ConfigScreen screen;
 

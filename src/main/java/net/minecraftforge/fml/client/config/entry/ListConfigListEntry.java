@@ -6,7 +6,7 @@ import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 import net.minecraftforge.fml.client.config.HoverChecker;
 import net.minecraftforge.fml.client.config.entry.widget.BooleanButton;
-import net.minecraftforge.fml.client.config.entry.widget.ConfigListEntryWidget;
+import net.minecraftforge.fml.client.config.entry.widget.IConfigListEntryWidget;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -26,11 +26,11 @@ public abstract class ListConfigListEntry<T> extends ConfigListEntry<T> {
 	@Nullable
 	protected final HoverChecker undoChangesButtonHoverChecker, addEntryBelowButtonHoverChecker, removeEntryButtonHoverChecker;
 
-	public <W extends Widget & ConfigListEntryWidget<T>> ListConfigListEntry(final ConfigScreen owningScreen, final W widget) {
+	public <W extends Widget & IConfigListEntryWidget<T>> ListConfigListEntry(final ConfigScreen owningScreen, final W widget) {
 		this(owningScreen, widget, true, true, true);
 	}
 
-	public <W extends Widget & ConfigListEntryWidget<T>> ListConfigListEntry(final ConfigScreen owningScreen, final W widget, final boolean enableUndoChangesButton, final boolean enableAddNewEntryBelowButton, final boolean enableRemoveEntryButton) {
+	public <W extends Widget & IConfigListEntryWidget<T>> ListConfigListEntry(final ConfigScreen owningScreen, final W widget, final boolean enableUndoChangesButton, final boolean enableAddNewEntryBelowButton, final boolean enableRemoveEntryButton) {
 		super(owningScreen, widget);
 
 		if (enableUndoChangesButton) {

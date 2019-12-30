@@ -3,19 +3,17 @@ package net.minecraftforge.fml.client.config.element.category;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import joptsimple.internal.Strings;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.ConfigTypesManager;
 import net.minecraftforge.fml.client.config.ElementConfigScreen;
 import net.minecraftforge.fml.client.config.element.IConfigElement;
 import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
 import net.minecraftforge.fml.client.config.entry.ScreenElementConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.widget.ConfigListEntryWidget;
+import net.minecraftforge.fml.client.config.entry.widget.IConfigListEntryWidget;
 import net.minecraftforge.fml.client.config.entry.widget.ScreenButton;
 import net.minecraftforge.fml.config.ModConfig;
 
@@ -69,6 +67,7 @@ public class ConfigCategoryElement extends CategoryElement<Config> {
 		final List<IConfigElement<?>> list = new ArrayList<>();
 		// obj will always be a ConfigValue or a Config object
 		config.valueMap().forEach((name, obj) -> list.add(ConfigTypesManager.makeConfigElement(modConfig, DOT_JOINER.join(path, name), obj)));
+		ConfigTypesManager.sortElements(list);
 		return list;
 	}
 
@@ -98,10 +97,9 @@ public class ConfigCategoryElement extends CategoryElement<Config> {
 	}
 
 	@Override
-	public ConfigListEntry<Config> makeConfigListEntry(final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListWidget) {
-		final ConfigListEntryWidget.Callback<Config> widgetValueReference = new ConfigListEntryWidget.Callback<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
-		final Screen screen = makeScreen(configScreen);
-		final ScreenButton<Config> widget = new ScreenButton<>(getLabel(), widgetValueReference, screen);
+	public ConfigListEntry<Config> makeConfigListEntry(final ConfigScreen configScreen) {
+		final IConfigListEntryWidget.Callback<Config> callback = new IConfigListEntryWidget.Callback<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
+		final ScreenButton<Config> widget = new ScreenButton<>(getLabel(), callback, makeScreen(configScreen));
 		return new ScreenElementConfigListEntry<>(configScreen, widget, this);
 	}
 

@@ -41,32 +41,6 @@ public class ModConfigScreen extends ElementConfigScreen {
 						new ModConfigScreen(new StringTextComponent(modContainer.getModInfo().getDisplayName()), screen, modContainer));
 	}
 
-//	private static List<IConfigElement> collectConfigElements(Class<?>[] configClasses) {
-//		List<IConfigElement> toReturn;
-//		if (configClasses.length == 1) {
-//			toReturn = ConfigElement.from(configClasses[0]).getChildElements();
-//		} else {
-//			toReturn = new ArrayList<IConfigElement>();
-//			for (Class<?> clazz : configClasses) {
-//				toReturn.add(ConfigElement.from(clazz));
-//			}
-//		}
-//		toReturn.sort(Comparator.comparing(e -> I18n.format(e.getLanguageKey())));
-//		return toReturn;
-//	}
-
-	/**
-	 * @return True if in singleplayer and not open to LAN
-	 */
-	public static boolean canPlayerEditServerConfig() {
-		final Minecraft minecraft = Minecraft.getInstance();
-		if (minecraft.getIntegratedServer() == null)
-			return false;
-		if (!minecraft.isSingleplayer())
-			return false;
-		return !minecraft.getIntegratedServer().getPublic();
-	}
-
 	public static List<IConfigElement<?>> makeElementsForMod(final ModContainer modContainer) {
 		final List<IConfigElement<?>> list = new ArrayList<>();
 		for (final ModConfig.Type type : ModConfig.Type.values())
@@ -76,8 +50,7 @@ public class ModConfigScreen extends ElementConfigScreen {
 
 	public static Optional<ModConfigCategoryElement> makeConfigElementForModConfigType(final ModContainer modContainer, final ModConfig.Type type) {
 		// TODO: @Config classes?
-		if (type == ModConfig.Type.SERVER && !canPlayerEditServerConfig())
-			return Optional.empty();
+		// Probably don't need to as they will be gotten from getConfig
 		return ConfigTracker.INSTANCE.getConfig(modContainer.getModId(), type)
 				.map(ModConfigCategoryElement::new);
 	}

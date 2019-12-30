@@ -6,7 +6,7 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 /**
  * @author Cadiboo
  */
-public abstract class ObjectTextField<T> extends TextFieldWidget implements ConfigListEntryWidget<T> {
+public abstract class ObjectTextField<T> extends TextFieldWidget implements IConfigListEntryWidget<T> {
 
 	private final Callback<T> callback;
 	private final String initialText;

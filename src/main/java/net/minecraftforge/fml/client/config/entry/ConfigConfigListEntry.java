@@ -5,7 +5,7 @@ import net.minecraft.client.resources.I18n;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 import net.minecraftforge.fml.client.config.HoverChecker;
-import net.minecraftforge.fml.client.config.entry.widget.ConfigListEntryWidget;
+import net.minecraftforge.fml.client.config.entry.widget.IConfigListEntryWidget;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -25,11 +25,11 @@ public class ConfigConfigListEntry<T> extends ConfigListEntry<T> {
 	@Nullable
 	protected final HoverChecker undoChangesButtonHoverChecker;
 
-	public <W extends Widget & ConfigListEntryWidget<T>> ConfigConfigListEntry(final ConfigScreen owningScreen, final W widget) {
+	public <W extends Widget & IConfigListEntryWidget<T>> ConfigConfigListEntry(final ConfigScreen owningScreen, final W widget) {
 		this(owningScreen, widget, true);
 	}
 
-	public <W extends Widget & ConfigListEntryWidget<T>> ConfigConfigListEntry(final ConfigScreen owningScreen, final W widget, final boolean enableUndoChangesButton) {
+	public <W extends Widget & IConfigListEntryWidget<T>> ConfigConfigListEntry(final ConfigScreen owningScreen, final W widget, final boolean enableUndoChangesButton) {
 		super(owningScreen, widget);
 
 		if (enableUndoChangesButton) {

@@ -8,7 +8,7 @@ import net.minecraft.client.resources.I18n;
 /**
  * @author Cadiboo
  */
-public class InfoText<T> extends Widget implements ConfigListEntryWidget<T> {
+public class InfoText<T> extends Widget implements IConfigListEntryWidget<T> {
 
 	public InfoText(final String translationKey, String... formatArgs) {
 		super(0, 0, 0, 0, I18n.format(translationKey, (Object[]) formatArgs));

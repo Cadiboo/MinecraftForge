@@ -4,7 +4,7 @@ import net.minecraft.client.gui.INestedGuiEventHandler;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
-import net.minecraftforge.fml.client.config.entry.widget.ConfigListEntryWidget;
+import net.minecraftforge.fml.client.config.entry.widget.IConfigListEntryWidget;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -98,6 +98,6 @@ public interface IConfigListEntry<T> extends INestedGuiEventHandler {
 	 * @return The widget
 	 */
 	@Nonnull
-	<W extends Widget & ConfigListEntryWidget<T>> W getWidget();
+	<W extends Widget & IConfigListEntryWidget<T>> W getWidget();
 
 }

@@ -9,7 +9,7 @@ import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.resources.I18n;
 import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
 import net.minecraftforge.fml.client.config.entry.ListConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.widget.ConfigListEntryWidget;
+import net.minecraftforge.fml.client.config.entry.widget.IConfigListEntryWidget;
 import net.minecraftforge.fml.client.config.entry.widget.InfoText;
 
 import javax.annotation.Nonnull;
@@ -23,7 +23,7 @@ import java.util.function.Predicate;
  */
 public class ListConfigScreen<T extends List<?>> extends ConfigScreen {
 
-	private final ConfigListEntryWidget.Callback<T> callback;
+	private final IConfigListEntryWidget.Callback<T> callback;
 
 	private final T original;
 	private final T clone;
@@ -31,7 +31,7 @@ public class ListConfigScreen<T extends List<?>> extends ConfigScreen {
 	@Nullable
 	private Object addObj;
 
-	public ListConfigScreen(final ConfigScreen owningScreen, final ConfigListEntryWidget.Callback<T> callback) {
+	public ListConfigScreen(final ConfigScreen owningScreen, final IConfigListEntryWidget.Callback<T> callback) {
 		super(owningScreen.getTitle(), owningScreen, owningScreen.modContainer);
 		this.callback = callback;
 		this.original = callback.get();
@@ -158,17 +158,18 @@ public class ListConfigScreen<T extends List<?>> extends ConfigScreen {
 							if (isFixedSize())
 								return false;
 							// DummyConfigElement (Unsupported Object) has null
-							return ((ConfigListEntryWidget<?>) this.getWidget()).getCallback() != null;
+							return ((IConfigListEntryWidget<?>) this.getWidget()).getCallback() != null;
 						}
 					}
 			);
 		});
 	}
 
-	protected <W extends Widget & ConfigListEntryWidget<Object>> ArrayList<W> makeWidgets(final List<?> list, final ConfigScreen configScreen, final Predicate<Object> elementValidator) {
-		final ArrayList<W> elements = new ArrayList<>();
-		list.forEach(obj -> elements.add(ConfigTypesManager.makeWidget(list, configScreen, elementValidator, obj)));
-		return elements;
+	protected <W extends Widget & IConfigListEntryWidget<Object>> ArrayList<W> makeWidgets(final List<?> list, final ConfigScreen configScreen, final Predicate<Object> elementValidator) {
+		final ArrayList<W> widgets = new ArrayList<>();
+		list.forEach(obj -> widgets.add(ConfigTypesManager.makeWidget(list, configScreen, elementValidator, obj)));
+		ConfigTypesManager.sortWidgets(widgets);
+		return widgets;
 	}
 
 }

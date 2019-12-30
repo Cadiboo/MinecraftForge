@@ -2,11 +2,10 @@ package net.minecraftforge.fml.client.config.element;
 
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.client.config.ConfigEntryListWidget;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
 import net.minecraftforge.fml.client.config.entry.ElementConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.widget.ConfigListEntryWidget;
+import net.minecraftforge.fml.client.config.entry.widget.IConfigListEntryWidget;
 import net.minecraftforge.fml.client.config.entry.widget.NumberSlider;
 import net.minecraftforge.fml.client.config.entry.widget.ObjectTextField;
 
@@ -20,26 +19,26 @@ public abstract class NumberConfigElement<T extends Number & Comparable<? super 
 	}
 
 	@Override
-	public ConfigListEntry<T> makeConfigListEntry(final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListWidget) {
-		final ConfigListEntryWidget.Callback<T> widgetValueReference = new ConfigListEntryWidget.Callback<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
+	public ConfigListEntry<T> makeConfigListEntry(final ConfigScreen configScreen) {
+		final IConfigListEntryWidget.Callback<T> callback = new IConfigListEntryWidget.Callback<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
 		final Widget widget;
 		if (this.hasSlidingControl())
-			widget = makeSlider(widgetValueReference, this.getConfigElementContainer().getValueSpec().getRange());
+			widget = makeSlider(callback, this.getConfigElementContainer().getValueSpec().getRange());
 		else
-			widget = makeTextField(widgetValueReference);
+			widget = makeTextField(callback);
 		return new ElementConfigListEntry<>(configScreen, cast(widget), this);
 	}
 
-	protected NumberSlider<T> makeSlider(final ConfigListEntryWidget.Callback<T> widgetValueReference, final ForgeConfigSpec.Range<T> range) {
-		return new NumberSlider<>(widgetValueReference, range, this::parse);
+	protected NumberSlider<T> makeSlider(final IConfigListEntryWidget.Callback<T> callback, final ForgeConfigSpec.Range<T> range) {
+		return new NumberSlider<>(callback, range, this::parse);
 	}
 
-	private <W extends Widget & ConfigListEntryWidget<T>> W cast(final Widget widget) {
+	private <W extends Widget & IConfigListEntryWidget<T>> W cast(final Widget widget) {
 		return (W) widget;
 	}
 
-	protected ObjectTextField<T> makeTextField(final ConfigListEntryWidget.Callback<T> widgetValueReference) {
-		return new ObjectTextField<T>(widgetValueReference) {
+	protected ObjectTextField<T> makeTextField(final IConfigListEntryWidget.Callback<T> callback) {
+		return new ObjectTextField<T>(callback) {
 
 			@Override
 			public String toText(final T value) {

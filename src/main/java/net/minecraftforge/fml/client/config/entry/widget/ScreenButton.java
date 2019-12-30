@@ -7,16 +7,16 @@ import net.minecraftforge.fml.client.config.GuiButtonExt;
 /**
  * @author Cadiboo
  */
-public class ScreenButton<T> extends GuiButtonExt implements ConfigListEntryWidget<T> {
+public class ScreenButton<T> extends GuiButtonExt implements IConfigListEntryWidget<T> {
 
 	private final Callback<T> callback;
 
-//	public ScreenButton(final WidgetValueReference<T> callback, final Screen screen) {
-//		this("Screen Button", callback, screen);
-//	}
-
 	public ScreenButton(final String message, final Callback<T> callback, final Screen screen) {
-		super(0, 0, 0, 0, message, button -> Minecraft.getInstance().displayGuiScreen(screen));
+		this(message, callback, button -> Minecraft.getInstance().displayGuiScreen(screen));
+	}
+
+	public ScreenButton(final String message, final Callback<T> callback, final IPressable onPress) {
+		super(0, 0, 0, 0, message, onPress);
 		this.callback = callback;
 	}
 

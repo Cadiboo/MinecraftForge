@@ -12,7 +12,7 @@ import java.util.function.Supplier;
  * @param <T> The type param. E.g. Boolean or Float.
  * @author Cadiboo
  */
-public interface ConfigListEntryWidget<T> {
+public interface IConfigListEntryWidget<T> {
 
 	Callback<T> getCallback();
 

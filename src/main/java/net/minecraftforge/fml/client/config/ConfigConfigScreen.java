@@ -6,7 +6,7 @@ import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.resources.I18n;
 import net.minecraftforge.fml.client.config.entry.ConfigConfigListEntry;
 import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
-import net.minecraftforge.fml.client.config.entry.widget.ConfigListEntryWidget;
+import net.minecraftforge.fml.client.config.entry.widget.IConfigListEntryWidget;
 import net.minecraftforge.fml.client.config.entry.widget.InfoText;
 
 import java.util.ArrayList;
@@ -18,13 +18,13 @@ import java.util.function.Predicate;
  */
 public class ConfigConfigScreen extends ConfigScreen {
 
-	private final ConfigListEntryWidget.Callback<Config> callback;
+	private final IConfigListEntryWidget.Callback<Config> callback;
 
 	private final Config original;
 	private final Config clone;
 	private final boolean isUnmodifiable;
 
-	public ConfigConfigScreen(final ConfigScreen owningScreen, final ConfigListEntryWidget.Callback<Config> callback) {
+	public ConfigConfigScreen(final ConfigScreen owningScreen, final IConfigListEntryWidget.Callback<Config> callback) {
 		super(owningScreen.getTitle(), owningScreen, owningScreen.modContainer);
 		this.callback = callback;
 		this.original = callback.get();
@@ -64,7 +64,7 @@ public class ConfigConfigScreen extends ConfigScreen {
 		widgets.forEach(w -> configListEntries.add(new ConfigConfigListEntry(this, w, isModifiable)));
 	}
 
-	protected <W extends Widget & ConfigListEntryWidget<Object>> ArrayList<W> makeWidgets(final Config config, final ConfigScreen configScreen, final Predicate<Object> elementValidator) {
+	protected <W extends Widget & IConfigListEntryWidget<Object>> ArrayList<W> makeWidgets(final Config config, final ConfigScreen configScreen, final Predicate<Object> elementValidator) {
 		final ArrayList<W> elements = new ArrayList<>();
 		config.valueMap().forEach((path, obj) -> elements.add(ConfigTypesManager.makeWidget(config, configScreen, elementValidator, path, obj)));
 		return elements;

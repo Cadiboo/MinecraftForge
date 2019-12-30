@@ -113,7 +113,7 @@ public interface IConfigElement<T> {
 	/**
 	 * @return A ConfigListEntry backed by this element
 	 */
-	ConfigListEntry<T> makeConfigListEntry(ConfigScreen configScreen, ConfigEntryListWidget configEntryListWidget);
+	ConfigListEntry<T> makeConfigListEntry(ConfigScreen configScreen);
 
 	/**
 	 * @return If this is backed by a ModConfig or ConfigCategory

@@ -7,7 +7,7 @@ import net.minecraftforge.fml.client.config.GuiButtonExt;
 /**
  * @author Cadiboo
  */
-public class EnumButton<T extends Enum<?>> extends GuiButtonExt implements ConfigListEntryWidget<T> {
+public class EnumButton<T extends Enum<?>> extends GuiButtonExt implements IConfigListEntryWidget<T> {
 
 	private final Callback<T> callback;
 

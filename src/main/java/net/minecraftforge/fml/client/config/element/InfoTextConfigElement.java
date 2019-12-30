@@ -89,7 +89,7 @@ public class InfoTextConfigElement<T> implements IConfigElement<T> {
 	}
 
 	@Override
-	public ConfigListEntry<T> makeConfigListEntry(final ConfigScreen configScreen, final ConfigEntryListWidget configEntryListWidget) {
+	public ConfigListEntry<T> makeConfigListEntry(final ConfigScreen configScreen) {
 		return new InfoTextConfigListEntry<>(configScreen, this.getLabel());
 	}
 

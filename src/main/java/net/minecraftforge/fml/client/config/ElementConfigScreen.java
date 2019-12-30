@@ -104,12 +104,12 @@ public class ElementConfigScreen extends ConfigScreen {
 		final List<IConfigElement<?>> configElements = getConfigElements();
 		if (configElements.isEmpty()) {
 			children.add(new InfoTextConfigElement<>("fml.configgui.noElements")
-					.makeConfigListEntry(this, entryList));
+					.makeConfigListEntry(this));
 			return;
 		}
 		configElements.stream()
 				.filter(IConfigElement::showInGui)
-				.map(element -> element.makeConfigListEntry(this, entryList))
+				.map(element -> element.makeConfigListEntry(this))
 				.map(configListEntry -> Objects.requireNonNull(configListEntry, "ConfigListEntry (Widget)"))
 				.forEach(children::add);
 	}

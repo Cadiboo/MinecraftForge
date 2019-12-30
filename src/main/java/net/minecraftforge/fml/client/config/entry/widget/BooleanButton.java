@@ -6,7 +6,7 @@ import net.minecraftforge.fml.client.config.GuiButtonExt;
 /**
  * @author Cadiboo
  */
-public class BooleanButton extends GuiButtonExt implements ConfigListEntryWidget<Boolean> {
+public class BooleanButton extends GuiButtonExt implements IConfigListEntryWidget<Boolean> {
 
 	private final Callback<Boolean> callback;
 
