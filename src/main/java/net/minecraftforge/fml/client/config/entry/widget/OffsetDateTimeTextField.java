@@ -21,18 +21,24 @@ public class OffsetDateTimeTextField extends ObjectTextField<OffsetDateTime> {
 		return value.toString();
 	}
 
+	/**
+	 * Tries to parse the text to a LocalDate.
+	 * TOML Offset Date Times are in RFC 3339 format.
+	 * <p>
+	 * Examples:
+	 * 1979-05-27T07:32:00Z
+	 * 1979-05-27T00:32:00-07:00
+	 * 1979-05-27T00:32:00.999999-07:00
+	 *
+	 * @see "https://github.com/toml-lang/toml#offset-date-time"
+	 */
 	@Override
 	public OffsetDateTime fromText(String text) throws Exception {
-		// * <li>{@code uuuu-MM-dd'T'HH:mmXXXXX}</li>
-		// * <li>{@code uuuu-MM-dd'T'HH:mm:ssXXXXX}</li>
-		// * <li>{@code uuuu-MM-dd'T'HH:mm:ss.SSSXXXXX}</li>
-		// * <li>{@code uuuu-MM-dd'T'HH:mm:ss.SSSSSSXXXXX}</li>
-		// * <li>{@code uuuu-MM-dd'T'HH:mm:ss.SSSSSSSSSXXXXX}</li>
 
 		int zoneStart = text.length() - 1;
 		while (true) {
 			final char c = text.charAt(zoneStart);
-			if (c == '+' || c == '-')
+			if (c == 'Z' || c == '+' || c == '-') // See com.electronwill.nightconfig.toml.TemporalParser.OFFSET_INDICATORS
 				break;
 			--zoneStart;
 		}
@@ -41,7 +47,7 @@ public class OffsetDateTimeTextField extends ObjectTextField<OffsetDateTime> {
 
 		text = text.substring(0, zoneStart);
 
-		final String[] split = text.split("T");
+		final String[] split = text.split("[Tt ]"); // See com.electronwill.nightconfig.toml.TemporalParser.ALLOWED_DT_SEPARATORS
 
 		final String[] ymd = split[0].split("-");
 		final int year = Integer.parseInt(ymd[0]);

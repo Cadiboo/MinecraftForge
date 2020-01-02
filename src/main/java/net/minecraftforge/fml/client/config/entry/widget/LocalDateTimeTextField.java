@@ -20,9 +20,19 @@ public class LocalDateTimeTextField extends ObjectTextField<LocalDateTime> {
 		return value.toString();
 	}
 
+	/**
+	 * Tries to parse the text to a LocalDate.
+	 * TOML Local Date Times are in RFC 3339 format.
+	 * <p>
+	 * Examples:
+	 * 1979-05-27T07:32:00
+	 * 1979-05-27T00:32:00.999999
+	 *
+	 * @see "https://github.com/toml-lang/toml#local-date-time"
+	 */
 	@Override
 	public LocalDateTime fromText(final String text) throws Exception {
-		final String[] split = text.split("T");
+		final String[] split = text.split("[Tt ]"); // See com.electronwill.nightconfig.toml.TemporalParser.ALLOWED_DT_SEPARATORS
 
 		final String[] ymd = split[0].split("-");
 		final int year = Integer.parseInt(ymd[0]);

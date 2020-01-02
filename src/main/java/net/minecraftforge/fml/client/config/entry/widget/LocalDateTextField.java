@@ -20,6 +20,15 @@ public class LocalDateTextField extends ObjectTextField<LocalDate> {
 		return value.toString();
 	}
 
+	/**
+	 * Tries to parse the text to a LocalDate.
+	 * TOML Local Dates are in RFC 3339 format.
+	 * <p>
+	 * Examples:
+	 * 1979-05-27
+	 *
+	 * @see "https://github.com/toml-lang/toml#local-date"
+	 */
 	@Override
 	public LocalDate fromText(final String text) throws Exception {
 		final String[] split = text.split("-");

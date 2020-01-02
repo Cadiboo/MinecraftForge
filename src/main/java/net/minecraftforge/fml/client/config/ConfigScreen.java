@@ -63,9 +63,9 @@ public class ConfigScreen extends Screen {
 	 */
 	public final ModContainer modContainer;
 	/**
-	 * If true then the entryList & configValueElements will be re-created next time {@link #init()} is called.
+	 * If true then the {@link #entryList} will be re-created next time {@link #init()} is called.
 	 */
-	public boolean needsRefresh = true;
+	public boolean shouldRefreshEntryList = true;
 	/**
 	 * When clicked undoes all changes that the user made on this screen
 	 * (sets all config entries on this screen to the value they had before any changes were made).
@@ -196,9 +196,9 @@ public class ConfigScreen extends Screen {
 		this.resetToDefaultButtonHoverChecker = new HoverChecker(resetToDefaultButton, 500);
 		this.applyToSubcategoriesCheckBoxHoverChecker = new HoverChecker(applyToSubcategoriesCheckBox, 500);
 
-		if (this.entryList == null || this.needsRefresh) {
+		if (this.shouldRefreshEntryList || this.entryList == null) {
 			this.entryList = new ConfigEntryListWidget(this);
-			this.needsRefresh = false;
+			this.shouldRefreshEntryList = false;
 		}
 		this.children.add(entryList);
 
@@ -213,7 +213,7 @@ public class ConfigScreen extends Screen {
 	@Override
 	public void tick() {
 		super.tick();
-		if (entryList != null) // TODO hmmm
+		if (entryList != null) // Can be called before init on child screens
 			this.entryList.tick();
 		setButtonsActive();
 	}

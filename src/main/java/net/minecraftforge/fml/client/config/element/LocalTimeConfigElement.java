@@ -18,7 +18,7 @@ public class LocalTimeConfigElement extends ConfigElement<LocalTime> {
 	}
 
 	@Override
-	public ConfigListEntry<LocalTime> makeConfigListEntry(final ConfigScreen configScreen) {
+	public ElementConfigListEntry<LocalTime> makeConfigListEntry(final ConfigScreen configScreen) {
 		final IConfigListEntryWidget.Callback<LocalTime> callback = new IConfigListEntryWidget.Callback<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
 		final LocalTimeTextField widget = new LocalTimeTextField(callback);
 		return new ElementConfigListEntry<>(configScreen, widget, this);

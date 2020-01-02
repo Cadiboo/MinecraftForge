@@ -26,8 +26,8 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.fml.ModContainer;
-import net.minecraftforge.fml.client.config.element.InfoTextConfigElement;
 import net.minecraftforge.fml.client.config.element.IConfigElement;
+import net.minecraftforge.fml.client.config.element.InfoTextConfigElement;
 import net.minecraftforge.fml.client.config.entry.ConfigListEntry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -50,11 +50,9 @@ public class ElementConfigScreen extends ConfigScreen {
 
 	/**
 	 * A list of elements on this screen.
-	 * Re-created when {@link #init()} is called if {@link #needsRefresh} is true.
 	 */
 	private final List<IConfigElement<?>> configElements;
 	/**
-	 * TODO: Why does this exist?
 	 * The initial list of elements on this screen.
 	 * Same as the first value of {@link #configElements}
 	 */
@@ -72,9 +70,7 @@ public class ElementConfigScreen extends ConfigScreen {
 			final ConfigEntryListWidget entryList = this.getEntryList();
 			if (entryList != null && entryList.areAnyEntriesChanged(true)) {
 				if (parentScreen != null && parentScreen instanceof ElementConfigScreen) {
-					// Mark as needing to re-init the entry list.
-					// Why? Maybe to allow adding of stuff to the config? IDK
-					((ConfigScreen) this.parentScreen).needsRefresh = true;
+					// No op, Only save when the final screen is closed.
 				} else {
 					entryList.save();
 					boolean requiresGameRestart = this.anyRequireGameRestart();
@@ -82,8 +78,7 @@ public class ElementConfigScreen extends ConfigScreen {
 					if (requiresGameRestart) {
 						canClose = false;
 						getMinecraft().displayGuiScreen(new GuiMessageDialog(parentScreen, "fml.configgui.gameRestartTitle", new StringTextComponent(I18n.format("fml.configgui.gameRestartRequired")), "fml.configgui.confirmMessage"));
-					}
-					if (requiresWorldRestart && Minecraft.getInstance().world != null) {
+					} else if (requiresWorldRestart && Minecraft.getInstance().world != null) {
 						canClose = false;
 						getMinecraft().displayGuiScreen(new GuiMessageDialog(parentScreen, "fml.configgui.worldRestartTitle", new StringTextComponent(I18n.format("fml.configgui.worldRestartRequired")), "fml.configgui.confirmMessage"));
 					}

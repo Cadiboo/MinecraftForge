@@ -109,7 +109,7 @@ public class ListConfigScreen<T extends List<?>> extends ConfigScreen {
 						e.printStackTrace();
 					}
 					// Don't need to worry about updating the indices, we refresh the screen
-					needsRefresh = true;
+					shouldRefreshEntryList = true;
 					final Minecraft minecraft = Minecraft.getInstance();
 					final MainWindow mainWindow = minecraft.func_228018_at_();
 					init(minecraft, mainWindow.getScaledWidth(), mainWindow.getScaledHeight());
@@ -132,7 +132,7 @@ public class ListConfigScreen<T extends List<?>> extends ConfigScreen {
 								e.printStackTrace();
 							}
 							// Don't need to worry about updating the indices, we refresh the screen
-							needsRefresh = true;
+							shouldRefreshEntryList = true;
 							final Minecraft minecraft = Minecraft.getInstance();
 							final MainWindow mainWindow = minecraft.func_228018_at_();
 							init(minecraft, mainWindow.getScaledWidth(), mainWindow.getScaledHeight());
@@ -151,7 +151,7 @@ public class ListConfigScreen<T extends List<?>> extends ConfigScreen {
 								e.printStackTrace();
 							}
 							// Don't need to worry about updating the indices, we refresh the screen
-							needsRefresh = true;
+							shouldRefreshEntryList = true;
 							final Minecraft minecraft = Minecraft.getInstance();
 							final MainWindow mainWindow = minecraft.func_228018_at_();
 							init(minecraft, mainWindow.getScaledWidth(), mainWindow.getScaledHeight());

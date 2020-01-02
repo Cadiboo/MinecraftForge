@@ -2,6 +2,7 @@ package net.minecraftforge.fml.client.config;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Runnables;
 import net.minecraft.client.gui.widget.Widget;
@@ -65,7 +66,7 @@ import java.util.function.Supplier;
  * <p>
  * Lots of unchecked casts, lots of raw uses of generic classes.
  * <p>
- * Also has the method for sorting
+ * Also has the method for sorting element lists and widget lists.
  *
  * @author Cadiboo
  */
@@ -74,9 +75,8 @@ public class ConfigTypesManager {
 	private static final Function<?, ?> NO_FACTORY = o -> null;
 	private static final Map<Class<?>, Function<ConfigElementContainer<?>, IConfigElement<?>>> CONFIG_ELEMENTS = new HashMap<>();
 	private static final Map<Class<?>, Function<IConfigListEntryWidget.Callback<?>, IConfigListEntryWidget<?>>> WIDGETS = new HashMap<>();
-	private static Comparator<IConfigElement<?>> CONFIG_ELEMENTS_COMPARATOR = null;
-	private static Comparator<?> WIDGETS_COMPARATOR = null;
-
+	private static Comparator<IConfigElement<?>> configElementsComparator = null;
+	private static Comparator<?> widgetsComparator = null;
 	static {
 		register();
 	}
@@ -127,7 +127,7 @@ public class ConfigTypesManager {
 		registerElementFactory(LocalDate.class, LocalDateConfigElement::new);
 		registerElementFactory(LocalDateTime.class, LocalDateTimeConfigElement::new);
 		registerElementFactory(OffsetDateTime.class, OffsetDateTimeConfigElement::new);
-		registerElementFactory(Config.class, ConfigConfigElement::new);
+		registerElementFactory(UnmodifiableConfig.class, ConfigConfigElement::new);
 
 		WIDGETS.clear();
 		registerWidgetFactory(Boolean.class, BooleanButton::new);
@@ -138,12 +138,12 @@ public class ConfigTypesManager {
 		registerWidgetFactory(Double.class, DoubleTextField::new);
 		registerWidgetFactory(String.class, StringTextField::new);
 		registerWidgetFactory(Enum.class, EnumButton::new);
-		registerWidgetFactory(List.class, callback -> new ListButton<>(((ScreenedCallback) callback).screen, callback));
+		registerWidgetFactory(List.class, callback -> new ListButton<>(((ScreenedCallback<?>) callback).screen, callback));
 		registerWidgetFactory(LocalTime.class, LocalTimeTextField::new);
 		registerWidgetFactory(LocalDate.class, LocalDateTextField::new);
 		registerWidgetFactory(LocalDateTime.class, LocalDateTimeTextField::new);
 		registerWidgetFactory(OffsetDateTime.class, OffsetDateTimeTextField::new);
-		registerWidgetFactory(Config.class, callback -> new ConfigButton(((ScreenedCallback) callback).screen, callback));
+		registerWidgetFactory(UnmodifiableConfig.class, callback -> new ConfigButton(((ScreenedCallback<UnmodifiableConfig>) callback).screen, callback));
 		// ModConfig should NEVER be an element in a config list.
 		registerWidgetFactory(ModConfig.class, $ -> new InfoText<>("fml.configgui.list.unsupportedTypeUseConfig", "ModConfig"));
 
@@ -175,7 +175,7 @@ public class ConfigTypesManager {
 	 * Set the comparator that will be used to sort lists of config elements before displaying them on the screen.
 	 */
 	public static void setElementComparator(final Comparator<IConfigElement<?>> comparator) {
-		CONFIG_ELEMENTS_COMPARATOR = comparator;
+		configElementsComparator = comparator;
 	}
 
 	/**
@@ -184,7 +184,37 @@ public class ConfigTypesManager {
 	 * @param <W> The type of the widget
 	 */
 	public static <W extends Widget & IConfigListEntryWidget<?>> void setWidgetComparator(final Comparator<W> comparator) {
-		WIDGETS_COMPARATOR = comparator;
+		widgetsComparator = comparator;
+	}
+
+	/**
+	 * @param configElements The list of config elements to sort
+	 */
+	public static void sortElements(final List<IConfigElement<?>> configElements) {
+		configElements.sort(getConfigElementsComparator());
+	}
+
+	/**
+	 * @param widgets The list of widgets to sort
+	 * @param <W>     The type of the widget
+	 */
+	public static <W extends Widget & IConfigListEntryWidget<?>> void sortWidgets(final List<W> widgets) {
+		widgets.sort(getWidgetsComparator());
+	}
+
+	/**
+	 * @return The comparator for sorting config element lists
+	 */
+	public static Comparator<IConfigElement<?>> getConfigElementsComparator() {
+		return configElementsComparator;
+	}
+
+	/**
+	 * @param <W> The type of the widget
+	 * @return The comparator for sorting widget lists
+	 */
+	public static <W extends Widget & IConfigListEntryWidget<?>> Comparator<W> getWidgetsComparator() {
+		return (Comparator<W>) widgetsComparator;
 	}
 
 	/**
@@ -255,10 +285,10 @@ public class ConfigTypesManager {
 		if (factory != null && factory != NO_FACTORY) {
 			try {
 				// TODO: Do these indices better? What about duplicate values? Pass in index as param?
-				AtomicReference<Object> atomicReference = new AtomicReference<>();
+				final AtomicReference<Object> atomicReference = new AtomicReference<>();
 				atomicReference.set(obj);
-				Supplier getter = () -> list.get(list.indexOf(atomicReference.get()));
-				Consumer setter = newObj -> {
+				final Supplier getter = () -> list.get(list.indexOf(atomicReference.get()));
+				final Consumer setter = newObj -> {
 					final int i = list.indexOf(getter.get());
 					list.set(i, newObj);
 					atomicReference.set(newObj);
@@ -281,7 +311,7 @@ public class ConfigTypesManager {
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes", "UnstableApiUsage"})
-	public static <W> W makeWidget(@Nonnull final Config config, @Nonnull final ConfigScreen configScreen, @Nonnull final Predicate<Object> isValidPredicate, @Nonnull final String path, @Nonnull final Object obj) {
+	public static <W> W makeWidget(@Nonnull final UnmodifiableConfig config, @Nonnull final ConfigScreen configScreen, @Nonnull final Predicate<Object> isValidPredicate, @Nonnull final String path, @Nonnull final Object obj) {
 		final Class<?> clazz = obj.getClass();
 
 		if (clazz == null || clazz == Object.class)
@@ -290,8 +320,12 @@ public class ConfigTypesManager {
 		Function<IConfigListEntryWidget.Callback<?>, IConfigListEntryWidget<?>> factory = recursiveGetFactory(clazz, clazz, (Map) WIDGETS);
 		if (factory != null && factory != NO_FACTORY) {
 			try {
-				Supplier getter = () -> config.get(path);
-				Consumer setter = newObj -> config.set(path, newObj);
+				final Supplier getter = () -> config.get(path);
+				final Consumer setter;
+				if (config instanceof Config)
+					setter = newObj -> ((Config) config).set(path, newObj);
+				else setter = newObj -> {
+				};
 				final Supplier defaultValueGetter = () -> obj;
 				final BooleanSupplier isDefault = () -> true;
 				final Runnable resetToDefault = Runnables.doNothing();
@@ -403,17 +437,11 @@ public class ConfigTypesManager {
 		return ret;
 	}
 
-	public static void sortElements(final List<IConfigElement<?>> configElements) {
-		configElements.sort(CONFIG_ELEMENTS_COMPARATOR);
-	}
-
-	public static <W extends Widget & IConfigListEntryWidget<?>> void sortWidgets(final List<W> widgets) {
-		widgets.sort(Comparator.comparing(Widget::getMessage));
-	}
-
 	/**
+	 * Just a callback that also has a screen.
+	 * Used for the {@link ListButton} and {@link ConfigButton}
 	 *
-	 * @param <T>
+	 * @param <T> Type type of the value (e.g Boolean/Float)
 	 */
 	public static class ScreenedCallback<T> extends IConfigListEntryWidget.Callback<T> {
 

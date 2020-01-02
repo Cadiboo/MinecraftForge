@@ -119,7 +119,7 @@ public interface IConfigElement<T> {
 	 * @return If this element is going to have a slider attached (Only for numbers)
 	 */
 	default boolean hasSlidingControl() {
-		return false;
+		return true;
 	}
 
 	/**

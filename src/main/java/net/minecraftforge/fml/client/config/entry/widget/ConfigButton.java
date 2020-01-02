@@ -1,6 +1,6 @@
 package net.minecraftforge.fml.client.config.entry.widget;
 
-import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.ITextComponent;
@@ -12,17 +12,17 @@ import net.minecraftforge.fml.client.config.ConfigScreen;
 /**
  * @author Cadiboo
  */
-public class ConfigButton extends ScreenButton<Config> {
+public class ConfigButton extends ScreenButton<UnmodifiableConfig> {
 
-	public ConfigButton(final ConfigScreen configScreen, final Callback<Config> callback) {
+	public ConfigButton(final ConfigScreen configScreen, final Callback<UnmodifiableConfig> callback) {
 		this("Config", configScreen, callback);
 	}
 
-	public ConfigButton(final String message, final ConfigScreen configScreen, final Callback<Config> callback) {
+	public ConfigButton(final String message, final ConfigScreen configScreen, final Callback<UnmodifiableConfig> callback) {
 		super(message, callback, makeScreen(configScreen, callback, message));
 	}
 
-	public static Screen makeScreen(final ConfigScreen owningScreen, final Callback<Config> callback, final String label) {
+	public static Screen makeScreen(final ConfigScreen owningScreen, final Callback<UnmodifiableConfig> callback, final String label) {
 		final ConfigConfigScreen configScreen = new ConfigConfigScreen(owningScreen, callback);
 		final ITextComponent subtitle;
 		if (owningScreen.getSubtitle() == null)

@@ -16,7 +16,7 @@ public class EnumConfigElement<T extends Enum<?>> extends ConfigElement<T> {
 	}
 
 	@Override
-	public ConfigListEntry<T> makeConfigListEntry(final ConfigScreen configScreen) {
+	public ElementConfigListEntry<T> makeConfigListEntry(final ConfigScreen configScreen) {
 		final IConfigListEntryWidget.Callback<T> callback = new IConfigListEntryWidget.Callback<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
 		final EnumButton<T> widget = new EnumButton<>(getLabel(), callback);
 		return new ElementConfigListEntry<>(configScreen, widget, this);

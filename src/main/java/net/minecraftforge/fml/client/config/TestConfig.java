@@ -53,12 +53,10 @@ public class TestConfig {
 	private static double aDouble;
 	private static DyeColor anEnum;
 	private static String aString;
-	// see com.electronwill.nightconfig.toml.TemporalParser
 	private static LocalTime aLocalTime;
 	private static LocalDate aLocalDate;
 	private static LocalDateTime aLocalDateTime;
 	private static OffsetDateTime anOffsetDateTime;
-	// Why are nested configs possible D:<
 	private static Config aConfig;
 
 	private static List<Boolean> aBooleanList;
@@ -385,8 +383,6 @@ public class TestConfig {
 					.translation("aString")
 					.define("aString", "Hello, World!");
 
-			// Negative years or years that have less/more than 4 digits break toml's parser
-
 			aLocalTime = builder
 					.comment("a LocalTime")
 					.translation("aLocalTime")
@@ -405,7 +401,7 @@ public class TestConfig {
 			anOffsetDateTime = builder
 					.comment("an OffsetDateTime")
 					.translation("anOffsetDateTime")
-					.define("anOffsetDateTime", OffsetDateTime.now());
+					.define("anOffsetDateTime", OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+10:00")));
 
 			aConfig = builder
 					.comment("a Config")
@@ -455,8 +451,6 @@ public class TestConfig {
 						.translation("aStringList")
 						.define("aStringList", Lists.newArrayList("aStringList_value0", "aStringList_value1"));
 
-				// Negative years or years that have less/more than 4 digits break toml's parser
-
 				aLocalTimeList = builder
 						.comment("a LocalTimeList")
 						.translation("aLocalTimeList")
@@ -475,7 +469,7 @@ public class TestConfig {
 				anOffsetDateTimeList = builder
 						.comment("an OffsetDateTimeList")
 						.translation("anOffsetDateTimeList")
-						.define("anOffsetDateTimeList", Lists.newArrayList(OffsetDateTime.now(), OffsetDateTime.now(ZoneOffset.UTC)));
+						.define("anOffsetDateTimeList", Lists.newArrayList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+11:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.UTC)));
 
 				aConfigList = builder
 						.comment("a ConfigList")
@@ -537,8 +531,6 @@ public class TestConfig {
 						.translation("aStringListList")
 						.define("aStringListList", Lists.newArrayList(Lists.newArrayList("Hello", "World!"), Lists.newArrayList("World", "Hello")));
 
-				// Negative years or years that have less/more than 4 digits break toml's parser
-
 				aLocalTimeListList = builder
 						.comment("a LocalTimeList")
 						.translation("aLocalTimeList")
@@ -557,7 +549,7 @@ public class TestConfig {
 				anOffsetDateTimeListList = builder
 						.comment("an OffsetDateTimeList")
 						.translation("anOffsetDateTimeList")
-						.define("anOffsetDateTimeList", Lists.newArrayList(Lists.newArrayList(OffsetDateTime.now(), OffsetDateTime.now(ZoneOffset.UTC)), Lists.newArrayList(OffsetDateTime.now(), OffsetDateTime.now(ZoneOffset.UTC)), Lists.newArrayList(OffsetDateTime.now(), OffsetDateTime.now(ZoneOffset.UTC))));
+						.define("anOffsetDateTimeList", Lists.newArrayList(Lists.newArrayList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+11:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.UTC)), Lists.newArrayList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+15:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 1368, ZoneOffset.UTC)), Lists.newArrayList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368123, ZoneOffset.of("+01:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.UTC))));
 
 				aConfigListList = builder
 						.comment("a ConfigList")
@@ -619,8 +611,6 @@ public class TestConfig {
 						.translation("aStringInList")
 						.defineInList("aStringInList", "aStringListInList_value0", Lists.newArrayList("aStringListInList_value0", "aStringListInList_value1"));
 
-				// Negative years or years that have less/more than 4 digits break toml's parser
-
 				aLocalTimeInList = builder
 						.comment("a LocalTimeInList")
 						.translation("aLocalTimeInList")
@@ -639,7 +629,7 @@ public class TestConfig {
 				anOffsetDateTimeInList = builder
 						.comment("an OffsetDateTimeInList")
 						.translation("anOffsetDateTimeInList")
-						.defineInList("anOffsetDateTimeInList", OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+11:00")), Lists.newArrayList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+11:00")), OffsetDateTime.now(), OffsetDateTime.now(ZoneOffset.UTC)));
+						.defineInList("anOffsetDateTimeInList", OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+11:00")), Lists.newArrayList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+11:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+15:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.UTC)));
 
 				final CommentedConfig config = newConfig("defaultValue yay :D");
 				aConfigInList = builder
@@ -717,7 +707,7 @@ public class TestConfig {
 				anOffsetDateTimeConfig = builder
 						.comment("an OffsetDateTimeConfig")
 						.translation("anOffsetDateTimeConfig")
-						.define("anOffsetDateTimeConfig", newConfig(OffsetDateTime.now(), OffsetDateTime.now(ZoneOffset.UTC)));
+						.define("anOffsetDateTimeConfig", newConfig(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+11:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.UTC)));
 
 				aConfigConfig = builder
 						.comment("a ConfigConfig")
@@ -731,7 +721,6 @@ public class TestConfig {
 					.translation("aVeryNestedStringList")
 					// 10x List
 					.define("aVeryNestedStringList", newList(newList(newList(newList(newList(newList(newList(newList(newList(newList("Hello Lists!")))))))))));
-
 
 			aVeryNestedStringConfig = builder
 					.comment("a very nested string config (10x Configs)")
@@ -782,8 +771,8 @@ public class TestConfig {
 		@SafeVarargs
 		private static <T> CommentedConfig newConfig(final T... elements) {
 			final CommentedConfig config = TomlFormat.newConfig();
-			for (final T element : elements)
-				config.add(Integer.toString(element.hashCode()), element);
+			for (int i = 0; i < elements.length; i++)
+				config.add("element" + i, elements[i]);
 			return config;
 		}
 

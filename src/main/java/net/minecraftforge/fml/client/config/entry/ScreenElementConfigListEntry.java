@@ -5,7 +5,6 @@ import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.element.ConfigConfigElement;
 import net.minecraftforge.fml.client.config.element.IConfigElement;
 import net.minecraftforge.fml.client.config.element.ListConfigElement;
-import net.minecraftforge.fml.client.config.element.category.CategoryElement;
 import net.minecraftforge.fml.client.config.element.category.ConfigCategoryElement;
 import net.minecraftforge.fml.client.config.element.category.ModConfigCategoryElement;
 import net.minecraftforge.fml.client.config.entry.widget.IConfigListEntryWidget;
@@ -35,11 +34,6 @@ public class ScreenElementConfigListEntry<T> extends ElementConfigListEntry<T> {
 	@Override
 	public boolean displayDefaultValue() {
 		return false;
-	}
-
-	@Override
-	public boolean isCategory() {
-		return getConfigElement() instanceof CategoryElement;
 	}
 
 }

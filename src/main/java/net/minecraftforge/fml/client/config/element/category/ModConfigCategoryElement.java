@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  */
 public class ModConfigCategoryElement extends CategoryElement<ModConfig> {
 
-	// TODO: Move these to translation keys once forge's API stabilizes a bit more and the player type is added back in.
+	// TODO: Move these to translation keys once Forge's API stabilizes a bit more and the player type is added back in.
 	private static final Map<ModConfig.Type, String> COMMENTS;
 	static {
 		final Map<ModConfig.Type, String> map = new HashMap<>();

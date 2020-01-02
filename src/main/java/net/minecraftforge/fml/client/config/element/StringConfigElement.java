@@ -16,7 +16,7 @@ public class StringConfigElement extends ConfigElement<String> {
 	}
 
 	@Override
-	public ConfigListEntry<String> makeConfigListEntry(final ConfigScreen configScreen) {
+	public ElementConfigListEntry<String> makeConfigListEntry(final ConfigScreen configScreen) {
 		final IConfigListEntryWidget.Callback<String> callback = new IConfigListEntryWidget.Callback<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
 		final StringTextField widget = new StringTextField(callback);
 		return new ElementConfigListEntry<>(configScreen, widget, this);

@@ -18,7 +18,7 @@ public class OffsetDateTimeConfigElement extends ConfigElement<OffsetDateTime> {
 	}
 
 	@Override
-	public ConfigListEntry<OffsetDateTime> makeConfigListEntry(final ConfigScreen configScreen) {
+	public ElementConfigListEntry<OffsetDateTime> makeConfigListEntry(final ConfigScreen configScreen) {
 		final IConfigListEntryWidget.Callback<OffsetDateTime> callback = new IConfigListEntryWidget.Callback<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
 		final OffsetDateTimeTextField widget = new OffsetDateTimeTextField(callback);
 		return new ElementConfigListEntry<>(configScreen, widget, this);

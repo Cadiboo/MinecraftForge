@@ -19,7 +19,7 @@ public class ListConfigElement<T extends List<?>> extends ConfigElement<T> {
 	}
 
 	@Override
-	public ConfigListEntry<T> makeConfigListEntry(final ConfigScreen configScreen) {
+	public ScreenElementConfigListEntry<T> makeConfigListEntry(final ConfigScreen configScreen) {
 		final IConfigListEntryWidget.Callback<T> callback = new IConfigListEntryWidget.Callback<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
 		final ScreenButton<T> widget = new ListButton<>(getLabel(), configScreen, callback);
 		return new ScreenElementConfigListEntry<>(configScreen, widget, this);

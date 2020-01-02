@@ -54,7 +54,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 	 */
 	private int longestLabelWidth;
 	/**
-	 * Exists for dirt background hacks.
+	 * Exists to make the hacks used to stop the dirt background rendering work.
 	 */
 	private boolean doHackery = false;
 
@@ -69,7 +69,8 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 			if (longestLabelWidth < labelWidth)
 				longestLabelWidth = labelWidth;
 		});
-		return Math.min(longestLabelWidth, MAX_LABEL_WIDTH);
+		longestLabelWidth = Math.min(longestLabelWidth, MAX_LABEL_WIDTH);
+		return longestLabelWidth;
 	}
 
 	/**
@@ -87,6 +88,10 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 		// No logic here, all widgets are added by the owningScreen
 	}
 
+	/**
+	 * Updates the bounds of the entry list.
+	 * Would be inlined into {@link #init()} but is needed to make the hacks used to stop the dirt background rendering work.
+	 */
 	public void setBounds() {
 		// top
 		this.y0 = owningScreen.getHeaderSize();
@@ -108,6 +113,10 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 		return getWidth() - PADDING_X * 2;
 	}
 
+	/**
+	 * Exists to make the hacks used to stop the dirt background rendering work.
+	 * Renders a translucent gray background instead of the dirt background
+	 */
 	@Override
 	protected void renderBackground() {
 		this.fillGradient(this.getLeft(), this.getTop(), this.getRight(), this.getBottom(), 0x70_00_00_00, 0x70_00_00_00);
@@ -128,18 +137,16 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 
 		GL11.glScissor(scissorsX, scissorsY, scissorsWidth, scissorsHeight);
 
-		// Dirt hacks are applied to stop the dirt texture from being rendered.
-		// see getRowLeft and getScrollbarPosition
+		// Dirty hacks are used to stop the dirt texture from being rendered.
+		// see getRowLeft and getScrollbarPosition.
 		doHackery = true;
 		super.render(mouseX, mouseY, partialTicks);
 
-//		this.minecraft.getTextureManager().bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
-//		innerBlit(0, 10000, 0, 10000, this.getBlitOffset(), 0, 100, 0, 100);
 		GL11.glDisable(GL11.GL_SCISSOR_TEST);
 	}
 
 	/**
-	 * Exists for dirt background hacks.
+	 * Override exists to make the hacks used to stop the dirt background rendering work.
 	 */
 	@Override
 	protected int getScrollbarPosition() {
@@ -165,7 +172,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 	}
 
 	/**
-	 * Exists for dirt background hacks.
+	 * Override exists to make the hacks used to stop the dirt background rendering work.
 	 */
 	@Override
 	protected int getRowLeft() {
@@ -174,7 +181,7 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 	}
 
 	/**
-	 * Exists for dirt background hacks.
+	 * Override exists to make the hacks used to stop the dirt background rendering work.
 	 */
 	@Override
 	protected void renderHoleBackground(final int p_renderHoleBackground_1_, final int p_renderHoleBackground_2_, final int p_renderHoleBackground_3_, final int p_renderHoleBackground_4_) {

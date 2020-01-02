@@ -223,6 +223,11 @@ public class ElementConfigListEntry<T> extends ConfigListEntry<T> {
 		return getConfigElement().getRange();
 	}
 
+	@Override
+	public boolean isCategory() {
+		return getConfigElement().isCategory();
+	}
+
 	@Nonnull
 	public List<String> getToolTip() {
 		if (toolTip == null)

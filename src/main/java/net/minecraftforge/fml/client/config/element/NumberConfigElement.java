@@ -19,13 +19,13 @@ public abstract class NumberConfigElement<T extends Number & Comparable<? super 
 	}
 
 	@Override
-	public ConfigListEntry<T> makeConfigListEntry(final ConfigScreen configScreen) {
+	public ElementConfigListEntry<T> makeConfigListEntry(final ConfigScreen configScreen) {
 		final IConfigListEntryWidget.Callback<T> callback = new IConfigListEntryWidget.Callback<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
 		final Widget widget;
 		if (this.hasSlidingControl())
-			widget = makeSlider(callback, this.getConfigElementContainer().getValueSpec().getRange());
+			widget = this.makeSlider(callback, this.getConfigElementContainer().getValueSpec().getRange());
 		else
-			widget = makeTextField(callback);
+			widget = this.makeTextField(callback);
 		return new ElementConfigListEntry<>(configScreen, cast(widget), this);
 	}
 

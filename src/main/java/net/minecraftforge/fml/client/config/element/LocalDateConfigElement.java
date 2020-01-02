@@ -18,7 +18,7 @@ public class LocalDateConfigElement extends ConfigElement<LocalDate> {
 	}
 
 	@Override
-	public ConfigListEntry<LocalDate> makeConfigListEntry(final ConfigScreen configScreen) {
+	public ElementConfigListEntry<LocalDate> makeConfigListEntry(final ConfigScreen configScreen) {
 		final IConfigListEntryWidget.Callback<LocalDate> callback = new IConfigListEntryWidget.Callback<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
 		final LocalDateTextField widget = new LocalDateTextField(callback);
 		return new ElementConfigListEntry<>(configScreen, widget, this);

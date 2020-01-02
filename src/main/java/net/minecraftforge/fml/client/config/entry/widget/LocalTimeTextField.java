@@ -20,6 +20,16 @@ public class LocalTimeTextField extends ObjectTextField<LocalTime> {
 		return value.toString();
 	}
 
+	/**
+	 * Tries to parse the text to a LocalDate.
+	 * TOML Local Times are in RFC 3339 format.
+	 * <p>
+	 * Examples:
+	 * 07:32:00
+	 * 00:32:00.999999
+	 *
+	 * @see "https://github.com/toml-lang/toml#local-time"
+	 */
 	@Override
 	public LocalTime fromText(final String text) throws Exception {
 		final String[] hms = text.split(":");

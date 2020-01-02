@@ -16,7 +16,7 @@ public class BooleanConfigElement extends ConfigElement<Boolean> {
 	}
 
 	@Override
-	public ConfigListEntry<Boolean> makeConfigListEntry(final ConfigScreen configScreen) {
+	public ElementConfigListEntry<Boolean> makeConfigListEntry(final ConfigScreen configScreen) {
 		final IConfigListEntryWidget.Callback<Boolean> callback = new IConfigListEntryWidget.Callback<>(this::get, this::set, this::getDefault, this::isDefault, this::resetToDefault, this::isChanged, this::undoChanges, this::isValid, this::save);
 		final BooleanButton widget = new BooleanButton(callback);
 		return new ElementConfigListEntry<>(configScreen, widget, this);

@@ -112,6 +112,7 @@ public interface IConfigListEntryWidget<T> {
 	void updateWidgetValue();
 
 	/**
+	 * @param <T> Type type of the value (e.g Boolean/Float)
 	 * @author Cadiboo
 	 */
 	class Callback<T> {

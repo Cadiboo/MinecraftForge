@@ -2,6 +2,7 @@ package net.minecraftforge.fml.client.config;
 
 import com.electronwill.nightconfig.core.AbstractConfig;
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.resources.I18n;
 import net.minecraftforge.fml.client.config.entry.ConfigConfigListEntry;
@@ -20,15 +21,19 @@ import java.util.function.Predicate;
  */
 public class ConfigConfigScreen extends ConfigScreen {
 
-	private final IConfigListEntryWidget.Callback<Config> callback;
+	private final IConfigListEntryWidget.Callback<UnmodifiableConfig> callback;
 
-	// Original is used as the value for resetToDefault
-	private final Config original;
-	// Clone is used for everything else
-	private final Config clone;
+	/**
+	 * Used as the value for resetToDefault
+	 */
+	private final UnmodifiableConfig original;
+	/**
+	 * Used for everything else
+	 */
+	private final UnmodifiableConfig clone;
 	private final boolean isUnmodifiable;
 
-	public ConfigConfigScreen(final ConfigScreen owningScreen, final IConfigListEntryWidget.Callback<Config> callback) {
+	public ConfigConfigScreen(final ConfigScreen owningScreen, final IConfigListEntryWidget.Callback<UnmodifiableConfig> callback) {
 		super(owningScreen.getTitle(), owningScreen, owningScreen.modContainer);
 		this.callback = callback;
 		this.original = callback.get();
@@ -41,12 +46,12 @@ public class ConfigConfigScreen extends ConfigScreen {
 
 	}
 
-	public static boolean isUnmodifiable(final Config original) {
+	public static boolean isUnmodifiable(final UnmodifiableConfig config) {
 		// Yeah... what? Config extends UnmodifiableConfig.
 		// Maybe I should accept UnmodifiableConfig instead of Config as params?
 		// Looks like the config passed in is never unmodifiable though, which makes
 		// sense as this is a gui for modifying configs.
-		return !(original instanceof Config);
+		return !(config instanceof Config);
 	}
 
 	public boolean isUnmodifiable() {
@@ -57,7 +62,7 @@ public class ConfigConfigScreen extends ConfigScreen {
 	public void init() {
 		super.init();
 
-		final Config config = callback.get();
+		final UnmodifiableConfig config = callback.get();
 
 		final ArrayList<? extends Widget> widgets = makeWidgets(config, this, o -> callback.isValid());
 		if (!isUnmodifiable() && widgets.isEmpty()) {
@@ -70,7 +75,7 @@ public class ConfigConfigScreen extends ConfigScreen {
 		widgets.forEach(w -> configListEntries.add(new ConfigConfigListEntry(this, w, isModifiable)));
 	}
 
-	protected <W extends Widget & IConfigListEntryWidget<Object>> ArrayList<W> makeWidgets(final Config config, final ConfigScreen configScreen, final Predicate<Object> elementValidator) {
+	protected <W extends Widget & IConfigListEntryWidget<Object>> ArrayList<W> makeWidgets(final UnmodifiableConfig config, final ConfigScreen configScreen, final Predicate<Object> elementValidator) {
 		final ArrayList<W> elements = new ArrayList<>();
 		config.valueMap().forEach((path, obj) -> elements.add(ConfigTypesManager.makeWidget(config, configScreen, elementValidator, path, obj)));
 		return elements;
