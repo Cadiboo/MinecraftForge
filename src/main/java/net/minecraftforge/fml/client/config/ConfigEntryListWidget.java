@@ -167,6 +167,8 @@ public class ConfigEntryListWidget extends ExtendedList<ConfigListEntry<?>> {
 			final Widget widget = configListEntry.getWidget();
 			if (widget instanceof TextFieldWidget)
 				((TextFieldWidget) widget).setFocused2(false);
+			else if (widget instanceof GuiSlider) // Stop sliders moving around when you've clicked somewhere else
+				((GuiSlider) widget).dragging = false;
 		});
 		return super.mouseClicked(mouseX, mouseY, mouseEvent);
 	}

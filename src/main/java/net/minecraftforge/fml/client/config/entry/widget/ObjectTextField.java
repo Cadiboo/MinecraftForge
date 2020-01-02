@@ -13,10 +13,6 @@ public abstract class ObjectTextField<T> extends TextFieldWidget implements ICon
 	private boolean hasChanged = true;
 	private boolean isValid = false;
 
-	public ObjectTextField(final Callback<T> callback) {
-		this("Object", callback);
-	}
-
 	public ObjectTextField(final String message, final Callback<T> callback) {
 		super(Minecraft.getInstance().fontRenderer, 0, 0, 0, 0, message);
 		this.callback = callback;

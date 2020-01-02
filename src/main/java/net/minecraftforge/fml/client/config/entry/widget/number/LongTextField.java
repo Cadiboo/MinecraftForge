@@ -1,4 +1,6 @@
-package net.minecraftforge.fml.client.config.entry.widget;
+package net.minecraftforge.fml.client.config.entry.widget.number;
+
+import net.minecraftforge.fml.client.config.entry.widget.ObjectTextField;
 
 /**
  * @author Cadiboo
