@@ -26,6 +26,15 @@ import com.google.common.collect.Lists;
 import joptsimple.internal.Strings;
 import net.minecraft.item.DyeColor;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
+import net.minecraftforge.common.ForgeConfigSpec.ByteValue;
+import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
+import net.minecraftforge.common.ForgeConfigSpec.DoubleValue;
+import net.minecraftforge.common.ForgeConfigSpec.EnumValue;
+import net.minecraftforge.common.ForgeConfigSpec.FloatValue;
+import net.minecraftforge.common.ForgeConfigSpec.IntValue;
+import net.minecraftforge.common.ForgeConfigSpec.LongValue;
+import net.minecraftforge.common.ForgeConfigSpec.ShortValue;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -88,11 +97,11 @@ public class ConfigTest {
 
 		}
 
-		private static <T> void bakeAndDebug(final Supplier<T> getter, final ForgeConfigSpec.ConfigValue<T> configValue, final Consumer<T> setter, final Logger logger) {
+		private static <T> void bakeAndDebug(final Supplier<T> getter, final ConfigValue<T> configValue, final Consumer<T> setter, final Logger logger) {
 			T oldValue = getter.get();
 			T newValue = configValue.get();
 			String path = Strings.join(configValue.getPath(), "_");
-			//		LOGGER.warn(CONFIG_TEST, path + ": " + oldValue + ", " + newValue + ", " + Objects.equals(oldValue, newValue));
+//	    	LOGGER.warn(CONFIG_TEST, path + ": " + oldValue + ", " + newValue + ", " + Objects.equals(oldValue, newValue));
 			logger.warn(CONFIG_TEST, path + ": " + Objects.equals(oldValue, newValue));
 			setter.accept(newValue);
 		}
@@ -103,7 +112,7 @@ public class ConfigTest {
 		}
 
 		@SafeVarargs
-		private static <T> CommentedConfig newConfig(final T... elements) {
+		private static <E> CommentedConfig newConfig(final E... elements) {
 			final CommentedConfig config = TomlFormat.newConfig();
 			for (int i = 0; i < elements.length; i++)
 				config.add("element" + i, elements[i]);
@@ -118,6 +127,7 @@ public class ConfigTest {
 
 			private static boolean aBoolean;
 			private static byte aByte;
+			private static short aShort;
 			private static int anInt;
 			private static float aFloat;
 			private static long aLong;
@@ -132,6 +142,7 @@ public class ConfigTest {
 
 			private static List<Boolean> aBooleanList;
 			private static List<Byte> aByteList;
+			private static List<Short> aShortList;
 			private static List<Integer> anIntegerList;
 			private static List<Float> aFloatList;
 			private static List<Long> aLongList;
@@ -148,6 +159,7 @@ public class ConfigTest {
 
 			private static List<List<Boolean>> aBooleanListList;
 			private static List<List<Byte>> aByteListList;
+			private static List<List<Short>> aShortListList;
 			private static List<List<Integer>> anIntegerListList;
 			private static List<List<Float>> aFloatListList;
 			private static List<List<Long>> aLongListList;
@@ -164,6 +176,7 @@ public class ConfigTest {
 
 			private static Config aBooleanConfig;
 			private static Config aByteConfig;
+			private static Config aShortConfig;
 			private static Config anIntegerConfig;
 			private static Config aFloatConfig;
 			private static Config aLongConfig;
@@ -178,6 +191,7 @@ public class ConfigTest {
 
 			private static boolean aBooleanInList;
 			private static byte aByteInList;
+			private static short aShortInList;
 			private static int anIntInList;
 			private static float aFloatInList;
 			private static long aLongInList;
@@ -212,6 +226,7 @@ public class ConfigTest {
 			private static void bakeAndDebugConfig() {
 				bakeAndDebug(() -> aBoolean, CONFIG.aBoolean, $ -> aBoolean = $, LOGGER);
 				bakeAndDebug(() -> aByte, CONFIG.aByte, $ -> aByte = $, LOGGER);
+				bakeAndDebug(() -> aShort, CONFIG.aShort, $ -> aShort = $, LOGGER);
 				bakeAndDebug(() -> anInt, CONFIG.anInteger, $ -> anInt = $, LOGGER);
 				bakeAndDebug(() -> aFloat, CONFIG.aFloat, $ -> aFloat = $, LOGGER);
 				bakeAndDebug(() -> aLong, CONFIG.aLong, $ -> aLong = $, LOGGER);
@@ -226,6 +241,7 @@ public class ConfigTest {
 
 				bakeAndDebug(() -> aBooleanList, CONFIG.aBooleanList, $ -> aBooleanList = $, LOGGER);
 				bakeAndDebug(() -> aByteList, CONFIG.aByteList, $ -> aByteList = $, LOGGER);
+				bakeAndDebug(() -> aShortList, CONFIG.aShortList, $ -> aShortList = $, LOGGER);
 				bakeAndDebug(() -> anIntegerList, CONFIG.anIntegerList, $ -> anIntegerList = $, LOGGER);
 				bakeAndDebug(() -> aFloatList, CONFIG.aFloatList, $ -> aFloatList = $, LOGGER);
 				bakeAndDebug(() -> aLongList, CONFIG.aLongList, $ -> aLongList = $, LOGGER);
@@ -239,8 +255,10 @@ public class ConfigTest {
 				bakeAndDebug(() -> aConfigList, CONFIG.aConfigList, $ -> aConfigList = $, LOGGER);
 				bakeAndDebug(() -> aStringWeirdList, CONFIG.aStringWeirdList, $ -> aStringWeirdList = $, LOGGER);
 				bakeAndDebug(() -> aStringListOld, CONFIG.aStringListOld, $ -> aStringListOld = $, LOGGER);
+
 				bakeAndDebug(() -> aBooleanListList, CONFIG.aBooleanListList, $ -> aBooleanListList = $, LOGGER);
 				bakeAndDebug(() -> aByteListList, CONFIG.aByteListList, $ -> aByteListList = $, LOGGER);
+				bakeAndDebug(() -> aShortListList, CONFIG.aShortListList, $ -> aShortListList = $, LOGGER);
 				bakeAndDebug(() -> anIntegerListList, CONFIG.anIntegerListList, $ -> anIntegerListList = $, LOGGER);
 				bakeAndDebug(() -> aFloatListList, CONFIG.aFloatListList, $ -> aFloatListList = $, LOGGER);
 				bakeAndDebug(() -> aLongListList, CONFIG.aLongListList, $ -> aLongListList = $, LOGGER);
@@ -251,12 +269,14 @@ public class ConfigTest {
 				bakeAndDebug(() -> aLocalDateListList, CONFIG.aLocalDateListList, $ -> aLocalDateListList = $, LOGGER);
 				bakeAndDebug(() -> aLocalDateTimeListList, CONFIG.aLocalDateTimeListList, $ -> aLocalDateTimeListList = $, LOGGER);
 				bakeAndDebug(() -> anOffsetDateTimeListList, CONFIG.anOffsetDateTimeListList, $ -> anOffsetDateTimeListList = $, LOGGER);
+				// TODO: Bug in NightConfig - The writer writes it in a way that can't be parsed. See "https://github.com/TheElectronWill/night-config/pull/75"
 				bakeAndDebug(() -> aConfigListList, CONFIG.aConfigListList, $ -> aConfigListList = $, LOGGER);
 				bakeAndDebug(() -> aStringWeirdListWeirdList, CONFIG.aStringWeirdListWeirdList, $ -> aStringWeirdListWeirdList = $, LOGGER);
 				bakeAndDebug(() -> aStringListOldList, CONFIG.aStringListOldList, $ -> aStringListOldList = $, LOGGER);
 
 				bakeAndDebug(() -> aBooleanInList, CONFIG.aBooleanInList, $ -> aBooleanInList = $, LOGGER);
 				bakeAndDebug(() -> aByteInList, CONFIG.aByteInList, $ -> aByteInList = $, LOGGER);
+				bakeAndDebug(() -> aShortInList, CONFIG.aShortInList, $ -> aShortInList = $, LOGGER);
 				bakeAndDebug(() -> anIntInList, CONFIG.anIntegerInList, $ -> anIntInList = $, LOGGER);
 				bakeAndDebug(() -> aFloatInList, CONFIG.aFloatInList, $ -> aFloatInList = $, LOGGER);
 				bakeAndDebug(() -> aLongInList, CONFIG.aLongInList, $ -> aLongInList = $, LOGGER);
@@ -272,6 +292,7 @@ public class ConfigTest {
 
 				bakeAndDebug(() -> aBooleanConfig, CONFIG.aBooleanConfig, $ -> aBooleanConfig = $, LOGGER);
 				bakeAndDebug(() -> aByteConfig, CONFIG.aByteConfig, $ -> aByteConfig = $, LOGGER);
+				bakeAndDebug(() -> aShortConfig, CONFIG.aShortConfig, $ -> aShortConfig = $, LOGGER);
 				bakeAndDebug(() -> anIntegerConfig, CONFIG.anIntegerConfig, $ -> anIntegerConfig = $, LOGGER);
 				bakeAndDebug(() -> aFloatConfig, CONFIG.aFloatConfig, $ -> aFloatConfig = $, LOGGER);
 				bakeAndDebug(() -> aLongConfig, CONFIG.aLongConfig, $ -> aLongConfig = $, LOGGER);
@@ -297,92 +318,97 @@ public class ConfigTest {
 
 			private static class ConfigImpl {
 
-				private final ForgeConfigSpec.BooleanValue aBoolean;
-				private final ForgeConfigSpec.ByteValue aByte;
-				private final ForgeConfigSpec.IntValue anInteger;
-				private final ForgeConfigSpec.FloatValue aFloat;
-				private final ForgeConfigSpec.LongValue aLong;
-				private final ForgeConfigSpec.DoubleValue aDouble;
-				private final ForgeConfigSpec.EnumValue<DyeColor> anEnum;
-				private final ForgeConfigSpec.ConfigValue<String> aString;
-				private final ForgeConfigSpec.ConfigValue<LocalTime> aLocalTime;
-				private final ForgeConfigSpec.ConfigValue<LocalDate> aLocalDate;
-				private final ForgeConfigSpec.ConfigValue<LocalDateTime> aLocalDateTime;
-				private final ForgeConfigSpec.ConfigValue<OffsetDateTime> anOffsetDateTime;
-				private final ForgeConfigSpec.ConfigValue<Config> aConfig;
+				private final BooleanValue aBoolean;
+				private final ByteValue aByte;
+				private final ShortValue aShort;
+				private final IntValue anInteger;
+				private final FloatValue aFloat;
+				private final LongValue aLong;
+				private final DoubleValue aDouble;
+				private final EnumValue<DyeColor> anEnum;
+				private final ConfigValue<String> aString;
+				private final ConfigValue<LocalTime> aLocalTime;
+				private final ConfigValue<LocalDate> aLocalDate;
+				private final ConfigValue<LocalDateTime> aLocalDateTime;
+				private final ConfigValue<OffsetDateTime> anOffsetDateTime;
+				private final ConfigValue<Config> aConfig;
 
-				private final ForgeConfigSpec.ConfigValue<List<Boolean>> aBooleanList;
-				private final ForgeConfigSpec.ConfigValue<List<Byte>> aByteList;
-				private final ForgeConfigSpec.ConfigValue<List<Integer>> anIntegerList;
-				private final ForgeConfigSpec.ConfigValue<List<Float>> aFloatList;
-				private final ForgeConfigSpec.ConfigValue<List<Long>> aLongList;
-				private final ForgeConfigSpec.ConfigValue<List<Double>> aDoubleList;
-				private final ForgeConfigSpec.ConfigValue<List<Enum<DyeColor>>> anEnumList;
-				private final ForgeConfigSpec.ConfigValue<List<String>> aStringList;
-				private final ForgeConfigSpec.ConfigValue<List<LocalTime>> aLocalTimeList;
-				private final ForgeConfigSpec.ConfigValue<List<LocalDate>> aLocalDateList;
-				private final ForgeConfigSpec.ConfigValue<List<LocalDateTime>> aLocalDateTimeList;
-				private final ForgeConfigSpec.ConfigValue<List<OffsetDateTime>> anOffsetDateTimeList;
-				private final ForgeConfigSpec.ConfigValue<List<Config>> aConfigList;
-				private final ForgeConfigSpec.ConfigValue<List<String>> aStringWeirdList;
-				private final ForgeConfigSpec.ConfigValue<List<? extends String>> aStringListOld;
+				private final ConfigValue<List<Boolean>> aBooleanList;
+				private final ConfigValue<List<Byte>> aByteList;
+				private final ConfigValue<List<Short>> aShortList;
+				private final ConfigValue<List<Integer>> anIntegerList;
+				private final ConfigValue<List<Float>> aFloatList;
+				private final ConfigValue<List<Long>> aLongList;
+				private final ConfigValue<List<Double>> aDoubleList;
+				private final ConfigValue<List<Enum<DyeColor>>> anEnumList;
+				private final ConfigValue<List<String>> aStringList;
+				private final ConfigValue<List<LocalTime>> aLocalTimeList;
+				private final ConfigValue<List<LocalDate>> aLocalDateList;
+				private final ConfigValue<List<LocalDateTime>> aLocalDateTimeList;
+				private final ConfigValue<List<OffsetDateTime>> anOffsetDateTimeList;
+				private final ConfigValue<List<Config>> aConfigList;
+				private final ConfigValue<List<String>> aStringWeirdList;
+				private final ConfigValue<List<? extends String>> aStringListOld;
 
-				private final ForgeConfigSpec.ConfigValue<List<List<Boolean>>> aBooleanListList;
-				private final ForgeConfigSpec.ConfigValue<List<List<Byte>>> aByteListList;
-				private final ForgeConfigSpec.ConfigValue<List<List<Integer>>> anIntegerListList;
-				private final ForgeConfigSpec.ConfigValue<List<List<Float>>> aFloatListList;
-				private final ForgeConfigSpec.ConfigValue<List<List<Long>>> aLongListList;
-				private final ForgeConfigSpec.ConfigValue<List<List<Double>>> aDoubleListList;
-				private final ForgeConfigSpec.ConfigValue<List<List<Enum<DyeColor>>>> anEnumListList;
-				private final ForgeConfigSpec.ConfigValue<List<List<String>>> aStringListList;
-				private final ForgeConfigSpec.ConfigValue<List<List<LocalTime>>> aLocalTimeListList;
-				private final ForgeConfigSpec.ConfigValue<List<List<LocalDate>>> aLocalDateListList;
-				private final ForgeConfigSpec.ConfigValue<List<List<LocalDateTime>>> aLocalDateTimeListList;
-				private final ForgeConfigSpec.ConfigValue<List<List<OffsetDateTime>>> anOffsetDateTimeListList;
-				private final ForgeConfigSpec.ConfigValue<List<List<Config>>> aConfigListList;
-				private final ForgeConfigSpec.ConfigValue<List<List<String>>> aStringWeirdListWeirdList;
-				private final ForgeConfigSpec.ConfigValue<List<? extends List<String>>> aStringListOldList;
+				private final ConfigValue<List<List<Boolean>>> aBooleanListList;
+				private final ConfigValue<List<List<Byte>>> aByteListList;
+				private final ConfigValue<List<List<Short>>> aShortListList;
+				private final ConfigValue<List<List<Integer>>> anIntegerListList;
+				private final ConfigValue<List<List<Float>>> aFloatListList;
+				private final ConfigValue<List<List<Long>>> aLongListList;
+				private final ConfigValue<List<List<Double>>> aDoubleListList;
+				private final ConfigValue<List<List<Enum<DyeColor>>>> anEnumListList;
+				private final ConfigValue<List<List<String>>> aStringListList;
+				private final ConfigValue<List<List<LocalTime>>> aLocalTimeListList;
+				private final ConfigValue<List<List<LocalDate>>> aLocalDateListList;
+				private final ConfigValue<List<List<LocalDateTime>>> aLocalDateTimeListList;
+				private final ConfigValue<List<List<OffsetDateTime>>> anOffsetDateTimeListList;
+				private final ConfigValue<List<List<Config>>> aConfigListList;
+				private final ConfigValue<List<List<String>>> aStringWeirdListWeirdList;
+				private final ConfigValue<List<? extends List<String>>> aStringListOldList;
 
-				private final ForgeConfigSpec.ConfigValue<Boolean> aBooleanInList;
-				private final ForgeConfigSpec.ConfigValue<Byte> aByteInList;
-				private final ForgeConfigSpec.ConfigValue<Integer> anIntegerInList;
-				private final ForgeConfigSpec.ConfigValue<Float> aFloatInList;
-				private final ForgeConfigSpec.ConfigValue<Long> aLongInList;
-				private final ForgeConfigSpec.ConfigValue<Double> aDoubleInList;
-				private final ForgeConfigSpec.ConfigValue<DyeColor> anEnumInList;
-				private final ForgeConfigSpec.ConfigValue<String> aStringInList;
-				private final ForgeConfigSpec.ConfigValue<LocalTime> aLocalTimeInList;
-				private final ForgeConfigSpec.ConfigValue<LocalDate> aLocalDateInList;
-				private final ForgeConfigSpec.ConfigValue<LocalDateTime> aLocalDateTimeInList;
-				private final ForgeConfigSpec.ConfigValue<OffsetDateTime> anOffsetDateTimeInList;
-				private final ForgeConfigSpec.ConfigValue<Config> aConfigInList;
-				private final ForgeConfigSpec.ConfigValue<List<String>> aStringListInList;
+				private final ConfigValue<Boolean> aBooleanInList;
+				private final ConfigValue<Byte> aByteInList;
+				private final ConfigValue<Short> aShortInList;
+				private final ConfigValue<Integer> anIntegerInList;
+				private final ConfigValue<Float> aFloatInList;
+				private final ConfigValue<Long> aLongInList;
+				private final ConfigValue<Double> aDoubleInList;
+				private final ConfigValue<DyeColor> anEnumInList;
+				private final ConfigValue<String> aStringInList;
+				private final ConfigValue<LocalTime> aLocalTimeInList;
+				private final ConfigValue<LocalDate> aLocalDateInList;
+				private final ConfigValue<LocalDateTime> aLocalDateTimeInList;
+				private final ConfigValue<OffsetDateTime> anOffsetDateTimeInList;
+				private final ConfigValue<Config> aConfigInList;
+				private final ConfigValue<List<String>> aStringListInList;
 
-				private final ForgeConfigSpec.ConfigValue<Config> aBooleanConfig;
-				private final ForgeConfigSpec.ConfigValue<Config> aByteConfig;
-				private final ForgeConfigSpec.ConfigValue<Config> anIntegerConfig;
-				private final ForgeConfigSpec.ConfigValue<Config> aFloatConfig;
-				private final ForgeConfigSpec.ConfigValue<Config> aLongConfig;
-				private final ForgeConfigSpec.ConfigValue<Config> aDoubleConfig;
-				private final ForgeConfigSpec.ConfigValue<Config> anEnumConfig;
-				private final ForgeConfigSpec.ConfigValue<Config> aStringConfig;
-				private final ForgeConfigSpec.ConfigValue<Config> aLocalTimeConfig;
-				private final ForgeConfigSpec.ConfigValue<Config> aLocalDateConfig;
-				private final ForgeConfigSpec.ConfigValue<Config> aLocalDateTimeConfig;
-				private final ForgeConfigSpec.ConfigValue<Config> anOffsetDateTimeConfig;
-				private final ForgeConfigSpec.ConfigValue<Config> aConfigConfig;
+				private final ConfigValue<Config> aBooleanConfig;
+				private final ConfigValue<Config> aByteConfig;
+				private final ConfigValue<Config> aShortConfig;
+				private final ConfigValue<Config> anIntegerConfig;
+				private final ConfigValue<Config> aFloatConfig;
+				private final ConfigValue<Config> aLongConfig;
+				private final ConfigValue<Config> aDoubleConfig;
+				private final ConfigValue<Config> anEnumConfig;
+				private final ConfigValue<Config> aStringConfig;
+				private final ConfigValue<Config> aLocalTimeConfig;
+				private final ConfigValue<Config> aLocalDateConfig;
+				private final ConfigValue<Config> aLocalDateTimeConfig;
+				private final ConfigValue<Config> anOffsetDateTimeConfig;
+				private final ConfigValue<Config> aConfigConfig;
 
 				// 10x List
-				private final ForgeConfigSpec.ConfigValue<List<List<List<List<List<List<List<List<List<List<String>>>>>>>>>>> aVeryNestedStringList;
+				private final ConfigValue<List<List<List<List<List<List<List<List<List<List<String>>>>>>>>>>> aVeryNestedStringList;
 				// 10x Config
-				private final ForgeConfigSpec.ConfigValue<Config> aVeryNestedStringConfig;
-				private final ForgeConfigSpec.ConfigValue<String> aPathDefinedString;
+				private final ConfigValue<Config> aVeryNestedStringConfig;
+				private final ConfigValue<String> aPathDefinedString;
 
-				private final ForgeConfigSpec.BooleanValue category0_aBoolean;
-				private final ForgeConfigSpec.IntValue category0_anInt;
+				private final BooleanValue category0_aBoolean;
+				private final IntValue category0_anInt;
 
-				private final ForgeConfigSpec.BooleanValue category0_category1_aBoolean;
-				private final ForgeConfigSpec.IntValue category0_category1_anInt;
+				private final BooleanValue category0_category1_aBoolean;
+				private final IntValue category0_category1_anInt;
 
 				ConfigImpl(ForgeConfigSpec.Builder builder) {
 
@@ -397,6 +423,12 @@ public class ConfigTest {
 							.translation("aByte")
 							.worldRestart()
 							.defineInRange("aByte", (byte) 10, Byte.MIN_VALUE, Byte.MAX_VALUE);
+
+					aShort = builder
+							.comment("a Short")
+							.translation("aShort")
+							.worldRestart()
+							.defineInRange("aShort", (short) 10, Short.MIN_VALUE, Short.MAX_VALUE);
 
 					anInteger = builder
 							.comment("an Int")
@@ -463,67 +495,72 @@ public class ConfigTest {
 						aBooleanList = builder
 								.comment("a BooleanList")
 								.translation("aBooleanList")
-								.define("aBooleanList", Lists.newArrayList(true, false));
+								.define("aBooleanList", newList(true, false));
 
 						aByteList = builder
 								.comment("a ByteList")
 								.translation("aByteList")
-								.define("aByteList", Lists.newArrayList((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 256));
+								.define("aByteList", newList((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 256));
+
+						aShortList = builder
+								.comment("a ShortList")
+								.translation("aShortList")
+								.define("aShortList", newList((short) 0, Short.MIN_VALUE, Short.MAX_VALUE, (short) 256));
 
 						anIntegerList = builder
 								.comment("an IntegerList")
 								.translation("anIntegerList")
-								.define("anIntegerList", Lists.newArrayList(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 256));
+								.define("anIntegerList", newList(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 256));
 
 						aFloatList = builder
 								.comment("a FloatList")
 								.translation("aFloatList")
-								.define("aFloatList", Lists.newArrayList(0F, Float.MIN_VALUE, Float.MAX_VALUE, 256F));
+								.define("aFloatList", newList(0F, Float.MIN_VALUE, Float.MAX_VALUE, 256F));
 
 						aLongList = builder
 								.comment("a LongList")
 								.translation("aLongList")
-								.define("aLongList", Lists.newArrayList(0L, Long.MIN_VALUE, Long.MAX_VALUE, 256L));
+								.define("aLongList", newList(0L, Long.MIN_VALUE, Long.MAX_VALUE, 256L));
 
 						aDoubleList = builder
 								.comment("a DoubleList")
 								.translation("aDoubleList")
-								.define("aDoubleList", Lists.newArrayList(0d, Double.MIN_VALUE, Double.MAX_VALUE, 256d));
+								.define("aDoubleList", newList(0d, Double.MIN_VALUE, Double.MAX_VALUE, 256d));
 
 						anEnumList = builder
 								.comment("an EnumList")
 								.translation("anEnumList")
-								.define("anEnumList", Lists.newArrayList(DyeColor.BLACK, DyeColor.GREEN, DyeColor.CYAN, DyeColor.RED));
+								.define("anEnumList", newList(DyeColor.BLACK, DyeColor.GREEN, DyeColor.CYAN, DyeColor.RED));
 
 						aStringList = builder
 								.comment("a StringList")
 								.translation("aStringList")
-								.define("aStringList", Lists.newArrayList("aStringList_value0", "aStringList_value1"));
+								.define("aStringList", newList("aStringList_value0", "aStringList_value1"));
 
 						aLocalTimeList = builder
 								.comment("a LocalTimeList")
 								.translation("aLocalTimeList")
-								.define("aLocalTimeList", Lists.newArrayList(LocalTime.of(0, 0, 0), LocalTime.of(23, 59, 59)));
+								.define("aLocalTimeList", newList(LocalTime.of(0, 0, 0), LocalTime.of(23, 59, 59)));
 
 						aLocalDateList = builder
 								.comment("a LocalDateList")
 								.translation("aLocalDateList")
-								.define("aLocalDateList", Lists.newArrayList(LocalDate.of(1999, 1, 1), LocalDate.of(2000, 1, 1)));
+								.define("aLocalDateList", newList(LocalDate.of(1999, 1, 1), LocalDate.of(2000, 1, 1)));
 
 						aLocalDateTimeList = builder
 								.comment("a LocalDateTimeList")
 								.translation("aLocalDateTimeList")
-								.define("aLocalDateTimeList", Lists.newArrayList(LocalDateTime.of(1999, 1, 1, 10, 0), LocalDateTime.of(2000, 1, 1, 23, 59)));
+								.define("aLocalDateTimeList", newList(LocalDateTime.of(1999, 1, 1, 10, 0), LocalDateTime.of(2000, 1, 1, 23, 59)));
 
 						anOffsetDateTimeList = builder
 								.comment("an OffsetDateTimeList")
 								.translation("anOffsetDateTimeList")
-								.define("anOffsetDateTimeList", Lists.newArrayList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+11:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.UTC)));
+								.define("anOffsetDateTimeList", newList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+11:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.UTC)));
 
 						aConfigList = builder
 								.comment("a ConfigList")
 								.translation("aConfigList")
-								.define("aConfigList", Lists.newArrayList(newConfig("foo"), newConfig("bar"), newConfig("baz"), newConfig("fuz")));
+								.define("aConfigList", newList(newConfig("foo"), newConfig("bar"), newConfig("baz"), newConfig("fuz")));
 
 						aStringWeirdList = builder
 								.comment("a StringWeirdList")
@@ -533,7 +570,7 @@ public class ConfigTest {
 						aStringListOld = builder
 								.comment("a StringListOld")
 								.translation("aStringListOld")
-								.defineList("aStringListOld", Lists.newArrayList("aStringListOld_value0", "aStringListOld_value1"), o -> o instanceof String);
+								.defineList("aStringListOld", newList("aStringListOld_value0", "aStringListOld_value1"), o -> o instanceof String);
 					}
 					builder.pop();
 
@@ -541,69 +578,75 @@ public class ConfigTest {
 							.push("nestedlists");
 					{
 						aBooleanListList = builder
-								.comment("a BooleanList")
-								.translation("aBooleanList")
-								.define("aBooleanList", Lists.newArrayList(Lists.newArrayList(true, false), Lists.newArrayList(true, false), Lists.newArrayList(true, false)));
+								.comment("a BooleanListList")
+								.translation("aBooleanListList")
+								.define("aBooleanListList", newList(newList(true, false), newList(true, false), newList(true, false)));
 
 						aByteListList = builder
-								.comment("a ByteList")
-								.translation("aByteList")
-								.define("aByteList", Lists.newArrayList(Lists.newArrayList((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 256), Lists.newArrayList((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 256), Lists.newArrayList((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 256)));
+								.comment("a ByteListList")
+								.translation("aByteListList")
+								.define("aByteListList", newList(newList((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 256), newList((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 256), newList((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 256)));
+
+						aShortListList = builder
+								.comment("a ShortListList")
+								.translation("aShortListList")
+								.define("aShortListList", newList(newList((short) 0, Short.MIN_VALUE, Short.MAX_VALUE, (short) 256), newList((short) 0, Short.MIN_VALUE, Short.MAX_VALUE, (short) 256), newList((short) 0, Short.MIN_VALUE, Short.MAX_VALUE, (short) 256)));
 
 						anIntegerListList = builder
-								.comment("an IntegerList")
-								.translation("anIntegerList")
-								.define("anIntegerList", Lists.newArrayList(Lists.newArrayList(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 256), Lists.newArrayList(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 256), Lists.newArrayList(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 256)));
+								.comment("an IntegerListList")
+								.translation("anIntegerListList")
+								.define("anIntegerListList", newList(newList(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 256), newList(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 256), newList(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 256)));
 
 						aFloatListList = builder
-								.comment("a FloatList")
-								.translation("aFloatList")
-								.define("aFloatList", Lists.newArrayList(Lists.newArrayList(0F, Float.MIN_VALUE, Float.MAX_VALUE, 256F), Lists.newArrayList(0F, Float.MIN_VALUE, Float.MAX_VALUE, 256F), Lists.newArrayList(0F, Float.MIN_VALUE, Float.MAX_VALUE, 256F)));
+								.comment("a FloatListList")
+								.translation("aFloatListList")
+								.define("aFloatListList", newList(newList(0F, Float.MIN_VALUE, Float.MAX_VALUE, 256F), newList(0F, Float.MIN_VALUE, Float.MAX_VALUE, 256F), newList(0F, Float.MIN_VALUE, Float.MAX_VALUE, 256F)));
 
 						aLongListList = builder
-								.comment("a LongList")
-								.translation("aLongList")
-								.define("aLongList", Lists.newArrayList(Lists.newArrayList(0L, Long.MIN_VALUE, Long.MAX_VALUE, 256L), Lists.newArrayList(0L, Long.MIN_VALUE, Long.MAX_VALUE, 256L), Lists.newArrayList(0L, Long.MIN_VALUE, Long.MAX_VALUE, 256L)));
+								.comment("a LongListList")
+								.translation("aLongListList")
+								.define("aLongListList", newList(newList(0L, Long.MIN_VALUE, Long.MAX_VALUE, 256L), newList(0L, Long.MIN_VALUE, Long.MAX_VALUE, 256L), newList(0L, Long.MIN_VALUE, Long.MAX_VALUE, 256L)));
 
 						aDoubleListList = builder
-								.comment("a DoubleList")
-								.translation("aDoubleList")
-								.define("aDoubleList", Lists.newArrayList(Lists.newArrayList(0d, Double.MIN_VALUE, Double.MAX_VALUE, 256d), Lists.newArrayList(0d, Double.MIN_VALUE, Double.MAX_VALUE, 256d), Lists.newArrayList(0d, Double.MIN_VALUE, Double.MAX_VALUE, 256d)));
+								.comment("a DoubleListList")
+								.translation("aDoubleListList")
+								.define("aDoubleListList", newList(newList(0d, Double.MIN_VALUE, Double.MAX_VALUE, 256d), newList(0d, Double.MIN_VALUE, Double.MAX_VALUE, 256d), newList(0d, Double.MIN_VALUE, Double.MAX_VALUE, 256d)));
 
 						anEnumListList = builder
-								.comment("an EnumList")
-								.translation("anEnumList")
-								.define("anEnumList", Lists.newArrayList(Lists.newArrayList(DyeColor.BLACK, DyeColor.GREEN, DyeColor.CYAN, DyeColor.RED), Lists.newArrayList(DyeColor.BLACK, DyeColor.GREEN, DyeColor.CYAN, DyeColor.RED), Lists.newArrayList(DyeColor.BLACK, DyeColor.GREEN, DyeColor.CYAN, DyeColor.RED)));
+								.comment("an EnumListList")
+								.translation("anEnumListList")
+								.define("anEnumListList", newList(newList(DyeColor.BLACK, DyeColor.GREEN, DyeColor.CYAN, DyeColor.RED), newList(DyeColor.BLACK, DyeColor.GREEN, DyeColor.CYAN, DyeColor.RED), newList(DyeColor.BLACK, DyeColor.GREEN, DyeColor.CYAN, DyeColor.RED)));
 
 						aStringListList = builder
-								.comment("a StringListList")
-								.translation("aStringListList")
-								.define("aStringListList", Lists.newArrayList(Lists.newArrayList("Hello", "World!"), Lists.newArrayList("World", "Hello")));
+								.comment("a StringListListList")
+								.translation("aStringListListList")
+								.define("aStringListListList", newList(newList("Hello", "World!"), newList("World", "Hello")));
 
 						aLocalTimeListList = builder
-								.comment("a LocalTimeList")
-								.translation("aLocalTimeList")
-								.define("aLocalTimeList", Lists.newArrayList(Lists.newArrayList(LocalTime.of(0, 0, 0), LocalTime.of(23, 59, 59)), Lists.newArrayList(LocalTime.of(0, 0, 0), LocalTime.of(23, 59, 59)), Lists.newArrayList(LocalTime.of(0, 0, 0), LocalTime.of(23, 59, 59))));
+								.comment("a LocalTimeListList")
+								.translation("aLocalTimeListList")
+								.define("aLocalTimeListList", newList(newList(LocalTime.of(0, 0, 0), LocalTime.of(23, 59, 59)), newList(LocalTime.of(0, 0, 0), LocalTime.of(23, 59, 59)), newList(LocalTime.of(0, 0, 0), LocalTime.of(23, 59, 59))));
 
 						aLocalDateListList = builder
-								.comment("a LocalDateList")
-								.translation("aLocalDateList")
-								.define("aLocalDateList", Lists.newArrayList(Lists.newArrayList(LocalDate.of(1999, 1, 1), LocalDate.of(2000, 1, 1)), Lists.newArrayList(LocalDate.of(1999, 1, 1), LocalDate.of(2000, 1, 1)), Lists.newArrayList(LocalDate.of(1999, 1, 1), LocalDate.of(2000, 1, 1))));
+								.comment("a LocalDateListList")
+								.translation("aLocalDateListList")
+								.define("aLocalDateListList", newList(newList(LocalDate.of(1999, 1, 1), LocalDate.of(2000, 1, 1)), newList(LocalDate.of(1999, 1, 1), LocalDate.of(2000, 1, 1)), newList(LocalDate.of(1999, 1, 1), LocalDate.of(2000, 1, 1))));
 
 						aLocalDateTimeListList = builder
-								.comment("a LocalDateTimeList")
-								.translation("aLocalDateTimeList")
-								.define("aLocalDateTimeList", Lists.newArrayList(Lists.newArrayList(LocalDateTime.of(1999, 1, 1, 10, 0), LocalDateTime.of(2000, 1, 1, 23, 59)), Lists.newArrayList(LocalDateTime.of(1999, 1, 1, 10, 0), LocalDateTime.of(2000, 1, 1, 23, 59)), Lists.newArrayList(LocalDateTime.of(1999, 1, 1, 10, 0), LocalDateTime.of(2000, 1, 1, 23, 59))));
+								.comment("a LocalDateTimeListList")
+								.translation("aLocalDateTimeListList")
+								.define("aLocalDateTimeListList", newList(newList(LocalDateTime.of(1999, 1, 1, 10, 0), LocalDateTime.of(2000, 1, 1, 23, 59)), newList(LocalDateTime.of(1999, 1, 1, 10, 0), LocalDateTime.of(2000, 1, 1, 23, 59)), newList(LocalDateTime.of(1999, 1, 1, 10, 0), LocalDateTime.of(2000, 1, 1, 23, 59))));
 
 						anOffsetDateTimeListList = builder
-								.comment("an OffsetDateTimeList")
-								.translation("anOffsetDateTimeList")
-								.define("anOffsetDateTimeList", Lists.newArrayList(Lists.newArrayList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+11:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.UTC)), Lists.newArrayList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+15:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 1368, ZoneOffset.UTC)), Lists.newArrayList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368123, ZoneOffset.of("+01:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.UTC))));
+								.comment("an OffsetDateTimeListList")
+								.translation("anOffsetDateTimeListList")
+								.define("anOffsetDateTimeListList", newList(newList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+11:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.UTC)), newList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+15:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 1368, ZoneOffset.UTC)), newList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368123, ZoneOffset.of("+01:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.UTC))));
 
+						// TODO: Bug in NightConfig - The writer writes it in a way that can't be parsed. See "https://github.com/TheElectronWill/night-config/pull/75"
 						aConfigListList = builder
-								.comment("a ConfigList")
-								.translation("aConfigList")
-								.define("aConfigList", Lists.newArrayList(Lists.newArrayList(newConfig("foo"), newConfig("bar"), newConfig("baz"), newConfig("lumen")), Lists.newArrayList(newConfig("F"), newConfig("O"), newConfig("O"), newConfig("B")), Lists.newArrayList(newConfig("A"), newConfig("R"), newConfig("Baz"), newConfig("Im not very inventive in my testing stuff naming sorry"))));
+								.comment("a ConfigListList")
+								.translation("aConfigListList")
+								.define("aConfigListList", newList(newList(newConfig("foo"), newConfig("bar"), newConfig("baz"), newConfig("lumen")), newList(newConfig("F"), newConfig("O"), newConfig("O"), newConfig("B")), newList(newConfig("A"), newConfig("R"), newConfig("Baz"), newConfig("Im not very inventive in my testing stuff naming sorry"))));
 
 						aStringWeirdListWeirdList = builder
 								.comment("a StringWeirdListWeirdList")
@@ -611,9 +654,9 @@ public class ConfigTest {
 								.define("aStringWeirdListWeirdList", Arrays.asList(Arrays.asList("aStringWeirdListWeirdList_value0", "aStringWeirdListWeirdList_value1"), Arrays.asList("aStringWeirdListWeirdList_value0", "aStringWeirdListWeirdList_value1"), Arrays.asList("aStringWeirdListWeirdList_value0", "aStringWeirdListWeirdList_value1")));
 
 						aStringListOldList = builder
-								.comment("a StringListOld")
-								.translation("aStringListOld")
-								.defineList("aStringListOld", newList(newList("aStringListOld_value0", "aStringListOld_value1"), newList("aStringListOld_value0", "aStringListOld_value1"), newList("aStringListOld_value0", "aStringListOld_value1")), o -> o instanceof List || o instanceof String);
+								.comment("a StringListOldList")
+								.translation("aStringListOldList")
+								.defineList("aStringListOldList", newList(newList("aStringListOld_value0", "aStringListOld_value1"), newList("aStringListOld_value0", "aStringListOld_value1"), newList("aStringListOld_value0", "aStringListOld_value1")), o -> o instanceof List || o instanceof String);
 					}
 					builder.pop();
 
@@ -623,73 +666,78 @@ public class ConfigTest {
 						aBooleanInList = builder
 								.comment("a BooleanInList")
 								.translation("aBooleanInList")
-								.defineInList("aBooleanInList", true, Lists.newArrayList(true, false));
+								.defineInList("aBooleanInList", true, newList(true, false));
 
 						aByteInList = builder
 								.comment("a ByteInList")
 								.translation("aByteInList")
-								.defineInList("aByteInList", (byte) 256, Lists.newArrayList((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 256));
+								.defineInList("aByteInList", (byte) 256, newList((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 256));
+
+						aShortInList = builder
+								.comment("a ShortInList")
+								.translation("aShortInList")
+								.defineInList("aShortInList", (short) 256, newList((short) 0, Short.MIN_VALUE, Short.MAX_VALUE, (short) 256));
 
 						anIntegerInList = builder
 								.comment("an IntegerInList")
 								.translation("anIntegerInList")
-								.defineInList("anIntegerInList", 256, Lists.newArrayList(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 256));
+								.defineInList("anIntegerInList", 256, newList(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 256));
 
 						aFloatInList = builder
 								.comment("a FloatInList")
 								.translation("aFloatInList")
-								.defineInList("aFloatInList", 256F, Lists.newArrayList(0F, Float.MIN_VALUE, Float.MAX_VALUE, 256F));
+								.defineInList("aFloatInList", 256F, newList(0F, Float.MIN_VALUE, Float.MAX_VALUE, 256F));
 
 						aLongInList = builder
 								.comment("a LongInList")
 								.translation("aLongInList")
-								.defineInList("aLongInList", 256L, Lists.newArrayList(0L, Long.MIN_VALUE, Long.MAX_VALUE, 256L));
+								.defineInList("aLongInList", 256L, newList(0L, Long.MIN_VALUE, Long.MAX_VALUE, 256L));
 
 						aDoubleInList = builder
 								.comment("a DoubleInList")
 								.translation("aDoubleInList")
-								.defineInList("aDoubleInList", 256d, Lists.newArrayList(0d, Double.MIN_VALUE, Double.MAX_VALUE, 256d));
+								.defineInList("aDoubleInList", 256d, newList(0d, Double.MIN_VALUE, Double.MAX_VALUE, 256d));
 
 						anEnumInList = builder
 								.comment("an EnumInList")
 								.translation("anEnumInList")
-								.defineInList("anEnumInList", DyeColor.ORANGE, Lists.newArrayList(DyeColor.ORANGE, DyeColor.BLACK, DyeColor.GREEN, DyeColor.CYAN, DyeColor.RED));
+								.defineInList("anEnumInList", DyeColor.ORANGE, newList(DyeColor.ORANGE, DyeColor.BLACK, DyeColor.GREEN, DyeColor.CYAN, DyeColor.RED));
 
 						aStringInList = builder
 								.comment("a StringInList")
 								.translation("aStringInList")
-								.defineInList("aStringInList", "aStringListInList_value0", Lists.newArrayList("aStringListInList_value0", "aStringListInList_value1"));
+								.defineInList("aStringInList", "aStringListInList_value0", newList("aStringListInList_value0", "aStringListInList_value1"));
 
 						aLocalTimeInList = builder
 								.comment("a LocalTimeInList")
 								.translation("aLocalTimeInList")
-								.defineInList("aLocalTimeInList", LocalTime.of(0, 0, 0), Lists.newArrayList(LocalTime.of(0, 0, 0), LocalTime.of(23, 59, 59)));
+								.defineInList("aLocalTimeInList", LocalTime.of(0, 0, 0), newList(LocalTime.of(0, 0, 0), LocalTime.of(23, 59, 59)));
 
 						aLocalDateInList = builder
 								.comment("a LocalDateInList")
 								.translation("aLocalDateInList")
-								.defineInList("aLocalDateInList", LocalDate.of(1999, 1, 1), Lists.newArrayList(LocalDate.of(1999, 1, 1), LocalDate.of(2000, 1, 1)));
+								.defineInList("aLocalDateInList", LocalDate.of(1999, 1, 1), newList(LocalDate.of(1999, 1, 1), LocalDate.of(2000, 1, 1)));
 
 						aLocalDateTimeInList = builder
 								.comment("a LocalDateTimeInList")
 								.translation("aLocalDateTimeInList")
-								.defineInList("aLocalDateTimeInList", LocalDateTime.of(1999, 1, 1, 10, 0), Lists.newArrayList(LocalDateTime.of(1999, 1, 1, 10, 0), LocalDateTime.of(2000, 1, 1, 23, 59)));
+								.defineInList("aLocalDateTimeInList", LocalDateTime.of(1999, 1, 1, 10, 0), newList(LocalDateTime.of(1999, 1, 1, 10, 0), LocalDateTime.of(2000, 1, 1, 23, 59)));
 
 						anOffsetDateTimeInList = builder
 								.comment("an OffsetDateTimeInList")
 								.translation("anOffsetDateTimeInList")
-								.defineInList("anOffsetDateTimeInList", OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+11:00")), Lists.newArrayList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+11:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+15:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.UTC)));
+								.defineInList("anOffsetDateTimeInList", OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+11:00")), newList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+11:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+15:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.UTC)));
 
 						final CommentedConfig config = newConfig("defaultValue yay :D");
 						aConfigInList = builder
 								.comment("a ConfigInList")
 								.translation("aConfigInList")
-								.defineInList("aConfigInList", config, Lists.newArrayList(config, newConfig(1111, 2222, 3333, 4444), newConfig("How is this going to work???"), newConfig("erm.....")));
+								.defineInList("aConfigInList", config, newList(config, newConfig(1111, 2222, 3333, 4444), newConfig("How is this going to work???"), newConfig("erm.....")));
 
 						aStringListInList = builder
 								.comment("a StringListInList")
 								.translation("aStringListInList")
-								.defineInList("aStringListInList", Lists.newArrayList("Hello"), Lists.newArrayList(Lists.newArrayList("Hello"), Lists.newArrayList("World")));
+								.defineInList("aStringListInList", newList("Hello"), newList(newList("Hello"), newList("World")));
 					}
 					builder.pop();
 
@@ -705,6 +753,11 @@ public class ConfigTest {
 								.comment("a ByteConfig")
 								.translation("aByteConfig")
 								.define("aByteConfig", newConfig((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 256));
+
+						aShortConfig = builder
+								.comment("a ShortConfig")
+								.translation("aShortConfig")
+								.define("aShortConfig", newConfig((short) 0, Short.MIN_VALUE, Short.MAX_VALUE, (short) 256));
 
 						anIntegerConfig = builder
 								.comment("an IntegerConfig")
@@ -759,7 +812,7 @@ public class ConfigTest {
 						aConfigConfig = builder
 								.comment("a ConfigConfig")
 								.translation("aConfigConfig")
-								.define("aConfigConfig", newConfig(newConfig(true, false), newConfig("hello", "world"), newConfig(Lists.newArrayList("Hello!!!", "World___"), Lists.newArrayList("Hello______!!!", "World__!!_!!")), newConfig("foo")));
+								.define("aConfigConfig", newConfig(newConfig(true, false), newConfig("hello", "world"), newConfig(newList("Hello!!!", "World___"), newList("Hello______!!!", "World__!!_!!")), newConfig("foo")));
 					}
 					builder.pop();
 
@@ -825,6 +878,10 @@ public class ConfigTest {
 			public static final ForgeConfigSpec SPEC;
 			private static final Logger LOGGER = LogManager.getLogger();
 
+			private static List<Config> aConfigList;
+			private static List<List<Config>> aConfigListList;
+			private static List<List<List<Config>>> aConfigListListList;
+
 			static {
 				final Pair<ConfigImpl, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(ConfigImpl::new);
 				SPEC = specPair.getRight();
@@ -832,15 +889,67 @@ public class ConfigTest {
 			}
 
 			private static void bakeAndDebugConfig() {
+				bakeAndDebug(() -> aConfigList, CONFIG.aConfigList, $ -> aConfigList = $, LOGGER);
+				bakeAndDebug(() -> aConfigListList, CONFIG.aConfigListList, $ -> aConfigListList = $, LOGGER);
+				bakeAndDebug(() -> aConfigListListList, CONFIG.aConfigListListList, $ -> aConfigListListList = $, LOGGER);
 			}
 
 			private static class ConfigImpl {
 
-				ConfigImpl(ForgeConfigSpec.Builder builder) {
-					builder.comment("Client configuration settings. Rendering and stuff!")
-							.push("Client");
+				private final ConfigValue<List<Config>> aConfigList;
+				private final ConfigValue<List<List<Config>>> aConfigListList;
+				private final ConfigValue<List<List<List<Config>>>> aConfigListListList;
 
-					builder.pop();
+				ConfigImpl(ForgeConfigSpec.Builder builder) {
+					// TODO: Bug in NightConfig - The writer writes it in a way that can't be parsed. See "https://github.com/TheElectronWill/night-config/pull/75"
+
+					aConfigList = builder
+							.comment("a List<Config>. 2 branches each.")
+							.translation("aConfigList")
+							.define("aConfigList", newList(
+									newConfig("list->config0->0", "list->config0->1"),
+									newConfig("list->config1->0", "list->config1->1")
+							));
+
+					aConfigListList = builder
+							.comment("a List<List<Config>>. 2 branches each.")
+							.translation("aConfigListList")
+							.define("aConfigListList", newList(
+									newList(
+											newConfig("list->list0->config0->0", "list->list0->config0->1"),
+											newConfig("list->list0->config1->0", "list->list0->config1->1")
+									),
+									newList(
+											newConfig("list->list1->config0->0", "list->list1->config0->1"),
+											newConfig("list->list1->config1->0", "list->list1->config1->1")
+									)
+							));
+
+					aConfigListListList = builder
+							.comment("a List<List<List<Config>>>. 2 branches each.")
+							.translation("aConfigListListList")
+							.define("aConfigListListList", newList(
+									newList(
+											newList(
+													newConfig("list->list0->list0->config0->0", "list->list0->config0->1"),
+													newConfig("list->list0->list0->config1->0", "list->list0->config1->1")
+											),
+											newList(
+													newConfig("list->list0->list1->config0->0", "list->list1->config0->1"),
+													newConfig("list->list0->list1->config1->0", "list->list1->config1->1")
+											)
+									),
+									newList(
+											newList(
+													newConfig("list->list1->list0->config0->0", "list->list0->config0->1"),
+													newConfig("list->list1->list0->config1->0", "list->list0->config1->1")
+											),
+											newList(
+													newConfig("list->list1->list1->config0->0", "list->list1->config0->1"),
+													newConfig("list->list1->list1->config1->0", "list->list1->config1->1")
+											)
+									)
+							));
 				}
 
 			}
@@ -860,6 +969,7 @@ public class ConfigTest {
 			}
 
 			private static void bakeAndDebugConfig() {
+				LOGGER.debug(CONFIG_TEST, "Player config baked! What?");
 			}
 
 			private static class ConfigImpl {
@@ -881,6 +991,10 @@ public class ConfigTest {
 			public static final ForgeConfigSpec SPEC;
 			private static final Logger LOGGER = LogManager.getLogger();
 
+			private static List<Config> aConfigList;
+			private static List<List<Config>> aConfigListList;
+			private static List<List<List<Config>>> aConfigListListList;
+
 			static {
 				final Pair<ConfigImpl, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(ConfigImpl::new);
 				SPEC = specPair.getRight();
@@ -888,15 +1002,106 @@ public class ConfigTest {
 			}
 
 			private static void bakeAndDebugConfig() {
+				bakeAndDebug(() -> aConfigList, CONFIG.aConfigList, $ -> aConfigList = $, LOGGER);
+				bakeAndDebug(() -> aConfigListList, CONFIG.aConfigListList, $ -> aConfigListList = $, LOGGER);
+				bakeAndDebug(() -> aConfigListListList, CONFIG.aConfigListListList, $ -> aConfigListListList = $, LOGGER);
 			}
 
 			private static class ConfigImpl {
 
-				ConfigImpl(ForgeConfigSpec.Builder builder) {
-					builder.comment("Server configuration settings. Gets synced!")
-							.push("Server");
+				private final ConfigValue<List<Config>> aConfigList;
+				private final ConfigValue<List<List<Config>>> aConfigListList;
+				private final ConfigValue<List<List<List<Config>>>> aConfigListListList;
 
-					builder.pop();
+				ConfigImpl(ForgeConfigSpec.Builder builder) {
+					// TODO: Bug in NightConfig - The writer writes it in a way that can't be parsed. See "https://github.com/TheElectronWill/night-config/pull/75"
+
+					aConfigList = builder
+							.comment("a List<Config>. 3 branches each.")
+							.translation("aConfigList")
+							.define("aConfigList", newList(
+									newConfig("list->config0->0", "list->config0->1", "list->config0->2"),
+									newConfig("list->config1->0", "list->config1->1", "list->config1->2"),
+									newConfig("list->config2->0", "list->config2->1", "list->config2->2")
+							));
+
+					aConfigListList = builder
+							.comment("a List<List<Config>>. 3 branches each.")
+							.translation("aConfigListList")
+							.define("aConfigListList", newList(
+									newList(
+											newConfig("list->list0->config0->0", "list->list0->config0->1", "list->list0->config0->2"),
+											newConfig("list->list0->config1->0", "list->list0->config1->1", "list->list0->config1->2"),
+											newConfig("list->list0->config2->0", "list->list0->config2->1", "list->list0->config2->2")
+									),
+									newList(
+											newConfig("list->list1->config0->0", "list->list1->config0->1", "list->list1->config0->2"),
+											newConfig("list->list1->config1->0", "list->list1->config1->1", "list->list1->config1->2"),
+											newConfig("list->list1->config2->0", "list->list1->config2->1", "list->list1->config2->2")
+									),
+									newList(
+											newConfig("list->list2->config0->0", "list->list2->config0->1", "list->list2->config0->2"),
+											newConfig("list->list2->config1->0", "list->list2->config1->1", "list->list2->config1->2"),
+											newConfig("list->list2->config2->0", "list->list2->config2->1", "list->list2->config2->2")
+									)
+							));
+
+					aConfigListListList = builder
+							.comment("a List<List<List<Config>>>. 3 branches each.")
+							.translation("aConfigListListList")
+							.define("aConfigListListList", newList(
+									newList(
+											newList(
+													newConfig("list->list0->list0->config0->0", "list->list0->config0->1", "list->list0->config0->2"),
+													newConfig("list->list0->list0->config1->0", "list->list0->config1->1", "list->list0->config1->2"),
+													newConfig("list->list0->list0->config2->0", "list->list0->config2->1", "list->list0->config2->2")
+											),
+											newList(
+													newConfig("list->list0->list1->config0->0", "list->list1->config0->1", "list->list1->config0->2"),
+													newConfig("list->list0->list1->config1->0", "list->list1->config1->1", "list->list1->config1->2"),
+													newConfig("list->list0->list1->config2->0", "list->list1->config2->1", "list->list1->config2->2")
+											),
+											newList(
+													newConfig("list->list0->list2->config0->0", "list->list2->config0->1", "list->list2->config0->2"),
+													newConfig("list->list0->list2->config1->0", "list->list2->config1->1", "list->list2->config1->2"),
+													newConfig("list->list0->list2->config2->0", "list->list2->config2->1", "list->list2->config2->2")
+											)
+									),
+									newList(
+											newList(
+													newConfig("list->list1->list0->config0->0", "list->list0->config0->1", "list->list0->config0->2"),
+													newConfig("list->list1->list0->config1->0", "list->list0->config1->1", "list->list0->config1->2"),
+													newConfig("list->list1->list0->config2->0", "list->list0->config2->1", "list->list0->config2->2")
+											),
+											newList(
+													newConfig("list->list1->list1->config0->0", "list->list1->config0->1", "list->list1->config0->2"),
+													newConfig("list->list1->list1->config1->0", "list->list1->config1->1", "list->list1->config1->2"),
+													newConfig("list->list1->list1->config2->0", "list->list1->config2->1", "list->list1->config2->2")
+											),
+											newList(
+													newConfig("list->list1->list2->config0->0", "list->list2->config0->1", "list->list2->config0->2"),
+													newConfig("list->list1->list2->config1->0", "list->list2->config1->1", "list->list2->config1->2"),
+													newConfig("list->list1->list2->config2->0", "list->list2->config2->1", "list->list2->config2->2")
+											)
+									),
+									newList(
+											newList(
+													newConfig("list->list2->list0->config0->0", "list->list0->config0->1", "list->list0->config0->2"),
+													newConfig("list->list2->list0->config1->0", "list->list0->config1->1", "list->list0->config1->2"),
+													newConfig("list->list2->list0->config2->0", "list->list0->config2->1", "list->list0->config2->2")
+											),
+											newList(
+													newConfig("list->list2->list1->config0->0", "list->list1->config0->1", "list->list1->config0->2"),
+													newConfig("list->list2->list1->config1->0", "list->list1->config1->1", "list->list1->config1->2"),
+													newConfig("list->list2->list1->config2->0", "list->list1->config2->1", "list->list1->config2->2")
+											),
+											newList(
+													newConfig("list->list2->list2->config0->0", "list->list2->config0->1", "list->list2->config0->2"),
+													newConfig("list->list2->list2->config1->0", "list->list2->config1->1", "list->list2->config1->2"),
+													newConfig("list->list2->list2->config2->0", "list->list2->config2->1", "list->list2->config2->2")
+											)
+									)
+							));
 				}
 
 			}
