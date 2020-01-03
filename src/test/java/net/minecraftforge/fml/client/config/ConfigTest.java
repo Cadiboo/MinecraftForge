@@ -170,6 +170,7 @@ public class ConfigTest {
 			private static List<List<LocalDate>> aLocalDateListList;
 			private static List<List<LocalDateTime>> aLocalDateTimeListList;
 			private static List<List<OffsetDateTime>> anOffsetDateTimeListList;
+			// TODO: Bug in NightConfig - The writer writes this in a way that can't be parsed. See "https://github.com/TheElectronWill/night-config/pull/75"
 			private static List<List<Config>> aConfigListList;
 			private static List<List<String>> aStringWeirdListWeirdList;
 			private static List<? extends List<String>> aStringListOldList;
@@ -269,7 +270,7 @@ public class ConfigTest {
 				bakeAndDebug(() -> aLocalDateListList, CONFIG.aLocalDateListList, $ -> aLocalDateListList = $, LOGGER);
 				bakeAndDebug(() -> aLocalDateTimeListList, CONFIG.aLocalDateTimeListList, $ -> aLocalDateTimeListList = $, LOGGER);
 				bakeAndDebug(() -> anOffsetDateTimeListList, CONFIG.anOffsetDateTimeListList, $ -> anOffsetDateTimeListList = $, LOGGER);
-				// TODO: Bug in NightConfig - The writer writes it in a way that can't be parsed. See "https://github.com/TheElectronWill/night-config/pull/75"
+				// TODO: Bug in NightConfig - The writer writes this in a way that can't be parsed. See "https://github.com/TheElectronWill/night-config/pull/75"
 				bakeAndDebug(() -> aConfigListList, CONFIG.aConfigListList, $ -> aConfigListList = $, LOGGER);
 				bakeAndDebug(() -> aStringWeirdListWeirdList, CONFIG.aStringWeirdListWeirdList, $ -> aStringWeirdListWeirdList = $, LOGGER);
 				bakeAndDebug(() -> aStringListOldList, CONFIG.aStringListOldList, $ -> aStringListOldList = $, LOGGER);
@@ -363,6 +364,7 @@ public class ConfigTest {
 				private final ConfigValue<List<List<LocalDate>>> aLocalDateListList;
 				private final ConfigValue<List<List<LocalDateTime>>> aLocalDateTimeListList;
 				private final ConfigValue<List<List<OffsetDateTime>>> anOffsetDateTimeListList;
+				// TODO: Bug in NightConfig - The writer writes this in a way that can't be parsed. See "https://github.com/TheElectronWill/night-config/pull/75"
 				private final ConfigValue<List<List<Config>>> aConfigListList;
 				private final ConfigValue<List<List<String>>> aStringWeirdListWeirdList;
 				private final ConfigValue<List<? extends List<String>>> aStringListOldList;
@@ -642,7 +644,7 @@ public class ConfigTest {
 								.translation("anOffsetDateTimeListList")
 								.define("anOffsetDateTimeListList", newList(newList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+11:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.UTC)), newList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.of("+15:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 1368, ZoneOffset.UTC)), newList(OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368123, ZoneOffset.of("+01:00")), OffsetDateTime.of(2019, 12, 26, 21, 58, 10, 368, ZoneOffset.UTC))));
 
-						// TODO: Bug in NightConfig - The writer writes it in a way that can't be parsed. See "https://github.com/TheElectronWill/night-config/pull/75"
+						// TODO: Bug in NightConfig - The writer writes this in a way that can't be parsed. See "https://github.com/TheElectronWill/night-config/pull/75"
 						aConfigListList = builder
 								.comment("a ConfigListList")
 								.translation("aConfigListList")
@@ -878,6 +880,7 @@ public class ConfigTest {
 			public static final ForgeConfigSpec SPEC;
 			private static final Logger LOGGER = LogManager.getLogger();
 
+			// TODO: Bug in NightConfig - The writer writes these in a way that can't be parsed. See "https://github.com/TheElectronWill/night-config/pull/75"
 			private static List<Config> aConfigList;
 			private static List<List<Config>> aConfigListList;
 			private static List<List<List<Config>>> aConfigListListList;
@@ -901,8 +904,6 @@ public class ConfigTest {
 				private final ConfigValue<List<List<List<Config>>>> aConfigListListList;
 
 				ConfigImpl(ForgeConfigSpec.Builder builder) {
-					// TODO: Bug in NightConfig - The writer writes it in a way that can't be parsed. See "https://github.com/TheElectronWill/night-config/pull/75"
-
 					aConfigList = builder
 							.comment("a List<Config>. 2 branches each.")
 							.translation("aConfigList")
@@ -1009,13 +1010,12 @@ public class ConfigTest {
 
 			private static class ConfigImpl {
 
+				// TODO: Bug in NightConfig - The writer writes these in a way that can't be parsed. See "https://github.com/TheElectronWill/night-config/pull/75"
 				private final ConfigValue<List<Config>> aConfigList;
 				private final ConfigValue<List<List<Config>>> aConfigListList;
 				private final ConfigValue<List<List<List<Config>>>> aConfigListListList;
 
 				ConfigImpl(ForgeConfigSpec.Builder builder) {
-					// TODO: Bug in NightConfig - The writer writes it in a way that can't be parsed. See "https://github.com/TheElectronWill/night-config/pull/75"
-
 					aConfigList = builder
 							.comment("a List<Config>. 3 branches each.")
 							.translation("aConfigList")
