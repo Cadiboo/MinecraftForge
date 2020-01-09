@@ -54,6 +54,7 @@ import java.util.stream.Collectors;
 public class ModConfigCategoryElement extends CategoryElement<ModConfig> {
 
 	// TODO: Move these to translation keys once Forge's API stabilizes a bit more and the player type is added back in.
+	@Deprecated
 	private static final Map<ModConfig.Type, String> COMMENTS;
 	static {
 		final Map<ModConfig.Type, String> map = new HashMap<>();
@@ -110,7 +111,8 @@ public class ModConfigCategoryElement extends CategoryElement<ModConfig> {
 		this.configElements = makeConfigElements(modConfig);
 	}
 
-	public static String javadocToString(final String javadoc) {
+	@Deprecated
+	private static String javadocToString(final String javadoc) {
 		try {
 			return Arrays.stream(javadoc.split("\n"))
 					.map(s -> s.substring(3)) // Remove "/**" or " * " or " */"
