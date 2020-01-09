@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.client.config.ConfigScreen;
 import net.minecraftforge.fml.client.config.ConfigTypesManager;
 import net.minecraftforge.fml.client.config.ElementConfigScreen;
@@ -105,7 +106,7 @@ public class ModConfigCategoryElement extends CategoryElement<ModConfig> {
 		final String str = type.name().toLowerCase();
 		this.label = StringUtils.capitalize(str);
 		this.translationKey = "fml.configgui.modConfigType." + str;
-		this.comment = COMMENTS.get(type);
+		this.comment = COMMENTS.get(type) + "\n" + TextFormatting.GRAY + modConfig.getFullPath();
 		this.configElements = makeConfigElements(modConfig);
 	}
 
