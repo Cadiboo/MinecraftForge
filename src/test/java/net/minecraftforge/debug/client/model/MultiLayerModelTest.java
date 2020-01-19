@@ -27,7 +27,10 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.registries.ObjectHolder;
@@ -47,7 +50,7 @@ public class MultiLayerModelTest
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
     public static class Registration
     {
-        @net.minecraftforge.eventbus.api.SubscribeEvent
+        @SubscribeEvent
         public static void registerBlocks(RegistryEvent.Register<Block> event)
         {
             if (!ENABLED)
@@ -59,7 +62,7 @@ public class MultiLayerModelTest
             );
         }
 
-        @net.minecraftforge.eventbus.api.SubscribeEvent
+        @SubscribeEvent
         public static void registerItems(RegistryEvent.Register<Item> event)
         {
             if (!ENABLED)
@@ -67,14 +70,21 @@ public class MultiLayerModelTest
             event.getRegistry().register(new BlockItem(TEST_BLOCK, new Item.Properties().group(ItemGroup.MISC)).setRegistryName(TEST_BLOCK.getRegistryName()));
         }
 
-        @net.minecraftforge.eventbus.api.SubscribeEvent
+        @OnlyIn(Dist.CLIENT)
+        @SubscribeEvent
         public static void clientSetup(FMLClientSetupEvent event)
         {
             if (!ENABLED)
                 return;
-            RenderTypeLookup.setRenderLayer(TEST_BLOCK, (layer) -> {
-                return layer == RenderType.func_228639_c_() || layer == RenderType.func_228645_f_();
-            });
+            RenderTypeLookup.setRenderLayer(TEST_BLOCK, Registration::renderLayerCheck);
         }
+
+        @OnlyIn(Dist.CLIENT)
+        private static boolean renderLayerCheck(RenderType layer)
+        {
+            // solid || translucent
+            return layer == RenderType.func_228639_c_() || layer == RenderType.func_228645_f_();
+        }
+
     }
 }

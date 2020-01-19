@@ -32,6 +32,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jline.utils.InputStreamReader;
@@ -99,6 +101,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
 
+import javax.annotation.Nonnull;
+
 @SuppressWarnings("deprecation")
 @Mod(MODID)
 @Mod.EventBusSubscriber(bus = Bus.MOD)
@@ -106,11 +110,18 @@ public class DataGeneratorTest
 {
     static final String MODID = "data_gen_test";
 
-    private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(Variant.class, new Variant.Deserializer())
-            .registerTypeAdapter(ItemCameraTransforms.class, new ItemCameraTransforms.Deserializer())
-            .registerTypeAdapter(ItemTransformVec3f.class, new ItemTransformVec3f.Deserializer())
-            .create();
+    @OnlyIn(Dist.CLIENT)
+    private static final Gson GSON = makeGSON();
+
+    @Nonnull
+    @OnlyIn(Dist.CLIENT)
+    private static Gson makeGSON() {
+        return new GsonBuilder()
+                .registerTypeAdapter(Variant.class, new Variant.Deserializer())
+                .registerTypeAdapter(ItemCameraTransforms.class, new ItemCameraTransforms.Deserializer())
+                .registerTypeAdapter(ItemTransformVec3f.class, new ItemTransformVec3f.Deserializer())
+                .create();
+    }
 
     @SubscribeEvent
     public static void gatherData(GatherDataEvent event)
@@ -182,14 +193,16 @@ public class DataGeneratorTest
             .build(consumer, ID);
         }
     }
-    
+
+    @OnlyIn(Dist.CLIENT)
     public static class Lang extends LanguageProvider
     {
         public Lang(DataGenerator gen)
         {
             super(gen, MODID, "en_us");
         }    
-     
+
+        @OnlyIn(Dist.CLIENT)
         @Override
         protected void addTranslations()
         {
@@ -203,6 +216,7 @@ public class DataGeneratorTest
         }
     }
 
+    @OnlyIn(Dist.CLIENT)
     public static class ItemModels extends ItemModelProvider
     {
         private static final Logger LOGGER = LogManager.getLogger();
@@ -269,6 +283,7 @@ public class DataGeneratorTest
         }
     }
 
+    @OnlyIn(Dist.CLIENT)
     public static class BlockStates extends BlockStateProvider
     {
         private static final Logger LOGGER = LogManager.getLogger();
@@ -351,7 +366,7 @@ public class DataGeneratorTest
                     .transform(Perspective.FIXED)
                         .scale(0.5f)
                         .end()
-                    .transform(Perspective.THIRDPERSON_RIGHT)                   
+                    .transform(Perspective.THIRDPERSON_RIGHT)
                         .rotation(75, 45, 0)
                         .translation(0, 2.5f, 0)
                         .scale(0.375f)
@@ -469,6 +484,7 @@ public class DataGeneratorTest
                 });
         }
 
+        @OnlyIn(Dist.CLIENT)
         private void compareVariant(Block block, String key, JsonObject generatedVariant, JsonObject vanillaVariant) {
             if (generatedVariant == null) {
                 blockstateError(block, "missing variant for %s", key);
@@ -590,6 +606,7 @@ public class DataGeneratorTest
         }
     }
 
+    @OnlyIn(Dist.CLIENT)
     private static <T extends ModelBuilder<T>> List<String> testModelResults(Map<ResourceLocation, T> models, ExistingFileHelper existingFileHelper, Set<ResourceLocation> toIgnore) {
         List<String> ret = new ArrayList<>();
         models.forEach((loc, model) -> {

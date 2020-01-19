@@ -28,6 +28,7 @@ import net.minecraft.block.PistonBlock;
 import net.minecraft.block.PistonBlockStructureHelper;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -79,7 +80,7 @@ public class PistonEventTest
             PistonBlockStructureHelper pistonHelper = event.getStructureHelper();
             if (world.isRemote)
             {
-                PlayerEntity player = Minecraft.getInstance().player;
+                ClientPlayerEntity player = Minecraft.getInstance().player;
                 if (pistonHelper.canMove())
                 {
                     player.sendMessage(new StringTextComponent(String.format("Piston will extend moving %d blocks and destroy %d blocks", pistonHelper.getBlocksToMove().size(), pistonHelper.getBlocksToDestroy().size())));
@@ -120,7 +121,7 @@ public class PistonEventTest
             boolean isSticky = event.getWorld().getBlockState(event.getPos()).getBlock() == Blocks.STICKY_PISTON;
             if (event.getWorld().isRemote())
             {
-                PlayerEntity player = Minecraft.getInstance().player;
+                ClientPlayerEntity player = Minecraft.getInstance().player;
                 if (isSticky)
                 {
                     BlockPos targetPos = event.getFaceOffsetPos().offset(event.getDirection());

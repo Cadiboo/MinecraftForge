@@ -30,11 +30,11 @@ public final class DistExecutor
     private DistExecutor() {}
 
     /**
-     * Run the callable in the supplier only on the specified {@link Side}
+     * Run the callable in the supplier only on the specified {@link Dist}
      *
      * @param dist The dist to run on
-     * @param toRun A supplier of the callable to run (Supplier wrapper to ensure classloading only on the appropriate dist)
-     * @param <T> The return type from the callable
+     * @param toRun A supplier of the Callable to run (Supplier wrapper to ensure classloading only on the appropriate dist)
+     * @param <T> The return type from the Callable
      * @return The callable's result
      */
     public static <T> T callWhenOn(Dist dist, Supplier<Callable<T>> toRun) {
@@ -51,11 +51,28 @@ public final class DistExecutor
         return null;
     }
 
+    /**
+     * Runs the specified runnable only on the specified {@link Dist}
+     *
+     * @param dist The dist to run on
+     * @param toRun A supplier of the Runnable to run (Supplier wrapper to ensure classloading only on the appropriate dist)
+     */
     public static void runWhenOn(Dist dist, Supplier<Runnable> toRun) {
         if (dist == FMLEnvironment.dist) {
             toRun.get().run();
         }
     }
+
+    /**
+     * Return the result of getting one of the suppliers.
+     * Which one to get depends on what distribution the game is running on.
+     * Suppliers are wrapped to ensure classloading only on the appropriate dist.
+     *
+     * @param clientTarget A supplier of the supplier to run on {@link Dist#CLIENT}
+     * @param serverTarget A supplier of the supplier to run on {@link Dist#DEDICATED_SERVER}
+     * @param <T>          The return type from the Supplier
+     * @return The correct supplier's result
+     */
     public static <T> T runForDist(Supplier<Supplier<T>> clientTarget, Supplier<Supplier<T>> serverTarget) {
         switch (FMLEnvironment.dist)
         {

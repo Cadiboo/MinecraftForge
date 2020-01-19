@@ -41,6 +41,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ModelBakeEvent;
 import net.minecraftforge.client.model.QuadTransformer;
 import net.minecraftforge.client.model.data.EmptyModelData;
@@ -67,6 +69,7 @@ public class TRSRTransformerTest {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onModelBake);
     }
 
+    @OnlyIn(Dist.CLIENT)
     @SubscribeEvent
     public void onModelBake(ModelBakeEvent e) {
         for (ResourceLocation id : e.getModelRegistry().keySet()) {
@@ -76,6 +79,7 @@ public class TRSRTransformerTest {
         }
     }
 
+    @OnlyIn(Dist.CLIENT)
     public class MyBakedModel implements IDynamicBakedModel
     {
         private final IBakedModel base;
