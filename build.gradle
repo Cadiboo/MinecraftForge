@@ -4,8 +4,12 @@ buildscript {
         maven { url = 'https://files.minecraftforge.net/maven' }
         jcenter()
         mavenCentral()
+        maven {
+            url 'https://dogforce-games.com/maven'
+        }
     }
     dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.0.164-run-configs-rework', changing: true
         classpath 'net.minecraftforge.gradle:ForgeGradle:3.+'
         classpath 'org.ow2.asm:asm:7.2'
         classpath 'org.ow2.asm:asm-tree:7.2'
