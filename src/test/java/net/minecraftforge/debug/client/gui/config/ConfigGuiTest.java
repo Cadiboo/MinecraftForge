@@ -1,6 +1,7 @@
 package net.minecraftforge.debug.client.gui.config;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.EnumGetMethod;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import com.google.common.collect.Lists;
 import mcp.MethodsReturnNonnullByDefault;
@@ -24,6 +25,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -192,7 +194,7 @@ public class ConfigGuiTest {
 
             builder.comment("an Enum comment")
                 .translation(translationKey("an.enum"))
-                .defineEnum("anEnum", DyeColor.GREEN, Arrays.stream(DyeColor.values()).filter(dc -> dc.getId() >= 10).collect(Collectors.toList()));
+                .defineEnum("anEnum", DyeColor.GREEN, dc -> dc.getId() >= 10);
             builder.comment("a String comment")
                 .translation(translationKey("a.string"))
                 .define("aString", "foo");
@@ -224,9 +226,14 @@ public class ConfigGuiTest {
                 builder.comment("a List<Double> comment")
                     .translation(translationKey("a.list.double"))
                     .defineList("aListDouble", Lists.newArrayList(123.213, 21343.21, 456.32, 9765.2), o -> o instanceof Double);
-                builder.comment("a List<Enum> comment")
-                    .translation(translationKey("a.list.enum"))
-                    .defineList("aListEnum", Lists.newArrayList(DyeColor.BLACK, DyeColor.GREEN, DyeColor.RED, DyeColor.BLACK), o -> o instanceof DyeColor && ((DyeColor) o).getId() >= 10);
+//                builder.comment("a List<Enum> comment")
+//                    .translation(translationKey("a.list.enum"))
+//                    .defineList("aListEnum", Lists.newArrayList(DyeColor.BLACK, DyeColor.GREEN, DyeColor.RED, DyeColor.BLACK), o -> o instanceof DyeColor && ((DyeColor) o).getId() >= 10);
+                {
+                    builder.comment("a List<Enum> comment")
+                        .translation(translationKey("a.list.enum"))
+                        .defineEnumList(Collections.singletonList("aListEnum"), () -> Lists.newArrayList(DyeColor.BLACK, DyeColor.GREEN, DyeColor.RED, DyeColor.BLACK), EnumGetMethod.NAME_IGNORECASE, $ -> $.getId() >= 10, DyeColor.class);
+                }
                 builder.comment("a List<String> comment")
                     .translation(translationKey("a.list.string"))
                     .defineList("aListString", Lists.newArrayList("foo", "bar", "baz", "qez"), o -> o instanceof String);

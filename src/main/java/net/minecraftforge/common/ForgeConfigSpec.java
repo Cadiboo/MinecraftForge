@@ -354,16 +354,16 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableComme
         public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, EnumGetMethod converter) {
             return defineEnum(path, defaultValue, converter, defaultValue.getDeclaringClass().getEnumConstants());
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, V defaultValue, @SuppressWarnings("unchecked") V... acceptableValues) {
+        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, V defaultValue, V... acceptableValues) {
             return defineEnum(split(path), defaultValue, acceptableValues);
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, V defaultValue, EnumGetMethod converter, @SuppressWarnings("unchecked") V... acceptableValues) {
+        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, V defaultValue, EnumGetMethod converter, V... acceptableValues) {
             return defineEnum(split(path), defaultValue, converter, acceptableValues);
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, @SuppressWarnings("unchecked") V... acceptableValues) {
+        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, V... acceptableValues) {
             return defineEnum(path, defaultValue, Arrays.asList(acceptableValues));
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, EnumGetMethod converter, @SuppressWarnings("unchecked") V... acceptableValues) {
+        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, EnumGetMethod converter, V... acceptableValues) {
             return defineEnum(path, defaultValue, converter, Arrays.asList(acceptableValues));
         }
         public <V extends Enum<V>> EnumValue<V> defineEnum(String path, V defaultValue, Collection<V> acceptableValues) {
@@ -375,49 +375,72 @@ public class ForgeConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableComme
         public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, Collection<V> acceptableValues) {
             return defineEnum(path, defaultValue, EnumGetMethod.NAME_IGNORECASE, acceptableValues);
         }
-        @SuppressWarnings("unchecked")
         public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, EnumGetMethod converter, Collection<V> acceptableValues) {
-            return defineEnum(path, defaultValue, converter, obj -> {
-                if (obj instanceof Enum) {
-                    return acceptableValues.contains(obj);
-                }
-                if (obj == null) {
-                    return false;
-                }
-                try {
-                    return acceptableValues.contains(converter.get(obj, defaultValue.getClass()));
-                } catch (IllegalArgumentException | ClassCastException e) {
-                    return false;
-                }
-            });
+            return defineEnum(path, defaultValue, converter, acceptableValues::contains);
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, V defaultValue, Predicate<Object> validator) {
+        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, V defaultValue, Predicate<V> validator) {
             return defineEnum(split(path), defaultValue, validator);
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, V defaultValue, EnumGetMethod converter, Predicate<Object> validator) {
+        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, V defaultValue, EnumGetMethod converter, Predicate<V> validator) {
             return defineEnum(split(path), defaultValue, converter, validator);
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, Predicate<Object> validator) {
+        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, Predicate<V> validator) {
             return defineEnum(path, () -> defaultValue, validator, defaultValue.getDeclaringClass());
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, EnumGetMethod converter, Predicate<Object> validator) {
+        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, V defaultValue, EnumGetMethod converter, Predicate<V> validator) {
             return defineEnum(path, () -> defaultValue, converter, validator, defaultValue.getDeclaringClass());
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, Supplier<V> defaultSupplier, Predicate<Object> validator, Class<V> clazz) {
+        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, Supplier<V> defaultSupplier, Predicate<V> validator, Class<V> clazz) {
             return defineEnum(split(path), defaultSupplier, validator, clazz);
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, Supplier<V> defaultSupplier, EnumGetMethod converter, Predicate<Object> validator, Class<V> clazz) {
+        public <V extends Enum<V>> EnumValue<V> defineEnum(String path, Supplier<V> defaultSupplier, EnumGetMethod converter, Predicate<V> validator, Class<V> clazz) {
             return defineEnum(split(path), defaultSupplier, converter, validator, clazz);
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, Supplier<V> defaultSupplier, Predicate<Object> validator, Class<V> clazz) {
+        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, Supplier<V> defaultSupplier, Predicate<V> validator, Class<V> clazz) {
             return defineEnum(path, defaultSupplier, EnumGetMethod.NAME_IGNORECASE, validator, clazz);
         }
-        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, Supplier<V> defaultSupplier, EnumGetMethod converter, Predicate<Object> validator, Class<V> clazz) {
+        public <V extends Enum<V>> EnumValue<V> defineEnum(List<String> path, Supplier<V> defaultSupplier, EnumGetMethod converter, Predicate<V> validator, Class<V> clazz) {
             context.setClazz(clazz);
             String allowedValues = Arrays.stream(clazz.getEnumConstants()).filter(validator).map(Enum::name).collect(Collectors.joining(", "));
             context.setAllowedValues(allowedValues);
             context.setComment(ObjectArrays.concat(context.getComment(), "Allowed Values: " + allowedValues));
-            return new EnumValue<>(this, define(path, new ValueSpec(defaultSupplier, validator, context), defaultSupplier).getPath(), defaultSupplier, converter, clazz);
+            return new EnumValue<>(this, define(path, new ValueSpec(defaultSupplier, $ -> clazz.isInstance($) && validator.test((V) $), context), defaultSupplier).getPath(), defaultSupplier, converter, clazz);
+        }
+        public <V extends Enum<V>> ConfigValue<List<? extends V>> defineEnumList(List<String> path, Supplier<List<? extends V>> defaultSupplier, EnumGetMethod converter, Predicate<V> validator, Class<V> clazz) {
+            context.setClazz(List.class);
+            ValueSpec valueSpec = new ValueSpec(defaultSupplier, x -> x instanceof List && ((List<?>) x).stream().allMatch($ -> clazz.isInstance($) && validator.test((V) $)), context) {
+                @Override
+                public Object correct(Object value) {
+                    if (!(value instanceof List)) {
+                        return getDefault();
+                    }
+                    List<?> list = Lists.newArrayList((List<?>) value);
+                    if (!list.isEmpty()) {
+                        list.removeIf($ -> !clazz.isInstance($) || !validator.test((V) $));
+                        if (list.isEmpty())
+                            return getDefault();
+                    }
+                    return list;
+                }
+            };
+            if (!currentPath.isEmpty()) {
+                List<String> tmp = new ArrayList<>(currentPath.size() + path.size());
+                tmp.addAll(currentPath);
+                tmp.addAll(path);
+                path = tmp;
+            }
+            storage.set(path, valueSpec);
+            context = new BuilderContext();
+            return new ConfigValue<List<? extends V>>(this, path, defaultSupplier) {
+                @Override
+                protected List<? extends V> getRaw(Config config, List<String> path, Supplier<List<? extends V>> defaultSupplier) {
+                    List<?> raw = super.getRaw(config, path, defaultSupplier);
+                    return raw.stream()
+                        .map(o -> converter.get(o, clazz))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
+                }
+            };
         }
 
         //boolean
